@@ -14,7 +14,7 @@ This is the common workflow that we will use for every single feature/fix:
 
 1. **Document** - Document the feature in @context/current-feature.md.
 2. **Branch** - Create new branch for feature, fix, etc
-3. **Implement** - Implement the feature/fix that I create in @context/current-feature.md
+3. **Implement** - Implement the feature/fix that I create in @context/current-feature.md. implement one feature goal at a time, show me which goal is being implemented when you are asking permission to make changes.
 4. **Test** - Verify it works in the browser. Implement unit testing later. Run `npm run build` and fix any errors
 5. **Iterate** - Iterate and change things if needed
 6. **Commit** - Only after build passes and everything works
@@ -34,7 +34,7 @@ We will create a new branch for every feature/fix. Name branch **feature/[featur
 - Ask before committing (don't auto-commit)
 - Use conventional commit messages (feat:, fix:, chore:, etc.)
 - Keep commits focused (one feature/fix per commit)
-- Never put "Generated With Claude" in the commit messages
+- Never put "Generated With Claude" or similar notion in the commit messages
 
 ## When Stuck
 
