@@ -48,6 +48,7 @@ We will create a new branch for every feature/fix. Name branch **feature/[featur
 - Don't refactor unrelated code unless asked
 - Don't add "nice to have" features
 - Preserve existing patterns in the codebase
+- When updating current-feature.md status to completed, clear all the sections except for history and add the feature to history section in same file
 
 ## Code Review
 
