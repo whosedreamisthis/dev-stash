@@ -1,0 +1,219 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  // Prisma 7: the connection URL lives in prisma.config.ts
+}
+
+// ─────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────
+
+enum ContentType {
+  TEXT
+  URL
+  FILE
+}
+
+// ─────────────────────────────────────────────
+// Auth.js (NextAuth v5) models
+// ─────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String? // hashed; null for OAuth-only users
+
+  // Billing
+  isPro                  Boolean   @default(false)
+  stripeCustomerId       String?   @unique
+  stripeSubscriptionId   String?   @unique
+  stripeCurrentPeriodEnd DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accounts    Account[]
+  sessions    Session[]
+  items       Item[]
+  collections Collection[]
+  itemTypes   ItemType[]
+  tags        Tag[]
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+// ─────────────────────────────────────────────
+// DevStash models
+// ─────────────────────────────────────────────
+
+model ItemType {
+  id          String      @id @default(cuid())
+  name        String // "Snippet"
+  slug        String // "snippets" → /items/snippets
+  icon        String // Lucide icon name, e.g. "Code"
+  color       String // hex, e.g. "#3b82f6"
+  contentType ContentType
+  isSystem    Boolean     @default(false)
+  isProOnly   Boolean     @default(false)
+
+  userId String? // null for system types
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  items              Item[]
+  defaultCollections Collection[] @relation("CollectionDefaultType")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, slug])
+  @@index([userId])
+}
+
+model Item {
+  id          String      @id @default(cuid())
+  title       String
+  description String?
+  contentType ContentType
+
+  // TEXT
+  content  String? // markdown / code; null for files
+  language String? // optional, for syntax highlighting
+
+  // URL
+  url String?
+
+  // FILE
+  fileUrl      String? // R2 URL / key
+  fileName     String? // original filename
+  fileSize     Int? // bytes
+  fileMimeType String?
+
+  isFavorite Boolean   @default(false)
+  isPinned   Boolean   @default(false)
+  lastUsedAt DateTime?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  itemTypeId String
+  itemType   ItemType @relation(fields: [itemTypeId], references: [id])
+
+  collections ItemCollection[]
+  tags        ItemTag[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([userId, itemTypeId])
+  @@index([userId, isPinned])
+  @@index([userId, lastUsedAt])
+  @@index([itemTypeId])
+}
+
+model Collection {
+  id          String  @id @default(cuid())
+  name        String // "React Hooks", "Prototype Prompts"
+  description String?
+  isFavorite  Boolean @default(false)
+
+  // Used to color the card when the collection has no items yet
+  defaultTypeId String?
+  defaultType   ItemType? @relation("CollectionDefaultType", fields: [defaultTypeId], references: [id], onDelete: SetNull)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  items ItemCollection[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([defaultTypeId])
+}
+
+model ItemCollection {
+  itemId       String
+  collectionId String
+  addedAt      DateTime @default(now())
+
+  item       Item       @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  @@id([itemId, collectionId])
+  @@index([collectionId])
+}
+
+model Tag {
+  id   String @id @default(cuid())
+  name String
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  items ItemTag[]
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, name])
+}
+
+model ItemTag {
+  itemId String
+  tagId  String
+
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([itemId, tagId])
+  @@index([tagId])
+}
