@@ -35,7 +35,7 @@ export function Sidebar({ onNavigate }: SidebarProps) {
         <span className="text-lg font-semibold">DevStash</span>
       </div>
 
-      <nav className="flex-1 overflow-y-auto">
+      <nav className="scrollbar-none flex-1 overflow-y-auto">
         <SidebarSection title="Types">
           {itemTypes.map((type) => {
             const Icon = ITEM_TYPE_ICONS[type.icon];

@@ -2,19 +2,31 @@
 
 <!-- Feature name and short description -->
 
+**Dashboard UI Phase 3** — Build the dashboard main area (phase 3 of 3), using mock data imported directly from `src/lib/mock-data.ts` until the database is implemented.
+
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- The main area to the right of the sidebar
+- Recent collections
+- Pinned items
+- 10 recent items
+- 4 stats cards at the top: number of items, collections, favorite items and favorite collections (not in the screenshot)
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- Match the layout in `context/screenshots/dashboard-ui-main.png`.
+- Import mock data directly from `src/lib/mock-data.ts` for now (the spec says `mock-data.js`, but the file is TypeScript).
+- References: `context/project-overview.md`, `context/features/dashboard-phase-1-spec.md`, `context/features/dashboard-phase-2-spec.md`.
 
 ## History
 

@@ -128,3 +128,12 @@
     @apply font-sans;
     }
 }
+
+/* Hide the scrollbar but keep the element scrollable */
+@utility scrollbar-none {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
