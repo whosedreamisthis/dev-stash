@@ -1,5 +1,5 @@
 import { Pin, Star } from "lucide-react";
-import type { MockItem, MockItemType } from "@/lib/mock-data";
+import type { ItemSummary } from "@/types/items";
 import {
   ITEM_TYPE_BORDER_COLORS,
   ITEM_TYPE_ICONS,
@@ -8,8 +8,7 @@ import {
 import { cn } from "@/lib/utils";
 
 interface ItemCardProps {
-  item: MockItem;
-  type: MockItemType;
+  item: ItemSummary;
 }
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
@@ -18,7 +17,8 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
   timeZone: "UTC",
 });
 
-export function ItemCard({ item, type }: ItemCardProps) {
+export function ItemCard({ item }: ItemCardProps) {
+  const { type } = item;
   const Icon = ITEM_TYPE_ICONS[type.icon];
 
   return (
@@ -29,7 +29,12 @@ export function ItemCard({ item, type }: ItemCardProps) {
       )}
     >
       <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted">
-        <Icon className={cn("size-5", ITEM_TYPE_TEXT_COLORS[type.slug])} />
+        {Icon && (
+          <Icon
+            aria-label={type.name}
+            className={cn("size-5", ITEM_TYPE_TEXT_COLORS[type.slug])}
+          />
+        )}
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
@@ -41,9 +46,11 @@ export function ItemCard({ item, type }: ItemCardProps) {
             <Star className="size-4 shrink-0 fill-yellow-400 text-yellow-400" />
           )}
         </div>
-        <p className="mt-1 truncate text-sm text-muted-foreground">
-          {item.description}
-        </p>
+        {item.description && (
+          <p className="mt-1 truncate text-sm text-muted-foreground">
+            {item.description}
+          </p>
+        )}
         {item.tags.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-2">
             {item.tags.map((tag) => (
@@ -58,10 +65,10 @@ export function ItemCard({ item, type }: ItemCardProps) {
         )}
       </div>
       <time
-        dateTime={item.createdAt}
+        dateTime={item.createdAt.toISOString()}
         className="shrink-0 text-xs text-muted-foreground"
       >
-        {dateFormatter.format(new Date(item.createdAt))}
+        {dateFormatter.format(item.createdAt)}
       </time>
     </article>
   );
