@@ -1,18 +1,12 @@
 import Link from "next/link";
 import { CollectionCard } from "@/components/dashboard/CollectionCard";
-import { collections, itemTypes, type MockItemType } from "@/lib/mock-data";
+import type { CollectionSummary } from "@/types/collections";
 
-const RECENT_COLLECTIONS_LIMIT = 6;
-
-const typesById = new Map(itemTypes.map((type) => [type.id, type]));
-
-function getCollectionTypes(typeIds: string[]): MockItemType[] {
-  return typeIds.flatMap((id) => typesById.get(id) ?? []);
+interface RecentCollectionsProps {
+  collections: CollectionSummary[];
 }
 
-export function RecentCollections() {
-  const recent = collections.slice(0, RECENT_COLLECTIONS_LIMIT);
-
+export function RecentCollections({ collections }: RecentCollectionsProps) {
   return (
     <section>
       <div className="mb-4 flex items-center justify-between">
@@ -24,15 +18,15 @@ export function RecentCollections() {
           View all
         </Link>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {recent.map((collection) => (
-          <CollectionCard
-            key={collection.id}
-            collection={collection}
-            types={getCollectionTypes(collection.typeIds)}
-          />
-        ))}
-      </div>
+      {collections.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No collections yet.</p>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {collections.map((collection) => (
+            <CollectionCard key={collection.id} collection={collection} />
+          ))}
+        </div>
+      )}
     </section>
   );
 }

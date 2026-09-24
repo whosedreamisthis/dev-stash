@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Star } from "lucide-react";
-import type { MockCollection, MockItemType } from "@/lib/mock-data";
+import type { CollectionSummary } from "@/types/collections";
 import {
   ITEM_TYPE_BORDER_COLORS,
   ITEM_TYPE_ICONS,
@@ -9,13 +9,11 @@ import {
 import { cn } from "@/lib/utils";
 
 interface CollectionCardProps {
-  collection: MockCollection;
-  types: MockItemType[];
+  collection: CollectionSummary;
 }
 
-export function CollectionCard({ collection, types }: CollectionCardProps) {
-  // Mock data lists the collection's most common type first
-  const mainType = types[0];
+export function CollectionCard({ collection }: CollectionCardProps) {
+  const { mainType, types } = collection;
 
   return (
     <Link
@@ -33,22 +31,24 @@ export function CollectionCard({ collection, types }: CollectionCardProps) {
           )}
         </div>
         <p className="text-sm text-muted-foreground">
-          {collection.itemCount} items
+          {collection.itemCount} {collection.itemCount === 1 ? "item" : "items"}
         </p>
       </div>
-      <p className="line-clamp-2 text-sm text-muted-foreground">
-        {collection.description}
-      </p>
+      {collection.description && (
+        <p className="line-clamp-2 text-sm text-muted-foreground">
+          {collection.description}
+        </p>
+      )}
       <div className="flex items-center gap-2">
         {types.map((type) => {
           const Icon = ITEM_TYPE_ICONS[type.icon];
-          return (
+          return Icon ? (
             <Icon
               key={type.id}
               aria-label={type.name}
               className={cn("size-4", ITEM_TYPE_TEXT_COLORS[type.slug])}
             />
-          );
+          ) : null;
         })}
       </div>
     </Link>
