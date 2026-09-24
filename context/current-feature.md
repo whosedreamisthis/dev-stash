@@ -17,3 +17,5 @@
 ## History
 
 <!-- Keep this updated. Earliest to latest -->
+
+- **Initial setup:** Next.js 16 app created with Create Next App (React 19, TypeScript, Tailwind CSS v4, ESLint). Boilerplate removed and landing page reduced to a placeholder heading.
