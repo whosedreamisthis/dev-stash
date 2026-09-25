@@ -1,43 +1,20 @@
-# Current Feature: Auth Credentials - Email/Password Provider
+# Current Feature
 
 <!-- Feature name and short description -->
-
-Add a Credentials provider for email/password sign-in, plus a registration API route.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- Hash passwords with `bcryptjs` (already installed)
-- Confirm the `password` field exists on the `User` model (it already does — no migration needed)
-- Add a Credentials provider placeholder to `src/auth.config.ts` (`authorize: () => null`)
-- Override the Credentials provider in `src/auth.ts` with real bcrypt validation
-- Create `POST /api/auth/register`:
-  - Accept `name`, `email`, `password`, `confirmPassword`
-  - Validate that the passwords match
-  - Check whether the user already exists
-  - Hash the password with bcryptjs
-  - Create the user in the database
-  - Return a success or error response
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Split pattern: `auth.config.ts` stays edge-safe with a placeholder `authorize`; `auth.ts` replaces it with the bcrypt-backed version.
-- Testing:
-  1. Register via curl: `curl -X POST http://localhost:3000/api/auth/register -H "Content-Type: application/json" -d '{"name":"Test","email":"test@test.com","password":"password123","confirmPassword":"password123"}'`
-  2. Go to `/api/auth/signin`
-  3. Sign in with email/password
-  4. Verify redirect to `/dashboard`
-  5. Verify GitHub OAuth still works
-- Reference: https://authjs.dev/getting-started/authentication/credentials
 
 ## History
 
@@ -54,3 +31,4 @@ In Progress
 - **Stats & Sidebar:** Replaced the sidebar's mock data with data from Neon via Prisma. The dashboard layout fetches the sidebar data per request and passes it through `DashboardShell` to `Sidebar` (the user is reduced to name, email and image so no sensitive fields reach the client). Added `getSidebarItemTypes` to `src/lib/db/items.ts` (system types with the user's item counts) and `getSidebarCollections` to `src/lib/db/collections.ts` (all favorites plus the 5 most recently updated other collections, sharing a `toCollectionSummary` helper with `getRecentCollections`). Favorite collections keep their star, recent collections show a circle colored by their most-used item type (new `ITEM_TYPE_BG_COLORS`), empty groups are hidden, and a "View all collections" link goes to `/collections`. `getDemoUser` is wrapped in React `cache` so the layout and page share one lookup. Added `src/types/sidebar.ts`. The seed now marks 2 pinned items, 4 favorite items and 2 favorite collections. `src/lib/mock-data.ts` is no longer imported.
 - **Add Pro Badge to Sidebar:** Added the shadcn/ui Badge component and a subtle, uppercase PRO badge (outline style, muted 10px text) between the type name and item count for Pro-only types in the sidebar (Files and Images). `getSidebarItemTypes` now selects `isProOnly`, added to `SidebarItemType`, so the badge comes from the database flag instead of hard-coded type names.
 - **Auth Setup - NextAuth + GitHub Provider:** Added Auth.js (`next-auth@beta`) with `@auth/prisma-adapter` and GitHub OAuth using the split config pattern for edge compatibility: `src/auth.config.ts` (GitHub provider only) and `src/auth.ts` (Prisma adapter on the shared Neon client, JWT sessions, and a session callback that sets `session.user.id` from `token.sub`). Added the `/api/auth/[...nextauth]` route handler, a Next.js 16 proxy in `src/proxy.ts` that guards `/dashboard/:path*` and redirects signed-out users to NextAuth's default sign-in page with a `callbackUrl`, and `src/types/next-auth.d.ts` extending `Session.user` with `id`. The dashboard still reads data for the demo user.
+- **Auth Credentials - Email/Password Provider:** Added email/password sign-in with the Auth.js Credentials provider in the split config pattern: `src/auth.config.ts` has an edge-safe placeholder (`authorize` returns `null`) and `src/auth.ts` swaps it for a provider that validates input with Zod, looks the user up by email and checks the password with bcryptjs, returning only id, name, email and image. Added `POST /api/auth/register` (name, email, password, confirmPassword), which validates input, returns 409 when the email is taken (including the `P2002` race between the check and the insert), hashes the password with 12 bcrypt rounds and creates the user, using the `{ success, data, error }` response pattern. Shared Zod schemas live in `src/lib/validations/auth.ts` (emails trimmed and lowercased, passwords 8–72 characters). Added `zod` as a direct dependency. The `User.password` column already existed, so no migration was needed. There is no sign-up page yet.
