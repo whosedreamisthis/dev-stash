@@ -1,41 +1,20 @@
-# Current Feature: Auth Setup - NextAuth + GitHub Provider
+# Current Feature
 
 <!-- Feature name and short description -->
-
-Set up NextAuth v5 with the Prisma adapter and GitHub OAuth, using NextAuth's default pages for testing.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- Install NextAuth v5 (`next-auth@beta`) and `@auth/prisma-adapter`
-- Set up the split auth config pattern for edge compatibility:
-  - `src/auth.config.ts` - edge-compatible config (providers only, no adapter)
-  - `src/auth.ts` - full config with the Prisma adapter and JWT session strategy
-- Add the GitHub OAuth provider
-- Add `src/app/api/auth/[...nextauth]/route.ts` exporting the handlers from `auth.ts`
-- Protect `/dashboard/*` routes with the Next.js 16 proxy in `src/proxy.ts`
-- Redirect unauthenticated users to sign-in
-- Extend the Session type with `user.id` in `src/types/next-auth.d.ts`
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Use Context7 to verify the newest Auth.js config and conventions.
-- Use `next-auth@beta` (not `@latest`, which installs v4).
-- The proxy file must be at `src/proxy.ts` (same level as `app/`) and use a named export: `export const proxy = auth(...)`, not a default export.
-- Use `session: { strategy: 'jwt' }` with the split config pattern.
-- Don't set a custom `pages.signIn`; use NextAuth's default sign-in page.
-- Environment variables: `AUTH_SECRET`, `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET`.
-- Testing: visit `/dashboard` (should redirect to sign-in), click "Sign in with GitHub", and verify the redirect back to `/dashboard` after auth.
-- References: [Edge compatibility](https://authjs.dev/getting-started/installation#edge-compatibility), [Prisma adapter](https://authjs.dev/getting-started/adapters/prisma).
 
 ## History
 
@@ -51,3 +30,4 @@ In Progress
 - **Dashboard Items:** Replaced the mock pinned and recent items and the item stats on the dashboard with data from Neon via Prisma. Added `src/lib/db/items.ts` (`getPinnedItems`, `getRecentItems` ordered by last used with a creation-date fallback, `getItemStats`) and `src/types/items.ts`. Item cards take their icon and border color from the item type and keep tags, pin/favorite markers and dates; the Pinned section is hidden when there are no pinned items. All dashboard queries run in parallel, and the main area no longer uses mock data (the sidebar still does).
 - **Stats & Sidebar:** Replaced the sidebar's mock data with data from Neon via Prisma. The dashboard layout fetches the sidebar data per request and passes it through `DashboardShell` to `Sidebar` (the user is reduced to name, email and image so no sensitive fields reach the client). Added `getSidebarItemTypes` to `src/lib/db/items.ts` (system types with the user's item counts) and `getSidebarCollections` to `src/lib/db/collections.ts` (all favorites plus the 5 most recently updated other collections, sharing a `toCollectionSummary` helper with `getRecentCollections`). Favorite collections keep their star, recent collections show a circle colored by their most-used item type (new `ITEM_TYPE_BG_COLORS`), empty groups are hidden, and a "View all collections" link goes to `/collections`. `getDemoUser` is wrapped in React `cache` so the layout and page share one lookup. Added `src/types/sidebar.ts`. The seed now marks 2 pinned items, 4 favorite items and 2 favorite collections. `src/lib/mock-data.ts` is no longer imported.
 - **Add Pro Badge to Sidebar:** Added the shadcn/ui Badge component and a subtle, uppercase PRO badge (outline style, muted 10px text) between the type name and item count for Pro-only types in the sidebar (Files and Images). `getSidebarItemTypes` now selects `isProOnly`, added to `SidebarItemType`, so the badge comes from the database flag instead of hard-coded type names.
+- **Auth Setup - NextAuth + GitHub Provider:** Added Auth.js (`next-auth@beta`) with `@auth/prisma-adapter` and GitHub OAuth using the split config pattern for edge compatibility: `src/auth.config.ts` (GitHub provider only) and `src/auth.ts` (Prisma adapter on the shared Neon client, JWT sessions, and a session callback that sets `session.user.id` from `token.sub`). Added the `/api/auth/[...nextauth]` route handler, a Next.js 16 proxy in `src/proxy.ts` that guards `/dashboard/:path*` and redirects signed-out users to NextAuth's default sign-in page with a `callbackUrl`, and `src/types/next-auth.d.ts` extending `Session.user` with `id`. The dashboard still reads data for the demo user.
