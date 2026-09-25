@@ -30,6 +30,16 @@ export const ITEM_TYPE_TEXT_COLORS: Record<string, string> = {
   links: "text-[#10b981]",
 };
 
+export const ITEM_TYPE_BG_COLORS: Record<string, string> = {
+  snippets: "bg-[#3b82f6]",
+  prompts: "bg-[#8b5cf6]",
+  commands: "bg-[#f97316]",
+  notes: "bg-[#fde047]",
+  files: "bg-[#6b7280]",
+  images: "bg-[#ec4899]",
+  links: "bg-[#10b981]",
+};
+
 export const ITEM_TYPE_BORDER_COLORS: Record<string, string> = {
   snippets: "border-l-[#3b82f6]",
   prompts: "border-l-[#8b5cf6]",

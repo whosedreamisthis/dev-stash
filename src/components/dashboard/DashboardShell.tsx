@@ -5,12 +5,14 @@ import { Sidebar } from "@/components/dashboard/Sidebar";
 import { TopBar } from "@/components/dashboard/TopBar";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import type { SidebarData } from "@/types/sidebar";
 
 interface DashboardShellProps {
+  sidebar: SidebarData;
   children: React.ReactNode;
 }
 
-export function DashboardShell({ children }: DashboardShellProps) {
+export function DashboardShell({ sidebar, children }: DashboardShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -22,13 +24,13 @@ export function DashboardShell({ children }: DashboardShellProps) {
           sidebarOpen ? "w-64" : "w-0 border-r-0"
         )}
       >
-        <Sidebar />
+        <Sidebar data={sidebar} />
       </aside>
 
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetContent side="left" className="w-64 gap-0 p-0 md:hidden">
           <SheetTitle className="sr-only">Navigation</SheetTitle>
-          <Sidebar onNavigate={() => setMobileOpen(false)} />
+          <Sidebar data={sidebar} onNavigate={() => setMobileOpen(false)} />
         </SheetContent>
       </Sheet>
 

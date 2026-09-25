@@ -11,6 +11,11 @@ export interface ItemSummary {
   type: CollectionItemType;
 }
 
+export interface SidebarItemType extends CollectionItemType {
+  // Number of the user's items of this type
+  count: number;
+}
+
 export interface ItemStats {
   total: number;
   favorites: number;

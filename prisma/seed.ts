@@ -15,12 +15,15 @@ interface SeedItem {
   content?: string;
   language?: string;
   url?: string;
+  isPinned?: boolean;
+  isFavorite?: boolean;
 }
 
 interface SeedCollection {
   name: string;
   description: string;
   defaultType: TypeSlug;
+  isFavorite?: boolean;
   items: SeedItem[];
 }
 
@@ -45,12 +48,14 @@ const COLLECTIONS: SeedCollection[] = [
     name: "React Patterns",
     description: "Reusable React patterns and hooks",
     defaultType: "snippets",
+    isFavorite: true,
     items: [
       {
         type: "snippets",
         title: "useDebounce & useLocalStorage hooks",
         description: "Debounce a changing value and persist state to localStorage",
         language: "typescript",
+        isPinned: true,
         content: `import { useEffect, useState } from "react";
 
 export function useDebounce<T>(value: T, delay = 300): T {
@@ -82,6 +87,7 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
         title: "Context provider & compound components",
         description: "Typed context provider with a compound Tabs component",
         language: "typescript",
+        isFavorite: true,
         content: `import { createContext, useContext, useState, type ReactNode } from "react";
 
 interface TabsContextValue {
@@ -150,11 +156,14 @@ export function groupBy<T, K extends PropertyKey>(list: T[], getKey: (item: T) =
     name: "AI Workflows",
     description: "AI prompts and workflow automations",
     defaultType: "prompts",
+    isFavorite: true,
     items: [
       {
         type: "prompts",
         title: "Code review",
         description: "Focused review of a diff, grouped by severity",
+        isPinned: true,
+        isFavorite: true,
         content: `You are a senior engineer reviewing a pull request.
 
 Review the diff below for:
@@ -279,6 +288,7 @@ CMD ["npm", "start"]
         description: "Move HEAD back one commit and keep the changes staged",
         language: "bash",
         content: "git reset --soft HEAD~1",
+        isFavorite: true,
       },
       {
         type: "commands",
@@ -313,6 +323,7 @@ CMD ["npm", "start"]
         title: "Tailwind CSS Docs",
         description: "Utility classes and configuration reference for Tailwind CSS",
         url: "https://tailwindcss.com/docs",
+        isFavorite: true,
       },
       {
         type: "links",
@@ -385,6 +396,7 @@ async function seedCollections(userId: string, typeIds: Map<TypeSlug, string>) {
       data: {
         name: collection.name,
         description: collection.description,
+        isFavorite: collection.isFavorite ?? false,
         userId,
         defaultTypeId: typeIds.get(collection.defaultType),
       },
@@ -400,6 +412,8 @@ async function seedCollections(userId: string, typeIds: Map<TypeSlug, string>) {
           content: item.content ?? null,
           language: item.language ?? null,
           url: item.url ?? null,
+          isPinned: item.isPinned ?? false,
+          isFavorite: item.isFavorite ?? false,
           userId,
           itemTypeId: typeIds.get(item.type)!,
           collections: { create: { collectionId: saved.id } },

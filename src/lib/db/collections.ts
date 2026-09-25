@@ -1,8 +1,10 @@
+import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import type {
   CollectionItemType,
   CollectionStats,
   CollectionSummary,
+  SidebarCollections,
 } from "@/types/collections";
 
 const TYPE_SELECT = {
@@ -12,6 +14,15 @@ const TYPE_SELECT = {
   icon: true,
   color: true,
 } as const;
+
+const COLLECTION_SUMMARY_INCLUDE = {
+  defaultType: { select: TYPE_SELECT },
+  items: { select: { item: { select: { itemType: { select: TYPE_SELECT } } } } },
+} satisfies Prisma.CollectionInclude;
+
+type CollectionWithRelations = Prisma.CollectionGetPayload<{
+  include: typeof COLLECTION_SUMMARY_INCLUDE;
+}>;
 
 function rankTypesByUsage(types: CollectionItemType[]): CollectionItemType[] {
   const counts = new Map<string, { type: CollectionItemType; count: number }>();
@@ -27,6 +38,24 @@ function rankTypesByUsage(types: CollectionItemType[]): CollectionItemType[] {
     .map(({ type }) => type);
 }
 
+function toCollectionSummary(
+  collection: CollectionWithRelations
+): CollectionSummary {
+  const types = rankTypesByUsage(
+    collection.items.map(({ item }) => item.itemType)
+  );
+
+  return {
+    id: collection.id,
+    name: collection.name,
+    description: collection.description,
+    isFavorite: collection.isFavorite,
+    itemCount: collection.items.length,
+    types,
+    mainType: types[0] ?? collection.defaultType,
+  };
+}
+
 export async function getRecentCollections(
   userId: string,
   limit = 6
@@ -35,27 +64,34 @@ export async function getRecentCollections(
     where: { userId },
     orderBy: { updatedAt: "desc" },
     take: limit,
-    include: {
-      defaultType: { select: TYPE_SELECT },
-      items: { select: { item: { select: { itemType: { select: TYPE_SELECT } } } } },
-    },
+    include: COLLECTION_SUMMARY_INCLUDE,
   });
 
-  return collections.map((collection) => {
-    const types = rankTypesByUsage(
-      collection.items.map(({ item }) => item.itemType)
-    );
+  return collections.map(toCollectionSummary);
+}
 
-    return {
-      id: collection.id,
-      name: collection.name,
-      description: collection.description,
-      isFavorite: collection.isFavorite,
-      itemCount: collection.items.length,
-      types,
-      mainType: types[0] ?? collection.defaultType,
-    };
-  });
+export async function getSidebarCollections(
+  userId: string,
+  recentLimit = 5
+): Promise<SidebarCollections> {
+  const [favorites, recent] = await Promise.all([
+    prisma.collection.findMany({
+      where: { userId, isFavorite: true },
+      orderBy: { name: "asc" },
+      include: COLLECTION_SUMMARY_INCLUDE,
+    }),
+    prisma.collection.findMany({
+      where: { userId, isFavorite: false },
+      orderBy: { updatedAt: "desc" },
+      take: recentLimit,
+      include: COLLECTION_SUMMARY_INCLUDE,
+    }),
+  ]);
+
+  return {
+    favorites: favorites.map(toCollectionSummary),
+    recent: recent.map(toCollectionSummary),
+  };
 }
 
 export async function getCollectionStats(userId: string): Promise<CollectionStats> {

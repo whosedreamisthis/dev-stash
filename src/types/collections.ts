@@ -18,6 +18,11 @@ export interface CollectionSummary {
   mainType: CollectionItemType | null;
 }
 
+export interface SidebarCollections {
+  favorites: CollectionSummary[];
+  recent: CollectionSummary[];
+}
+
 export interface CollectionStats {
   total: number;
   favorites: number;

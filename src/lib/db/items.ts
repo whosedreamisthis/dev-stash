@@ -1,11 +1,17 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
-import type { ItemStats, ItemSummary } from "@/types/items";
+import type { ItemStats, ItemSummary, SidebarItemType } from "@/types/items";
+
+const ITEM_TYPE_SELECT = {
+  id: true,
+  name: true,
+  slug: true,
+  icon: true,
+  color: true,
+} satisfies Prisma.ItemTypeSelect;
 
 const ITEM_SUMMARY_INCLUDE = {
-  itemType: {
-    select: { id: true, name: true, slug: true, icon: true, color: true },
-  },
+  itemType: { select: ITEM_TYPE_SELECT },
   tags: { select: { tag: { select: { name: true } } } },
 } satisfies Prisma.ItemInclude;
 
@@ -61,4 +67,20 @@ export async function getItemStats(userId: string): Promise<ItemStats> {
   ]);
 
   return { total, favorites };
+}
+
+export async function getSidebarItemTypes(
+  userId: string
+): Promise<SidebarItemType[]> {
+  const types = await prisma.itemType.findMany({
+    where: { isSystem: true },
+    // System types are seeded in display order
+    orderBy: { createdAt: "asc" },
+    select: {
+      ...ITEM_TYPE_SELECT,
+      _count: { select: { items: { where: { userId } } } },
+    },
+  });
+
+  return types.map(({ _count, ...type }) => ({ ...type, count: _count.items }));
 }
