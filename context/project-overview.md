@@ -394,6 +394,7 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([provider, providerAccountId])
+  @@index([userId])
 }
 
 model Session {
@@ -405,6 +406,8 @@ model Session {
   updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model VerificationToken {
@@ -481,6 +484,7 @@ model Item {
   @@index([userId, itemTypeId])
   @@index([userId, isPinned])
   @@index([userId, lastUsedAt])
+  @@index([itemTypeId])
 }
 
 model Collection {
@@ -502,6 +506,7 @@ model Collection {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+  @@index([defaultTypeId])
 }
 
 model ItemCollection {
