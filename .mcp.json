@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "neon": {
+      "command": "cmd.exe",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@neondatabase/mcp-server-neon",
+        "start",
+        "napi_sk095l025fmuz1qy537umca1db3wvn6scu1l0x3w0yqdzl8pr9mddvh5lvhpnkzi"
+      ]
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest"
+      ],
+      "env": {}
+    }
+  }
+}
