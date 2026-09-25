@@ -78,6 +78,7 @@ export async function getSidebarItemTypes(
     orderBy: { createdAt: "asc" },
     select: {
       ...ITEM_TYPE_SELECT,
+      isProOnly: true,
       _count: { select: { items: { where: { userId } } } },
     },
   });

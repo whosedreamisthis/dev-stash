@@ -1,20 +1,30 @@
-# Current Feature
+# Current Feature: Add Pro Badge to Sidebar
 
 <!-- Feature name and short description -->
+
+Add a PRO badge next to the Files and Images item types in the sidebar.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- Add the shadcn/ui Badge component
+- Show a PRO badge on the Files and Images types in the sidebar
+- Keep the badge clean and subtle
+- Display the label as uppercase "PRO"
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- Spec: `context/features/add-pro-badge-sidebar.md`
+- Files and Images are the Pro-only system types (`isProOnly: true` in the seed). The sidebar type data (`getSidebarItemTypes`) doesn't include `isProOnly` yet, so add it there and show the badge based on that flag instead of hard-coding the type names.
 
 ## History
 

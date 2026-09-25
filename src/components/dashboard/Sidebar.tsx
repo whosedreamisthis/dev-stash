@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Folder, Layers, Settings, Star } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { SidebarSection } from "@/components/dashboard/SidebarSection";
 import {
   ITEM_TYPE_BG_COLORS,
@@ -63,6 +64,14 @@ export function Sidebar({ data, onNavigate }: SidebarProps) {
                   <Icon className={cn("size-4", ITEM_TYPE_TEXT_COLORS[type.slug])} />
                 )}
                 <span className="flex-1 capitalize">{type.slug}</span>
+                {type.isProOnly && (
+                  <Badge
+                    variant="outline"
+                    className="h-4 px-1.5 text-[10px] font-semibold tracking-wider text-muted-foreground"
+                  >
+                    PRO
+                  </Badge>
+                )}
                 <span className="text-xs text-muted-foreground">
                   {type.count}
                 </span>

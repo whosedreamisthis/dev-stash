@@ -14,6 +14,7 @@ export interface ItemSummary {
 export interface SidebarItemType extends CollectionItemType {
   // Number of the user's items of this type
   count: number;
+  isProOnly: boolean;
 }
 
 export interface ItemStats {
