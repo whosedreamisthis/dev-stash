@@ -2,36 +2,19 @@
 
 <!-- Feature name and short description -->
 
-Forgot Password - let credentials users reset a forgotten password through an emailed link, using the existing `VerificationToken` model for reset tokens.
-
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- Add a "Forgot password?" link to the sign-in form (next to the password field) that goes to `/forgot-password`
-- `/forgot-password` page: email form backed by a Zod-validated server action that sends a reset link, and always shows the same "If an account exists, we've sent a link" message so it doesn't reveal whether an account exists
-- Only send reset links to users who have a password (credentials users); GitHub-only accounts get nothing
-- Store reset tokens in the existing `VerificationToken` table: random 32-byte token, only its SHA-256 hash stored, 1-hour expiry, earlier reset tokens for the email replaced, and a one-minute resend cooldown
-- Add a password reset email to `src/lib/email.ts`, with the link built from `AUTH_URL` the same way as verification links
-- `/reset-password?token=...` page: new password + confirm password form (validated with a shared Zod schema, same 8–72 character rule), showing an invalid/expired message when the token is bad
-- Resetting hashes the new password with 12 bcrypt rounds, updates the user and deletes the email's reset tokens in one transaction, then redirects to `/sign-in` with a "Password updated" banner
-- Signed-in users visiting either page are redirected to `/dashboard`, like the other auth pages
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- No migration needed: `VerificationToken` already exists. Reset tokens use a prefixed identifier (e.g. `password-reset:<email>`) so they never collide with email verification tokens, which use the plain email and are deleted by identifier.
-- Reuse the token hashing and app URL helpers from `src/lib/verification.ts` (extract them to a shared helper if needed) rather than duplicating them.
-- Completing a reset also marks the email as verified if it wasn't, since the user proved they own the inbox.
-- Sending the reset email is independent of the `EMAIL_VERIFICATION_ENABLED` flag, but still needs a working `RESEND_API_KEY`; log failures and show the same generic message.
-- Put the pages in the `(auth)` route group and reuse `AuthCard` and `FormField`.
 
 ## History
 
@@ -52,3 +35,4 @@ In Progress
 - **Auth UI - Sign In, Register & Sign Out:** Replaced the NextAuth default pages with custom `/sign-in` and `/register` pages, grouped under the `(auth)` route group; `pages.signIn` and the `/dashboard` proxy now point to `/sign-in`. Added server actions in `src/actions/auth.ts` for credentials sign-in (Zod validation, "Invalid email or password" on failure), GitHub sign-in and sign-out, with `callbackUrl` limited to same-site relative paths. The sign-in page has a GitHub button, an email/password form, Auth.js error messages and an "Account created" banner; the register page validates with the shared `registerSchema` (per-field errors), posts to `/api/auth/register`, redirects to `/sign-in?registered=1`, and also offers "Sign up with GitHub". Both pages redirect signed-in users to `/dashboard`. Added shared auth components (`AuthCard`, `FormField`, `SignInForm`, `RegisterForm`, `GitHubAuthForm`), a reusable `UserAvatar` (image or initials), and a sidebar `UserMenu` showing the session user's avatar, name and email with a menu for Profile (`/profile`, not built yet) and Sign out. The sidebar user now comes from the session, while item types and collections still come from the demo user. Added the shadcn dropdown-menu and label components and disabled Next.js dev indicators.
 - **Email Verification on Register:** Users who register with email and password must verify their email before signing in with credentials. Added `resend` and `src/lib/email.ts` (verification email from a configurable `EMAIL_FROM`, defaulting to Resend's test sender; the client is created on first use so a missing `RESEND_API_KEY` doesn't break imports or the build). Added `src/lib/verification.ts`: random 32-byte tokens stored as SHA-256 hashes in the existing `VerificationToken` table with a 24-hour expiry, links built from `AUTH_URL` (request headers only in development, to prevent host header poisoning), unsent tokens removed on failure, and a one-minute resend cooldown. `POST /api/auth/register` sends the link and reports `emailSent` while keeping the account if sending fails. The new `/verify-email` route sets `User.emailVerified`, deletes the email's tokens and redirects to `/sign-in` with a verified, invalid or expired result. Credentials sign-in throws a custom `CredentialsSignin` error (`email_not_verified`) after the password matches; the sign-in form then shows a friendly message and a `ResendVerificationButton` backed by a Zod-validated `resendVerificationEmail` action that doesn't reveal whether an account exists. The sign-in page shows "Check your email", email-failed, verified, invalid and expired banners. The seed marks the demo user as verified on create and update. GitHub sign-in is unaffected and no migration was needed. `AUTH_URL` must be set in production.
 - **Email Verification Toggle:** Added a server-only `EMAIL_VERIFICATION_ENABLED` flag so email verification can be turned off while Resend has no verified domain. `isEmailVerificationEnabled()` in `src/lib/verification.ts` is the single check, and verification stays on unless the variable is exactly `"false"`. When off, `POST /api/auth/register` skips the token and email (and returns `verificationRequired: false`), credentials sign-in skips the `emailVerified` check, the resend action does nothing, and the register form redirects to `/sign-in?registered=ready` with "Account created. You can sign in now." Accounts created while it's off stay unverified. `EMAIL_VERIFICATION_ENABLED=false` was added to the local `.env`; the deployed app keeps verification on unless the variable is set there.
+- **Forgot Password:** Credentials users can reset a forgotten password through an emailed link. The sign-in form has a "Forgot password?" link to `/forgot-password`, whose Zod-validated `requestPasswordReset` action always shows the same message so it doesn't reveal whether an account exists. `src/lib/password-reset.ts` sends links only to users with a password, at most once a minute, storing 32-byte tokens as SHA-256 hashes in the existing `VerificationToken` table with a 1-hour expiry under a `password-reset:<email>` identifier so they never collide with email verification tokens; unsent tokens are removed. Added `sendPasswordResetEmail` to `src/lib/email.ts`. `/reset-password` checks the token before showing a new password form (shared `resetPasswordSchema`, 8–72 characters) and shows invalid or expired messages with a "Request a new link" link. Resetting deletes the token first inside an interactive transaction so links are single-use, saves the password with 12 bcrypt rounds, marks the email verified, and redirects to `/sign-in?reset=success` with a "Password updated" banner. Token helpers (`generateToken`, `hashToken`, `getAppUrl`, `wasRecentlySent`) moved to `src/lib/tokens.ts` and are shared with email verification, and `verifyEmailToken` now ignores reset tokens. The register and reset schemas share the new-password rule and passwords-match check. No migration was needed; existing JWT sessions are not revoked by a reset.
