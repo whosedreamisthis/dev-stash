@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { signInWithCredentials, type SignInResult } from "@/actions/auth";
 import { FormField } from "@/components/auth/FormField";
+import { ResendVerificationButton } from "@/components/auth/ResendVerificationButton";
 import { Button } from "@/components/ui/button";
 
 interface SignInFormProps {
@@ -46,6 +47,7 @@ export function SignInForm({ callbackUrl }: SignInFormProps) {
       <Button type="submit" size="lg" className="w-full" disabled={isPending}>
         {isPending ? "Signing in..." : "Sign in"}
       </Button>
+      {state.emailNotVerified && <ResendVerificationButton email={email} />}
     </form>
   );
 }

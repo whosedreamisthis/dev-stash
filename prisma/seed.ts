@@ -375,7 +375,7 @@ async function seedUser() {
 
   return prisma.user.upsert({
     where: { email: DEMO_USER.email },
-    update: { name: DEMO_USER.name, password, isPro: false },
+    update: { name: DEMO_USER.name, password, isPro: false, emailVerified: new Date() },
     create: {
       email: DEMO_USER.email,
       name: DEMO_USER.name,

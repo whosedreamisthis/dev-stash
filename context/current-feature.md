@@ -1,20 +1,38 @@
-# Current Feature
+# Current Feature: Email Verification on Register
 
 <!-- Feature name and short description -->
+
+Require users who register with email and password to verify their email address. After registering, they get an email (sent with Resend) with a verification link they must click before they can sign in with credentials.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- Install the `resend` package and add a small email helper in `src/lib/` that reads `RESEND_API_KEY` from `.env`
+- On successful registration (`POST /api/auth/register`), create a verification token (random, expiring, e.g. 24 hours) and email the user a verification link
+- Add a verification route (e.g. `/verify-email?token=...`) that checks the token, sets `User.emailVerified`, deletes the token and redirects to `/sign-in` with a success message
+- Handle invalid and expired tokens with a clear error message
+- Block credentials sign-in for users whose email is not verified, with a user-friendly error on the sign-in page ("Please verify your email…")
+- After registering, show a "Check your email" message instead of the current "Account created" banner
+- Let users request a new verification email (resend link) from the sign-in page or check-email message
+- GitHub OAuth sign-in is unaffected
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- The schema already has `User.emailVerified` and the Auth.js `VerificationToken` model (`identifier`, `token`, `expires`), so no migration should be needed. Store a hashed token in the database and send the raw token in the link.
+- Build the verification link from the request origin or an app URL env var (e.g. `AUTH_URL` / `NEXT_PUBLIC_APP_URL`) so it works locally and in production.
+- Without a verified domain, Resend's test sender (`onboarding@resend.dev`) only delivers to the Resend account owner's email address. Keep the "from" address configurable.
+- The seeded demo user (`demo@devstash.io`) should be marked verified in the seed so it can still sign in.
+- If sending the email fails, the account should still be created and the user should be able to request a new link.
+- Keep the Credentials verification check in `src/auth.ts` (Node runtime), not in the edge-safe `src/auth.config.ts`.
 
 ## History
 

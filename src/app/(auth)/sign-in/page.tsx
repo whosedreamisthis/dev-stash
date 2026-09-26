@@ -12,6 +12,19 @@ const AUTH_ERROR_MESSAGES: Record<string, string> = {
   AccessDenied: "Access was denied. Please try again.",
 };
 
+// Banners for ?registered=... (after sign-up) and ?verify=... (from the email link)
+const SUCCESS_MESSAGES: Record<string, string> = {
+  registered: "Account created. Check your email for a link to verify your address.",
+  verified: "Email verified. You can sign in now.",
+};
+
+const NOTICE_ERROR_MESSAGES: Record<string, string> = {
+  "email-failed":
+    "Account created, but we couldn't send the verification email. Sign in to request a new link.",
+  invalid: "This verification link is invalid or has already been used.",
+  expired: "This verification link has expired. Sign in to request a new one.",
+};
+
 function getParam(value: string | string[] | undefined) {
   return typeof value === "string" ? value : undefined;
 }
@@ -23,7 +36,17 @@ export default async function SignInPage({ searchParams }: PageProps<"/sign-in">
   const params = await searchParams;
   const callbackUrl = getParam(params.callbackUrl);
   const error = getParam(params.error);
-  const registered = getParam(params.registered) === "1";
+  const registered = getParam(params.registered);
+  const verify = getParam(params.verify);
+
+  const successMessage =
+    (registered === "1" && SUCCESS_MESSAGES.registered) ||
+    (verify === "verified" && SUCCESS_MESSAGES.verified) ||
+    undefined;
+  const noticeError =
+    (registered && NOTICE_ERROR_MESSAGES[registered]) ||
+    (verify && NOTICE_ERROR_MESSAGES[verify]) ||
+    undefined;
 
   return (
     <AuthCard
@@ -38,9 +61,14 @@ export default async function SignInPage({ searchParams }: PageProps<"/sign-in">
         </>
       }
     >
-      {registered && (
+      {successMessage && (
         <p className="rounded-md bg-emerald-500/10 px-3 py-2 text-sm text-emerald-500">
-          Account created. You can sign in now.
+          {successMessage}
+        </p>
+      )}
+      {noticeError && (
+        <p role="alert" className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          {noticeError}
         </p>
       )}
       {error && (

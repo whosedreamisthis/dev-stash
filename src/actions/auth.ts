@@ -1,10 +1,17 @@
 "use server";
 
-import { AuthError } from "next-auth";
-import { signIn, signOut } from "@/auth";
-import { signInSchema } from "@/lib/validations/auth";
+import { AuthError, CredentialsSignin } from "next-auth";
+import { EMAIL_NOT_VERIFIED, signIn, signOut } from "@/auth";
+import { resendVerificationSchema, signInSchema } from "@/lib/validations/auth";
+import { resendVerificationLink } from "@/lib/verification";
 
 export interface SignInResult {
+  success: boolean;
+  error?: string;
+  emailNotVerified?: boolean;
+}
+
+export interface ResendVerificationResult {
   success: boolean;
   error?: string;
 }
@@ -40,6 +47,13 @@ export async function signInWithCredentials(
     return { success: true };
   } catch (error) {
     // signIn redirects by throwing, so only AuthErrors are handled here
+    if (error instanceof CredentialsSignin && error.code === EMAIL_NOT_VERIFIED) {
+      return {
+        success: false,
+        error: "Please verify your email before signing in. Check your inbox for the link.",
+        emailNotVerified: true,
+      };
+    }
     if (error instanceof AuthError) {
       return {
         success: false,
@@ -50,6 +64,24 @@ export async function signInWithCredentials(
       };
     }
     throw error;
+  }
+}
+
+// Always reports success so the response doesn't reveal which emails have accounts
+export async function resendVerificationEmail(
+  email: string,
+): Promise<ResendVerificationResult> {
+  const parsed = resendVerificationSchema.safeParse({ email });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid email" };
+  }
+
+  try {
+    await resendVerificationLink(parsed.data.email);
+    return { success: true };
+  } catch (error) {
+    console.error("Resending verification email failed:", error);
+    return { success: false, error: "Something went wrong. Please try again." };
   }
 }
 

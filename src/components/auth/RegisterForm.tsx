@@ -12,6 +12,7 @@ type FieldErrors = Partial<Record<keyof RegisterValues, string>>;
 
 interface RegisterResponse {
   success: boolean;
+  data?: { emailSent: boolean };
   error?: string;
 }
 
@@ -63,7 +64,7 @@ export function RegisterForm() {
         setFormError(result.error ?? "Registration failed. Please try again.");
         return;
       }
-      router.push("/sign-in?registered=1");
+      router.push(`/sign-in?registered=${result.data?.emailSent ? "1" : "email-failed"}`);
     } catch {
       setFormError("Something went wrong. Please try again.");
     } finally {
