@@ -184,6 +184,12 @@ DATABASE_URL_UNPOOLED=     # direct — used by Prisma CLI / migrations
 AUTH_SECRET=
 AUTH_GITHUB_ID=
 AUTH_GITHUB_SECRET=
+AUTH_URL=                  # app URL for email links; required in production
+
+# Email (Resend)
+RESEND_API_KEY=
+EMAIL_FROM=                # sender on a Resend-verified domain
+EMAIL_VERIFICATION_ENABLED= # "false" turns verification off; on by default
 
 # Cloudflare R2
 R2_ACCOUNT_ID=
@@ -418,6 +424,15 @@ model VerificationToken {
   @@id([identifier, token])
 }
 
+// Fixed-window attempt counters for auth rate limiting, e.g. "sign-in:email:<email>"
+model RateLimit {
+  key       String   @id
+  count     Int
+  expiresAt DateTime
+
+  @@index([expiresAt])
+}
+
 // ─────────────────────────────────────────────
 // DevStash models
 // ─────────────────────────────────────────────
@@ -572,15 +587,19 @@ const systemTypes = [
 | Route | Purpose |
 | --- | --- |
 | `/` | Marketing / landing page |
-| `/sign-in`, `/sign-up` | Auth |
+| `/sign-in`, `/register` | Auth |
+| `/forgot-password`, `/reset-password` | Request and complete a password reset |
+| `/verify-email` | Email verification link handler |
 | `/dashboard` | Collections grid + recent / pinned items |
 | `/items/[type]` | All items of a type, e.g. `/items/snippets` |
 | `/collections` | All collections |
 | `/collections/[id]` | Items in a collection |
 | `/search?q=` | Search results |
-| `/settings` | Profile, theme, export |
+| `/profile` | User info, usage stats, change password, delete account |
+| `/settings` | Theme, export |
 | `/settings/billing` | Plan & Stripe customer portal |
 | `/api/auth/[...nextauth]` | Auth.js handlers |
+| `/api/auth/register` | Email/password registration |
 | `/api/uploads` | Presigned R2 upload URLs |
 | `/api/ai/*` | Tag suggestions, summaries, explain, prompt optimizer |
 | `/api/webhooks/stripe` | Stripe webhooks |
