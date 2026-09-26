@@ -1,38 +1,20 @@
-# Current Feature: Email Verification on Register
+# Current Feature
 
 <!-- Feature name and short description -->
-
-Require users who register with email and password to verify their email address. After registering, they get an email (sent with Resend) with a verification link they must click before they can sign in with credentials.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- Install the `resend` package and add a small email helper in `src/lib/` that reads `RESEND_API_KEY` from `.env`
-- On successful registration (`POST /api/auth/register`), create a verification token (random, expiring, e.g. 24 hours) and email the user a verification link
-- Add a verification route (e.g. `/verify-email?token=...`) that checks the token, sets `User.emailVerified`, deletes the token and redirects to `/sign-in` with a success message
-- Handle invalid and expired tokens with a clear error message
-- Block credentials sign-in for users whose email is not verified, with a user-friendly error on the sign-in page ("Please verify your email…")
-- After registering, show a "Check your email" message instead of the current "Account created" banner
-- Let users request a new verification email (resend link) from the sign-in page or check-email message
-- GitHub OAuth sign-in is unaffected
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- The schema already has `User.emailVerified` and the Auth.js `VerificationToken` model (`identifier`, `token`, `expires`), so no migration should be needed. Store a hashed token in the database and send the raw token in the link.
-- Build the verification link from the request origin or an app URL env var (e.g. `AUTH_URL` / `NEXT_PUBLIC_APP_URL`) so it works locally and in production.
-- Without a verified domain, Resend's test sender (`onboarding@resend.dev`) only delivers to the Resend account owner's email address. Keep the "from" address configurable.
-- The seeded demo user (`demo@devstash.io`) should be marked verified in the seed so it can still sign in.
-- If sending the email fails, the account should still be created and the user should be able to request a new link.
-- Keep the Credentials verification check in `src/auth.ts` (Node runtime), not in the edge-safe `src/auth.config.ts`.
 
 ## History
 
@@ -51,3 +33,4 @@ In Progress
 - **Auth Setup - NextAuth + GitHub Provider:** Added Auth.js (`next-auth@beta`) with `@auth/prisma-adapter` and GitHub OAuth using the split config pattern for edge compatibility: `src/auth.config.ts` (GitHub provider only) and `src/auth.ts` (Prisma adapter on the shared Neon client, JWT sessions, and a session callback that sets `session.user.id` from `token.sub`). Added the `/api/auth/[...nextauth]` route handler, a Next.js 16 proxy in `src/proxy.ts` that guards `/dashboard/:path*` and redirects signed-out users to NextAuth's default sign-in page with a `callbackUrl`, and `src/types/next-auth.d.ts` extending `Session.user` with `id`. The dashboard still reads data for the demo user.
 - **Auth Credentials - Email/Password Provider:** Added email/password sign-in with the Auth.js Credentials provider in the split config pattern: `src/auth.config.ts` has an edge-safe placeholder (`authorize` returns `null`) and `src/auth.ts` swaps it for a provider that validates input with Zod, looks the user up by email and checks the password with bcryptjs, returning only id, name, email and image. Added `POST /api/auth/register` (name, email, password, confirmPassword), which validates input, returns 409 when the email is taken (including the `P2002` race between the check and the insert), hashes the password with 12 bcrypt rounds and creates the user, using the `{ success, data, error }` response pattern. Shared Zod schemas live in `src/lib/validations/auth.ts` (emails trimmed and lowercased, passwords 8–72 characters). Added `zod` as a direct dependency. The `User.password` column already existed, so no migration was needed. There is no sign-up page yet.
 - **Auth UI - Sign In, Register & Sign Out:** Replaced the NextAuth default pages with custom `/sign-in` and `/register` pages, grouped under the `(auth)` route group; `pages.signIn` and the `/dashboard` proxy now point to `/sign-in`. Added server actions in `src/actions/auth.ts` for credentials sign-in (Zod validation, "Invalid email or password" on failure), GitHub sign-in and sign-out, with `callbackUrl` limited to same-site relative paths. The sign-in page has a GitHub button, an email/password form, Auth.js error messages and an "Account created" banner; the register page validates with the shared `registerSchema` (per-field errors), posts to `/api/auth/register`, redirects to `/sign-in?registered=1`, and also offers "Sign up with GitHub". Both pages redirect signed-in users to `/dashboard`. Added shared auth components (`AuthCard`, `FormField`, `SignInForm`, `RegisterForm`, `GitHubAuthForm`), a reusable `UserAvatar` (image or initials), and a sidebar `UserMenu` showing the session user's avatar, name and email with a menu for Profile (`/profile`, not built yet) and Sign out. The sidebar user now comes from the session, while item types and collections still come from the demo user. Added the shadcn dropdown-menu and label components and disabled Next.js dev indicators.
+- **Email Verification on Register:** Users who register with email and password must verify their email before signing in with credentials. Added `resend` and `src/lib/email.ts` (verification email from a configurable `EMAIL_FROM`, defaulting to Resend's test sender; the client is created on first use so a missing `RESEND_API_KEY` doesn't break imports or the build). Added `src/lib/verification.ts`: random 32-byte tokens stored as SHA-256 hashes in the existing `VerificationToken` table with a 24-hour expiry, links built from `AUTH_URL` (request headers only in development, to prevent host header poisoning), unsent tokens removed on failure, and a one-minute resend cooldown. `POST /api/auth/register` sends the link and reports `emailSent` while keeping the account if sending fails. The new `/verify-email` route sets `User.emailVerified`, deletes the email's tokens and redirects to `/sign-in` with a verified, invalid or expired result. Credentials sign-in throws a custom `CredentialsSignin` error (`email_not_verified`) after the password matches; the sign-in form then shows a friendly message and a `ResendVerificationButton` backed by a Zod-validated `resendVerificationEmail` action that doesn't reveal whether an account exists. The sign-in page shows "Check your email", email-failed, verified, invalid and expired banners. The seed marks the demo user as verified on create and update. GitHub sign-in is unaffected and no migration was needed. `AUTH_URL` must be set in production.
