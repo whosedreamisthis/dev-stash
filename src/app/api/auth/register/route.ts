@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
+import {
+  consumeRateLimit,
+  formatRetryAfter,
+  getClientIp,
+  RATE_LIMITS,
+} from "@/lib/rate-limit";
 import { registerSchema } from "@/lib/validations/auth";
 import { isEmailVerificationEnabled, sendVerificationLink } from "@/lib/verification";
 
@@ -34,6 +40,24 @@ export async function POST(request: Request) {
   const { name, email, password } = parsed.data;
 
   try {
+    // Limits scripted email enumeration and mass sign-ups from one address
+    const ip = getClientIp(request.headers);
+    if (ip) {
+      const { allowed, retryAfterSeconds } = await consumeRateLimit(
+        `register:ip:${ip}`,
+        RATE_LIMITS.registerIp,
+      );
+      if (!allowed) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Too many sign-up attempts. Please try again in ${formatRetryAfter(retryAfterSeconds)}.`,
+          },
+          { status: 429, headers: { "Retry-After": String(retryAfterSeconds) } },
+        );
+      }
+    }
+
     const existing = await prisma.user.findUnique({
       where: { email },
       select: { id: true },

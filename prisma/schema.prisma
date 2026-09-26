@@ -90,6 +90,15 @@ model VerificationToken {
   @@id([identifier, token])
 }
 
+// Fixed-window attempt counters for auth rate limiting, e.g. "sign-in:email:<email>"
+model RateLimit {
+  key       String   @id
+  count     Int
+  expiresAt DateTime
+
+  @@index([expiresAt])
+}
+
 // ─────────────────────────────────────────────
 // DevStash models
 // ─────────────────────────────────────────────

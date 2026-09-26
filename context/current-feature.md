@@ -1,20 +1,32 @@
-# Current Feature
+# Current Feature: Auth Rate Limiting
 
 <!-- Feature name and short description -->
+
+Fix the High and Medium issues from the auth security audit (`docs/audit-results/AUTH_SECURITY_REVIEW.md`): unlimited password guessing on sign-in and change password, and unlimited registration.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- Add a Postgres-backed fixed-window rate limiter (new `RateLimit` model and migration)
+- Limit credentials sign-in per email and per IP inside `authorize`, so both the server action and the direct Auth.js callback endpoint are covered, with a clear "too many attempts" message
+- Limit change password attempts per user
+- Limit registration per IP, returning 429
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- Counters are stored in Neon so they work across serverless instances; the increment is a single atomic `INSERT ... ON CONFLICT` statement
+- Per-email sign-in limits let someone temporarily lock out a known email; this is the usual trade-off and the lock only lasts for the window
+- Client IP comes from `x-real-ip` / `x-forwarded-for`, which are only trustworthy behind a proxy that sets them (e.g. Vercel); the per-email limit still applies if they're spoofed
+- Overwriting unverified accounts on re-registration (suggested by the audit) is not done: the squatter's password would still work once the owner verified the email
 
 ## History
 

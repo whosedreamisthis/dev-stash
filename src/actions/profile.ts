@@ -19,6 +19,7 @@ export interface DeleteAccountResult {
 const CHANGE_PASSWORD_ERRORS = {
   incorrect: { fieldErrors: { currentPassword: "Current password is incorrect" } },
   no_password: { error: "This account signs in with GitHub and has no password." },
+  rate_limited: { error: "Too many attempts. Please wait 15 minutes and try again." },
 } as const;
 
 export async function changeUserPassword(

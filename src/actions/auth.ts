@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { AuthError, CredentialsSignin } from "next-auth";
 import { z } from "zod";
-import { EMAIL_NOT_VERIFIED, signIn, signOut } from "@/auth";
+import { EMAIL_NOT_VERIFIED, RATE_LIMITED, signIn, signOut } from "@/auth";
 import { resetPassword, sendPasswordResetLink } from "@/lib/password-reset";
 import {
   forgotPasswordSchema,
@@ -71,6 +71,12 @@ export async function signInWithCredentials(
     return { success: true };
   } catch (error) {
     // signIn redirects by throwing, so only AuthErrors are handled here
+    if (error instanceof CredentialsSignin && error.code === RATE_LIMITED) {
+      return {
+        success: false,
+        error: "Too many sign-in attempts. Please wait 15 minutes and try again.",
+      };
+    }
     if (error instanceof CredentialsSignin && error.code === EMAIL_NOT_VERIFIED) {
       return {
         success: false,
