@@ -46,6 +46,7 @@ Example v4 configuration:
 @theme {
   --color-primary: oklch(50% 0.2 250);
 }
+```
 
 ## File Organization
 
@@ -89,9 +90,18 @@ Example v4 configuration:
 - Return `{ success, data, error }` pattern from actions
 - Display user-friendly error messages via toast
 
+## Testing
+
+- Unit tests use **Vitest** (`vitest.config.ts`): `npm test` runs once, `npm run test:watch` watches
+- Test server actions and utilities only, not components or pages
+- Name test files `*.test.ts` and put them next to the code they test (e.g. `src/lib/tokens.test.ts`, `src/actions/profile.test.ts`); only `src/**/*.test.ts` is collected
+- Import `describe`, `it`, `expect` and `vi` from `vitest` explicitly (no globals)
+- Never hit the database, email or Redis in unit tests: mock dependencies such as `@/auth`, `@/lib/db` and `next/headers` with `vi.mock`
+- Cover the happy path and the error cases (no session, invalid input, failures); don't write tests just to write them
+- Mocks and `vi.stubEnv` values are reset before each test by the config
+
 ## Code Quality
 
 - No commented-out code unless specified
 - No unused imports or variables
 - Keep functions under 50 lines when possible
-```

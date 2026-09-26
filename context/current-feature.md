@@ -1,20 +1,31 @@
-# Current Feature
+# Current Feature: Vitest Setup
 
 <!-- Feature name and short description -->
+
+Set up Vitest for unit testing server actions and utilities (not components).
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- Install Vitest and add a `vitest.config.ts` (Node environment, `@/` alias, only `src/**/*.test.ts`)
+- Add `npm test` and `npm run test:watch` scripts
+- Add starter tests for a utility and a server action to establish the mocking pattern
+- Update the workflow and docs to include unit testing
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- Only `.test.ts` files are collected, so component (`.tsx`) tests are out of scope by design.
+- Tests sit next to the code they test (e.g. `src/lib/tokens.test.ts`).
+- Server actions are tested by mocking their dependencies (`@/auth`, `@/lib/db`, `next/headers`) with `vi.mock`; tests never hit the database.
 
 ## History
 
