@@ -1,51 +1,20 @@
-# Current Feature: Auth UI - Sign In, Register & Sign Out
+# Current Feature
 
 <!-- Feature name and short description -->
-
-Replace the NextAuth default pages with custom sign-in and register pages, and show the signed-in user's avatar, name and a sign-out option at the bottom of the sidebar.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- Sign-in page at `/sign-in`:
-  - Email and password fields
-  - "Sign in with GitHub" button
-  - Link to the register page
-  - Form validation and error display
-- Register page at `/register`:
-  - Name, email, password and confirm password fields
-  - Form validation (passwords match, email format)
-  - Submits to `/api/auth/register`
-  - Redirects to sign-in on success
-- Bottom of the sidebar:
-  - User avatar (GitHub image, or initials as a fallback)
-  - User name
-  - Dropdown/dropup on avatar click with a "Sign out" option
-  - Clicking the icon goes to `/profile`
-- Reusable avatar component that handles both the image and initials cases
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Avatar logic: use the user's `image` (from GitHub) if present; otherwise generate initials from the name (e.g. "Brad Traversy" → "BT").
-- Clicking the avatar opens a menu with "Profile" (links to `/profile`) and "Sign out", resolving the spec's conflicting click behaviors.
-- The avatar lives at the bottom of the sidebar (testing step 4's "top bar" is treated as a typo).
-- Testing:
-  1. Go to `/sign-in` and verify the custom page renders
-  2. Sign in with GitHub and verify the flow works
-  3. Sign in with email/password and verify the flow works
-  4. Verify the avatar shows (GitHub image or initials)
-  5. Click the avatar and verify the dropdown appears
-  6. Click "Sign out" and verify logout and redirect
-  7. Go to `/register`, create a new account and verify the redirect to sign-in
 
 ## History
 
@@ -63,3 +32,4 @@ In Progress
 - **Add Pro Badge to Sidebar:** Added the shadcn/ui Badge component and a subtle, uppercase PRO badge (outline style, muted 10px text) between the type name and item count for Pro-only types in the sidebar (Files and Images). `getSidebarItemTypes` now selects `isProOnly`, added to `SidebarItemType`, so the badge comes from the database flag instead of hard-coded type names.
 - **Auth Setup - NextAuth + GitHub Provider:** Added Auth.js (`next-auth@beta`) with `@auth/prisma-adapter` and GitHub OAuth using the split config pattern for edge compatibility: `src/auth.config.ts` (GitHub provider only) and `src/auth.ts` (Prisma adapter on the shared Neon client, JWT sessions, and a session callback that sets `session.user.id` from `token.sub`). Added the `/api/auth/[...nextauth]` route handler, a Next.js 16 proxy in `src/proxy.ts` that guards `/dashboard/:path*` and redirects signed-out users to NextAuth's default sign-in page with a `callbackUrl`, and `src/types/next-auth.d.ts` extending `Session.user` with `id`. The dashboard still reads data for the demo user.
 - **Auth Credentials - Email/Password Provider:** Added email/password sign-in with the Auth.js Credentials provider in the split config pattern: `src/auth.config.ts` has an edge-safe placeholder (`authorize` returns `null`) and `src/auth.ts` swaps it for a provider that validates input with Zod, looks the user up by email and checks the password with bcryptjs, returning only id, name, email and image. Added `POST /api/auth/register` (name, email, password, confirmPassword), which validates input, returns 409 when the email is taken (including the `P2002` race between the check and the insert), hashes the password with 12 bcrypt rounds and creates the user, using the `{ success, data, error }` response pattern. Shared Zod schemas live in `src/lib/validations/auth.ts` (emails trimmed and lowercased, passwords 8–72 characters). Added `zod` as a direct dependency. The `User.password` column already existed, so no migration was needed. There is no sign-up page yet.
+- **Auth UI - Sign In, Register & Sign Out:** Replaced the NextAuth default pages with custom `/sign-in` and `/register` pages, grouped under the `(auth)` route group; `pages.signIn` and the `/dashboard` proxy now point to `/sign-in`. Added server actions in `src/actions/auth.ts` for credentials sign-in (Zod validation, "Invalid email or password" on failure), GitHub sign-in and sign-out, with `callbackUrl` limited to same-site relative paths. The sign-in page has a GitHub button, an email/password form, Auth.js error messages and an "Account created" banner; the register page validates with the shared `registerSchema` (per-field errors), posts to `/api/auth/register`, redirects to `/sign-in?registered=1`, and also offers "Sign up with GitHub". Both pages redirect signed-in users to `/dashboard`. Added shared auth components (`AuthCard`, `FormField`, `SignInForm`, `RegisterForm`, `GitHubAuthForm`), a reusable `UserAvatar` (image or initials), and a sidebar `UserMenu` showing the session user's avatar, name and email with a menu for Profile (`/profile`, not built yet) and Sign out. The sidebar user now comes from the session, while item types and collections still come from the demo user. Added the shadcn dropdown-menu and label components and disabled Next.js dev indicators.
