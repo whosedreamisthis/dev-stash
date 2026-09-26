@@ -1,35 +1,20 @@
-# Current Feature: Profile Page
+# Current Feature
 
 <!-- Feature name and short description -->
-
-Create the profile page with user info, stats, change password and delete account.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- Create a profile page at the `/profile` route, protected so only signed-in users can open it
-- Display user info: email, name, avatar (GitHub or initials) and account creation date
-- Show usage stats: total items, total collections and a breakdown by item type
-- Add a change password action for email/password users only
-- Add a delete account action with a confirmation dialog
-- Follow existing codebase patterns for data fetching and components
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Avatar: use the GitHub avatar from OAuth if available, otherwise generate initials from the name or email (the existing `UserAvatar` component already does this)
-- The change password button appears only for users who signed up with email/password (they have a `password`), not GitHub OAuth users
-- Delete account needs a confirmation dialog to prevent accidental deletion
-- The item type breakdown shows counts for each type: snippets, prompts, commands, notes, links, files and images
-- The sidebar `UserMenu` already links to `/profile`
 
 ## History
 
@@ -51,3 +36,4 @@ In Progress
 - **Email Verification on Register:** Users who register with email and password must verify their email before signing in with credentials. Added `resend` and `src/lib/email.ts` (verification email from a configurable `EMAIL_FROM`, defaulting to Resend's test sender; the client is created on first use so a missing `RESEND_API_KEY` doesn't break imports or the build). Added `src/lib/verification.ts`: random 32-byte tokens stored as SHA-256 hashes in the existing `VerificationToken` table with a 24-hour expiry, links built from `AUTH_URL` (request headers only in development, to prevent host header poisoning), unsent tokens removed on failure, and a one-minute resend cooldown. `POST /api/auth/register` sends the link and reports `emailSent` while keeping the account if sending fails. The new `/verify-email` route sets `User.emailVerified`, deletes the email's tokens and redirects to `/sign-in` with a verified, invalid or expired result. Credentials sign-in throws a custom `CredentialsSignin` error (`email_not_verified`) after the password matches; the sign-in form then shows a friendly message and a `ResendVerificationButton` backed by a Zod-validated `resendVerificationEmail` action that doesn't reveal whether an account exists. The sign-in page shows "Check your email", email-failed, verified, invalid and expired banners. The seed marks the demo user as verified on create and update. GitHub sign-in is unaffected and no migration was needed. `AUTH_URL` must be set in production.
 - **Email Verification Toggle:** Added a server-only `EMAIL_VERIFICATION_ENABLED` flag so email verification can be turned off while Resend has no verified domain. `isEmailVerificationEnabled()` in `src/lib/verification.ts` is the single check, and verification stays on unless the variable is exactly `"false"`. When off, `POST /api/auth/register` skips the token and email (and returns `verificationRequired: false`), credentials sign-in skips the `emailVerified` check, the resend action does nothing, and the register form redirects to `/sign-in?registered=ready` with "Account created. You can sign in now." Accounts created while it's off stay unverified. `EMAIL_VERIFICATION_ENABLED=false` was added to the local `.env`; the deployed app keeps verification on unless the variable is set there.
 - **Forgot Password:** Credentials users can reset a forgotten password through an emailed link. The sign-in form has a "Forgot password?" link to `/forgot-password`, whose Zod-validated `requestPasswordReset` action always shows the same message so it doesn't reveal whether an account exists. `src/lib/password-reset.ts` sends links only to users with a password, at most once a minute, storing 32-byte tokens as SHA-256 hashes in the existing `VerificationToken` table with a 1-hour expiry under a `password-reset:<email>` identifier so they never collide with email verification tokens; unsent tokens are removed. Added `sendPasswordResetEmail` to `src/lib/email.ts`. `/reset-password` checks the token before showing a new password form (shared `resetPasswordSchema`, 8–72 characters) and shows invalid or expired messages with a "Request a new link" link. Resetting deletes the token first inside an interactive transaction so links are single-use, saves the password with 12 bcrypt rounds, marks the email verified, and redirects to `/sign-in?reset=success` with a "Password updated" banner. Token helpers (`generateToken`, `hashToken`, `getAppUrl`, `wasRecentlySent`) moved to `src/lib/tokens.ts` and are shared with email verification, and `verifyEmailToken` now ignores reset tokens. The register and reset schemas share the new-password rule and passwords-match check. No migration was needed; existing JWT sessions are not revoked by a reset.
+- **Profile Page:** Added a protected `/profile` page (in the proxy matcher, and the page redirects to sign-in when there's no session or the user no longer exists) that renders inside the dashboard shell; sidebar loading moved from the dashboard layout to `src/lib/db/sidebar.ts` so both layouts share it. The page shows the user's avatar (GitHub image or initials from the name or email), name, email and join date, then usage stats for the signed-in user: total items, total collections and item counts for each system type, reusing `getItemStats`, `getCollectionStats` and `getSidebarItemTypes`. `getProfileUser` returns `hasPassword` instead of the hash. Email/password users get a Change password dialog (current password plus a confirmed new one, validated by the new `changePasswordSchema`; the server re-checks the current password with bcrypt and saves a 12-round hash). Delete account opens a confirmation alert dialog warning that all collections and items will be permanently deleted; deleting the user cascades to items, collections, tags, custom types, accounts and sessions, removes the email's verification and reset tokens in the same transaction, then signs out to `/sign-in`. Logic lives in `src/lib/account.ts` and `src/actions/profile.ts`. Added the shadcn Dialog and Alert Dialog components; both profile dialogs are centered and capped at 28rem wide. No migration was needed. The dashboard and sidebar still show the demo user's data.
