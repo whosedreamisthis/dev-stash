@@ -4,12 +4,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import bcrypt from "bcryptjs";
 import authConfig from "@/auth.config";
 import { prisma } from "@/lib/db";
-import {
-  consumeRateLimit,
-  getClientIp,
-  RATE_LIMITS,
-  resetRateLimit,
-} from "@/lib/rate-limit";
+import { checkRateLimit, getClientIp, resetRateLimit } from "@/lib/rate-limit";
 import { signInSchema } from "@/lib/validations/auth";
 import { isEmailVerificationEnabled } from "@/lib/verification";
 
@@ -24,14 +19,8 @@ class RateLimitedError extends CredentialsSignin {
   code = RATE_LIMITED;
 }
 
-// Counted before the password check so guesses are limited whether they succeed or not
-async function isSignInAllowed(email: string, request: Request) {
-  const ip = getClientIp(request.headers);
-  const checks = [consumeRateLimit(`sign-in:email:${email}`, RATE_LIMITS.signInEmail)];
-  if (ip) checks.push(consumeRateLimit(`sign-in:ip:${ip}`, RATE_LIMITS.signInIp));
-
-  const results = await Promise.all(checks);
-  return results.every((result) => result.allowed);
+function getSignInKey(email: string, request: Request) {
+  return `${getClientIp(request.headers) ?? "unknown"}:${email}`;
 }
 
 const credentialsProvider = Credentials({
@@ -43,12 +32,17 @@ const credentialsProvider = Credentials({
     const parsed = signInSchema.safeParse(credentials);
     if (!parsed.success) return null;
 
-    if (!(await isSignInAllowed(parsed.data.email, request))) {
-      throw new RateLimitedError();
-    }
+    // Counted before the password check so guesses are limited whether they succeed or not
+    const { email } = parsed.data;
+    const rateLimitKey = getSignInKey(email, request);
+    const results = await Promise.all([
+      checkRateLimit("signIn", rateLimitKey),
+      checkRateLimit("signInEmail", email),
+    ]);
+    if (results.some((result) => !result.success)) throw new RateLimitedError();
 
     const user = await prisma.user.findUnique({
-      where: { email: parsed.data.email },
+      where: { email },
       select: {
         id: true,
         name: true,
@@ -69,7 +63,10 @@ const credentialsProvider = Credentials({
     }
 
     // A correct password clears the email's failed attempts
-    await resetRateLimit(`sign-in:email:${parsed.data.email}`);
+    await Promise.all([
+      resetRateLimit("signIn", rateLimitKey),
+      resetRateLimit("signInEmail", email),
+    ]);
     return { id: user.id, name: user.name, email: user.email, image: user.image };
   },
 });

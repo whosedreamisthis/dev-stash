@@ -1,20 +1,46 @@
-# Current Feature
+# Current Feature: Rate Limiting for Auth (Upstash)
 
 <!-- Feature name and short description -->
+
+Replace the current Neon-backed auth rate limiter with Upstash Redis (`@upstash/ratelimit`) to prevent brute force attacks, credential stuffing and abuse of email-sending endpoints.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- Remove the current rate limit implementation: the Neon-backed `src/lib/rate-limit.ts`, its call sites, and the `RateLimit` model and table (dropped through a new migration, never `db push`)
+- Add `@upstash/redis` and `@upstash/ratelimit`, configured with `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`
+- Create a reusable `src/lib/rate-limit.ts` utility with an Upstash client, using the sliding window algorithm and returning `{ success, remaining, reset }`
+- Extract the client IP from `x-forwarded-for` (Vercel) or the request, and combine IP + email where applicable
+- Protect the auth endpoints with these limits:
+  - Login (credentials sign-in): 5 attempts / 15 min, keyed by IP + email
+  - Register: 3 attempts / 1 hour, keyed by IP
+  - Forgot password: 3 attempts / 1 hour, keyed by IP
+  - Reset password: 5 attempts / 15 min, keyed by IP
+  - Resend verification: 3 attempts / 15 min, keyed by IP + email
+- API routes return 429 with `{ error: "Too many attempts. Please try again in X minutes." }` and a `Retry-After` header
+- The frontend shows a user-friendly error via toast notification
+- Fail open (allow the request) if Upstash is unavailable or not configured
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- Spec: `context/features/rate-limiting-spec.md`
+- Forgot password, reset password and resend verification are currently server actions, not `/api/auth/*` routes. Rate limit them inside the actions (returning the same friendly message) rather than adding new API routes, unless decided otherwise.
+- Login limiting with NextAuth credentials is tricky; the existing approach of checking inside `authorize` covers both the server action and the `/api/auth/callback/credentials` endpoint.
+- The existing change-password limit (5 per user / 15 min) is not in the spec; decide whether to keep it on Upstash or drop it.
+- Toasts need shadcn `Sonner`, which may not be installed yet.
+- Upstash free tier allows 10k requests/day, which is enough for auth limiting.
+- Consider rate limiting middleware for a cleaner implementation later.
+- Security fixes from review: sign-in also has a per-email limit (10 / 15 min, any IP) so rotating IPs can't multiply guesses against one account, and `getClientIp` reads `x-real-ip` before `x-forwarded-for`.
+- Decisions: change password stays limited (5 per user / 15 min) on Upstash; a correct sign-in password clears its IP + email counter; IP-only limits are skipped when the IP is unknown; only rate-limit errors are toasts, other errors stay inline.
 
 ## History
 

@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { requestPasswordReset, type ForgotPasswordResult } from "@/actions/auth";
 import { FormField } from "@/components/auth/FormField";
 import { Button } from "@/components/ui/button";
+import { useRateLimitToast } from "@/hooks/useRateLimitToast";
 
 const INITIAL_STATE: ForgotPasswordResult = { success: false };
 
@@ -12,6 +13,7 @@ export function ForgotPasswordForm() {
     requestPasswordReset,
     INITIAL_STATE,
   );
+  useRateLimitToast(state);
 
   if (state.success) {
     return (
@@ -25,7 +27,7 @@ export function ForgotPasswordForm() {
   return (
     <form action={formAction} className="space-y-4">
       <FormField id="email" label="Email" type="email" autoComplete="email" required />
-      {state.error && (
+      {state.error && !state.rateLimited && (
         <p role="alert" className="text-sm text-destructive">
           {state.error}
         </p>

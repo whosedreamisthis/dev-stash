@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { PASSWORD_RESET_PREFIX } from "@/lib/password-reset";
-import { consumeRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const BCRYPT_ROUNDS = 12;
 
@@ -13,11 +13,8 @@ export async function changePassword(
   newPassword: string,
 ): Promise<ChangePasswordResult> {
   // Limits guessing the current password from a hijacked session
-  const { allowed } = await consumeRateLimit(
-    `change-password:${userId}`,
-    RATE_LIMITS.changePassword,
-  );
-  if (!allowed) return "rate_limited";
+  const { success } = await checkRateLimit("changePassword", userId);
+  if (!success) return "rate_limited";
 
   const user = await prisma.user.findUnique({
     where: { id: userId },

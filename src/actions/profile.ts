@@ -8,6 +8,7 @@ import { changePasswordSchema } from "@/lib/validations/auth";
 export interface ChangePasswordActionResult {
   success: boolean;
   error?: string;
+  rateLimited?: boolean;
   fieldErrors?: { currentPassword?: string; password?: string; confirmPassword?: string };
 }
 
@@ -19,7 +20,10 @@ export interface DeleteAccountResult {
 const CHANGE_PASSWORD_ERRORS = {
   incorrect: { fieldErrors: { currentPassword: "Current password is incorrect" } },
   no_password: { error: "This account signs in with GitHub and has no password." },
-  rate_limited: { error: "Too many attempts. Please wait 15 minutes and try again." },
+  rate_limited: {
+    error: "Too many attempts. Please try again in 15 minutes.",
+    rateLimited: true,
+  },
 } as const;
 
 export async function changeUserPassword(

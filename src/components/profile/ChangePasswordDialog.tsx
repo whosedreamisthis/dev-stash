@@ -15,12 +15,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useRateLimitToast } from "@/hooks/useRateLimitToast";
 
 const INITIAL_STATE: ChangePasswordActionResult = { success: false };
 
 // Rendered inside the dialog so its state resets each time the dialog opens
 function ChangePasswordForm() {
   const [state, formAction, isPending] = useActionState(changeUserPassword, INITIAL_STATE);
+  useRateLimitToast(state);
 
   if (state.success) {
     return (
@@ -61,7 +63,7 @@ function ChangePasswordForm() {
         required
         error={state.fieldErrors?.confirmPassword}
       />
-      {state.error && (
+      {state.error && !state.rateLimited && (
         <p role="alert" className="text-sm text-destructive">
           {state.error}
         </p>

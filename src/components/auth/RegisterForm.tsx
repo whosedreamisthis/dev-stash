@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { z } from "zod";
 import { FormField } from "@/components/auth/FormField";
 import { Button } from "@/components/ui/button";
@@ -66,6 +67,10 @@ export function RegisterForm() {
       });
       const result: RegisterResponse = await response.json();
 
+      if (response.status === 429) {
+        toast.error(result.error ?? "Too many attempts. Please try again later.");
+        return;
+      }
       if (!result.success) {
         setFormError(result.error ?? "Registration failed. Please try again.");
         return;

@@ -1,10 +1,17 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { AuthError, CredentialsSignin } from "next-auth";
 import { z } from "zod";
 import { EMAIL_NOT_VERIFIED, RATE_LIMITED, signIn, signOut } from "@/auth";
 import { resetPassword, sendPasswordResetLink } from "@/lib/password-reset";
+import {
+  checkRateLimit,
+  getClientIp,
+  getRateLimitMessage,
+  type RateLimitName,
+} from "@/lib/rate-limit";
 import {
   forgotPasswordSchema,
   resendVerificationSchema,
@@ -17,21 +24,25 @@ export interface SignInResult {
   success: boolean;
   error?: string;
   emailNotVerified?: boolean;
+  rateLimited?: boolean;
 }
 
 export interface ResendVerificationResult {
   success: boolean;
   error?: string;
+  rateLimited?: boolean;
 }
 
 export interface ForgotPasswordResult {
   success: boolean;
   error?: string;
+  rateLimited?: boolean;
 }
 
 export interface ResetPasswordActionResult {
   success: boolean;
   error?: string;
+  rateLimited?: boolean;
   fieldErrors?: { password?: string; confirmPassword?: string };
 }
 
@@ -49,6 +60,19 @@ function getRedirectTo(callbackUrl: FormDataEntryValue | null) {
     return DEFAULT_REDIRECT;
   }
   return callbackUrl;
+}
+
+// Keyed by IP, plus an extra identifier where given. IP-only limits are skipped
+// when the IP is unknown so every client doesn't share one bucket
+async function checkActionRateLimit(name: RateLimitName, identifier?: string) {
+  const ip = getClientIp(await headers());
+  const key = identifier ? `${ip ?? "unknown"}:${identifier}` : ip;
+  if (!key) return null;
+
+  const { success, reset } = await checkRateLimit(name, key);
+  return success
+    ? null
+    : { success: false, error: getRateLimitMessage(reset), rateLimited: true };
 }
 
 export async function signInWithCredentials(
@@ -74,7 +98,8 @@ export async function signInWithCredentials(
     if (error instanceof CredentialsSignin && error.code === RATE_LIMITED) {
       return {
         success: false,
-        error: "Too many sign-in attempts. Please wait 15 minutes and try again.",
+        error: "Too many attempts. Please try again in 15 minutes.",
+        rateLimited: true,
       };
     }
     if (error instanceof CredentialsSignin && error.code === EMAIL_NOT_VERIFIED) {
@@ -107,6 +132,9 @@ export async function resendVerificationEmail(
   }
 
   try {
+    const limited = await checkActionRateLimit("resendVerification", parsed.data.email);
+    if (limited) return limited;
+
     await resendVerificationLink(parsed.data.email);
     return { success: true };
   } catch (error) {
@@ -126,6 +154,9 @@ export async function requestPasswordReset(
   }
 
   try {
+    const limited = await checkActionRateLimit("forgotPassword");
+    if (limited) return limited;
+
     await sendPasswordResetLink(parsed.data.email);
     return { success: true };
   } catch (error) {
@@ -157,6 +188,9 @@ export async function resetPasswordWithToken(
 
   let result;
   try {
+    const limited = await checkActionRateLimit("resetPassword");
+    if (limited) return limited;
+
     result = await resetPassword(parsed.data.token, parsed.data.password);
   } catch (error) {
     console.error("Resetting password failed:", error);

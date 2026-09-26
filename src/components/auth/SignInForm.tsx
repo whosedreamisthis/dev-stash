@@ -6,6 +6,7 @@ import { signInWithCredentials, type SignInResult } from "@/actions/auth";
 import { FormField } from "@/components/auth/FormField";
 import { ResendVerificationButton } from "@/components/auth/ResendVerificationButton";
 import { Button } from "@/components/ui/button";
+import { useRateLimitToast } from "@/hooks/useRateLimitToast";
 
 interface SignInFormProps {
   callbackUrl?: string;
@@ -20,6 +21,7 @@ export function SignInForm({ callbackUrl }: SignInFormProps) {
   );
   // Controlled so the email survives the form reset after a failed attempt
   const [email, setEmail] = useState("");
+  useRateLimitToast(state);
 
   return (
     <form action={formAction} className="space-y-4">
@@ -48,7 +50,7 @@ export function SignInForm({ callbackUrl }: SignInFormProps) {
           Forgot password?
         </Link>
       </div>
-      {state.error && (
+      {state.error && !state.rateLimited && (
         <p role="alert" className="text-sm text-destructive">
           {state.error}
         </p>

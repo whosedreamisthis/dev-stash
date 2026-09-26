@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { toast } from "sonner";
 import { resendVerificationEmail } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
 
@@ -20,6 +21,8 @@ export function ResendVerificationButton({ email }: ResendVerificationButtonProp
       const result = await resendVerificationEmail(email);
       if (result.success) {
         setMessage("If your email still needs verifying, a new link is on its way.");
+      } else if (result.rateLimited && result.error) {
+        toast.error(result.error);
       } else {
         setError(result.error ?? "Something went wrong. Please try again.");
       }

@@ -3,10 +3,10 @@ import bcrypt from "bcryptjs";
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import {
-  consumeRateLimit,
-  formatRetryAfter,
+  checkRateLimit,
   getClientIp,
-  RATE_LIMITS,
+  getRateLimitMessage,
+  getRetryAfterSeconds,
 } from "@/lib/rate-limit";
 import { registerSchema } from "@/lib/validations/auth";
 import { isEmailVerificationEnabled, sendVerificationLink } from "@/lib/verification";
@@ -43,17 +43,11 @@ export async function POST(request: Request) {
     // Limits scripted email enumeration and mass sign-ups from one address
     const ip = getClientIp(request.headers);
     if (ip) {
-      const { allowed, retryAfterSeconds } = await consumeRateLimit(
-        `register:ip:${ip}`,
-        RATE_LIMITS.registerIp,
-      );
-      if (!allowed) {
+      const { success, reset } = await checkRateLimit("register", ip);
+      if (!success) {
         return NextResponse.json(
-          {
-            success: false,
-            error: `Too many sign-up attempts. Please try again in ${formatRetryAfter(retryAfterSeconds)}.`,
-          },
-          { status: 429, headers: { "Retry-After": String(retryAfterSeconds) } },
+          { success: false, error: getRateLimitMessage(reset) },
+          { status: 429, headers: { "Retry-After": String(getRetryAfterSeconds(reset)) } },
         );
       }
     }

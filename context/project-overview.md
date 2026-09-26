@@ -191,6 +191,10 @@ RESEND_API_KEY=
 EMAIL_FROM=                # sender on a Resend-verified domain
 EMAIL_VERIFICATION_ENABLED= # "false" turns verification off; on by default
 
+# Rate limiting (Upstash Redis) — auth limits are skipped when unset
+UPSTASH_REDIS_REST_URL=
+UPSTASH_REDIS_REST_TOKEN=
+
 # Cloudflare R2
 R2_ACCOUNT_ID=
 R2_ACCESS_KEY_ID=
@@ -422,15 +426,6 @@ model VerificationToken {
   expires    DateTime
 
   @@id([identifier, token])
-}
-
-// Fixed-window attempt counters for auth rate limiting, e.g. "sign-in:email:<email>"
-model RateLimit {
-  key       String   @id
-  count     Int
-  expiresAt DateTime
-
-  @@index([expiresAt])
 }
 
 // ─────────────────────────────────────────────

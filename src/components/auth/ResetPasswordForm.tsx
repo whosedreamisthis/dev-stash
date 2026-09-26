@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { resetPasswordWithToken, type ResetPasswordActionResult } from "@/actions/auth";
 import { FormField } from "@/components/auth/FormField";
 import { Button } from "@/components/ui/button";
+import { useRateLimitToast } from "@/hooks/useRateLimitToast";
 
 interface ResetPasswordFormProps {
   token: string;
@@ -16,6 +17,7 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
     resetPasswordWithToken,
     INITIAL_STATE,
   );
+  useRateLimitToast(state);
 
   return (
     <form action={formAction} className="space-y-4">
@@ -36,7 +38,7 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
         required
         error={state.fieldErrors?.confirmPassword}
       />
-      {state.error && (
+      {state.error && !state.rateLimited && (
         <p role="alert" className="text-sm text-destructive">
           {state.error}
         </p>
