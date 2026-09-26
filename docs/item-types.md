@@ -176,7 +176,7 @@ Styling is keyed by **slug** in `src/lib/item-type-icons.ts`, using static Tailw
 | --- | --- | --- | --- |
 | `ITEM_TYPE_ICONS` | Icon name | Type icon | Item cards, collection cards, sidebar, profile usage stats |
 | `ITEM_TYPE_TEXT_COLORS` | Slug | Icon color | Item cards, collection cards, sidebar, profile usage stats |
-| `ITEM_TYPE_BORDER_COLORS` | Slug | 4px left border | Item cards (item's type), collection cards (most-used type) |
+| `ITEM_TYPE_BORDER_COLORS` | Slug | Thin border on all sides | Item cards (item's type), collection cards (most-used type) |
 | `ITEM_TYPE_BG_COLORS` | Slug | Colored dot | Sidebar recent collections (most-used type) |
 
 | Behavior | Details |

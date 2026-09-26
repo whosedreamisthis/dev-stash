@@ -19,7 +19,7 @@ export function CollectionCard({ collection }: CollectionCardProps) {
     <Link
       href={`/collections/${collection.id}`}
       className={cn(
-        "flex flex-col gap-3 rounded-xl border border-l-4 bg-card p-5 transition-colors hover:bg-accent/40",
+        "flex flex-col gap-3 rounded-xl border bg-card p-5 transition-colors hover:bg-accent/40",
         mainType && ITEM_TYPE_BORDER_COLORS[mainType.slug]
       )}
     >

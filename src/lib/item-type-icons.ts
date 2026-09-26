@@ -41,11 +41,11 @@ export const ITEM_TYPE_BG_COLORS: Record<string, string> = {
 };
 
 export const ITEM_TYPE_BORDER_COLORS: Record<string, string> = {
-  snippets: "border-l-[#3b82f6]",
-  prompts: "border-l-[#8b5cf6]",
-  commands: "border-l-[#f97316]",
-  notes: "border-l-[#fde047]",
-  files: "border-l-[#6b7280]",
-  images: "border-l-[#ec4899]",
-  links: "border-l-[#10b981]",
+  snippets: "border-[#3b82f6]",
+  prompts: "border-[#8b5cf6]",
+  commands: "border-[#f97316]",
+  notes: "border-[#fde047]",
+  files: "border-[#6b7280]",
+  images: "border-[#ec4899]",
+  links: "border-[#10b981]",
 };

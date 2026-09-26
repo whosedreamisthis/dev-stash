@@ -24,7 +24,7 @@ export function ItemCard({ item }: ItemCardProps) {
   return (
     <article
       className={cn(
-        "flex gap-4 rounded-xl border border-l-4 bg-card p-5 transition-colors hover:bg-accent/40",
+        "flex gap-4 rounded-xl border bg-card p-5 transition-colors hover:bg-accent/40",
         ITEM_TYPE_BORDER_COLORS[type.slug]
       )}
     >
