@@ -1,5 +1,6 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
+import type { CollectionItemType } from "@/types/collections";
 import type { ItemStats, ItemSummary, SidebarItemType } from "@/types/items";
 
 const ITEM_TYPE_SELECT = {
@@ -54,6 +55,30 @@ export async function getRecentItems(
       { createdAt: "desc" },
     ],
     take: limit,
+    include: ITEM_SUMMARY_INCLUDE,
+  });
+
+  return items.map(toItemSummary);
+}
+
+export async function getItemTypeBySlug(
+  userId: string,
+  slug: string
+): Promise<CollectionItemType | null> {
+  return prisma.itemType.findFirst({
+    // System types have no owner; custom types belong to the user
+    where: { slug, OR: [{ userId: null }, { userId }] },
+    select: ITEM_TYPE_SELECT,
+  });
+}
+
+export async function getItemsByType(
+  userId: string,
+  itemTypeId: string
+): Promise<ItemSummary[]> {
+  const items = await prisma.item.findMany({
+    where: { userId, itemTypeId },
+    orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
     include: ITEM_SUMMARY_INCLUDE,
   });
 

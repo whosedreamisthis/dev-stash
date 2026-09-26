@@ -19,6 +19,17 @@ export const ITEM_TYPE_ICONS: Record<string, LucideIcon> = {
   Link,
 };
 
+// Keyed by slug so the icon is known from the URL alone, before any data loads
+export const ITEM_TYPE_SLUG_ICONS: Record<string, LucideIcon> = {
+  snippets: Code,
+  prompts: Sparkles,
+  commands: Terminal,
+  notes: StickyNote,
+  files: File,
+  images: Image,
+  links: Link,
+};
+
 // Static class names so Tailwind can detect the type colors at build time
 export const ITEM_TYPE_TEXT_COLORS: Record<string, string> = {
   snippets: "text-[#3b82f6]",

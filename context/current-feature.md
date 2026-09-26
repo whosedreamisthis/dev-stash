@@ -1,20 +1,35 @@
-# Current Feature
+# Current Feature: Items List View
 
 <!-- Feature name and short description -->
+
+Dynamic items listing page at `/items/[type]` that shows the signed-in user's items filtered by type.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- Create the dynamic route `/items/[type]` (e.g. `/items/snippets`, `/items/notes`)
+- Fetch and display the signed-in user's items filtered by type
+- Show items in a responsive grid of `ItemCard` components
+- Two columns on medium screens and up
+- Each card has a border colored by its item type
+- Follow existing codebase patterns
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- `[type]` is the item type's plural slug (`ItemType.slug`), matching the sidebar links.
+- Reuse the existing `ItemCard` in `src/components/dashboard/ItemCard.tsx` and the `ItemSummary` shape from `src/lib/db/items.ts` / `src/types/items.ts`.
+- Add the type-filtered query to `src/lib/db/items.ts`, scoped by the session user's ID (as on the dashboard).
+- The page should render inside the dashboard shell (sidebar + top bar) and be protected like `/dashboard` and `/profile`.
+- Visited dynamic pages are reused from the client cache for 30 seconds (`experimental.staleTimes.dynamic`). Server-side caching with Cache Components (`"use cache"`, per-user `cacheTag`, `updateTag` on changes) is planned as its own feature.
 
 ## History
 
