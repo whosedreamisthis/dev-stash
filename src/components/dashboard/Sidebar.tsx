@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Folder, Layers, Settings, Star } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { SidebarSection } from "@/components/dashboard/SidebarSection";
+import { UserMenu } from "@/components/dashboard/UserMenu";
 import {
   ITEM_TYPE_BG_COLORS,
   ITEM_TYPE_ICONS,
@@ -28,13 +28,6 @@ const groupLabelClass =
 export function Sidebar({ data, onNavigate }: SidebarProps) {
   const pathname = usePathname();
   const { user, itemTypes, collections } = data;
-  const displayName = user?.name ?? user?.email ?? "Guest";
-  const initials = displayName
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
 
   return (
     <div className="flex h-full w-64 flex-col bg-sidebar text-sidebar-foreground">
@@ -141,19 +134,12 @@ export function Sidebar({ data, onNavigate }: SidebarProps) {
         </SidebarSection>
       </nav>
 
-      <div className="flex shrink-0 items-center gap-3 border-t p-4">
-        <Avatar size="lg">
-          {user?.image && <AvatarImage src={user.image} alt={displayName} />}
-          <AvatarFallback>{initials}</AvatarFallback>
-        </Avatar>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium">{displayName}</p>
-          {user?.email && (
-            <p className="truncate text-xs text-muted-foreground">
-              {user.email}
-            </p>
-          )}
-        </div>
+      <div className="flex shrink-0 items-center gap-2 border-t p-3">
+        {user ? (
+          <UserMenu user={user} onNavigate={onNavigate} />
+        ) : (
+          <div className="flex-1" />
+        )}
         <Link
           href="/settings"
           onClick={onNavigate}
