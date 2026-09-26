@@ -2,19 +2,36 @@
 
 <!-- Feature name and short description -->
 
+Forgot Password - let credentials users reset a forgotten password through an emailed link, using the existing `VerificationToken` model for reset tokens.
+
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- Add a "Forgot password?" link to the sign-in form (next to the password field) that goes to `/forgot-password`
+- `/forgot-password` page: email form backed by a Zod-validated server action that sends a reset link, and always shows the same "If an account exists, we've sent a link" message so it doesn't reveal whether an account exists
+- Only send reset links to users who have a password (credentials users); GitHub-only accounts get nothing
+- Store reset tokens in the existing `VerificationToken` table: random 32-byte token, only its SHA-256 hash stored, 1-hour expiry, earlier reset tokens for the email replaced, and a one-minute resend cooldown
+- Add a password reset email to `src/lib/email.ts`, with the link built from `AUTH_URL` the same way as verification links
+- `/reset-password?token=...` page: new password + confirm password form (validated with a shared Zod schema, same 8–72 character rule), showing an invalid/expired message when the token is bad
+- Resetting hashes the new password with 12 bcrypt rounds, updates the user and deletes the email's reset tokens in one transaction, then redirects to `/sign-in` with a "Password updated" banner
+- Signed-in users visiting either page are redirected to `/dashboard`, like the other auth pages
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- No migration needed: `VerificationToken` already exists. Reset tokens use a prefixed identifier (e.g. `password-reset:<email>`) so they never collide with email verification tokens, which use the plain email and are deleted by identifier.
+- Reuse the token hashing and app URL helpers from `src/lib/verification.ts` (extract them to a shared helper if needed) rather than duplicating them.
+- Completing a reset also marks the email as verified if it wasn't, since the user proved they own the inbox.
+- Sending the reset email is independent of the `EMAIL_VERIFICATION_ENABLED` flag, but still needs a working `RESEND_API_KEY`; log failures and show the same generic message.
+- Put the pages in the `(auth)` route group and reuse `AuthCard` and `FormField`.
 
 ## History
 

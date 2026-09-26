@@ -12,11 +12,13 @@ const AUTH_ERROR_MESSAGES: Record<string, string> = {
   AccessDenied: "Access was denied. Please try again.",
 };
 
-// Banners for ?registered=... (after sign-up) and ?verify=... (from the email link)
+// Banners for ?registered=... (after sign-up), ?verify=... (from the email link)
+// and ?reset=... (after choosing a new password)
 const SUCCESS_MESSAGES: Record<string, string> = {
   registered: "Account created. Check your email for a link to verify your address.",
   ready: "Account created. You can sign in now.",
   verified: "Email verified. You can sign in now.",
+  reset: "Password updated. You can sign in with your new password.",
 };
 
 const NOTICE_ERROR_MESSAGES: Record<string, string> = {
@@ -39,11 +41,13 @@ export default async function SignInPage({ searchParams }: PageProps<"/sign-in">
   const error = getParam(params.error);
   const registered = getParam(params.registered);
   const verify = getParam(params.verify);
+  const reset = getParam(params.reset);
 
   const successMessage =
     (registered === "1" && SUCCESS_MESSAGES.registered) ||
     (registered === "ready" && SUCCESS_MESSAGES.ready) ||
     (verify === "verified" && SUCCESS_MESSAGES.verified) ||
+    (reset === "success" && SUCCESS_MESSAGES.reset) ||
     undefined;
   const noticeError =
     (registered && NOTICE_ERROR_MESSAGES[registered]) ||

@@ -1,8 +1,16 @@
 "use server";
 
+import { redirect } from "next/navigation";
 import { AuthError, CredentialsSignin } from "next-auth";
+import { z } from "zod";
 import { EMAIL_NOT_VERIFIED, signIn, signOut } from "@/auth";
-import { resendVerificationSchema, signInSchema } from "@/lib/validations/auth";
+import { resetPassword, sendPasswordResetLink } from "@/lib/password-reset";
+import {
+  forgotPasswordSchema,
+  resendVerificationSchema,
+  resetPasswordSchema,
+  signInSchema,
+} from "@/lib/validations/auth";
 import { resendVerificationLink } from "@/lib/verification";
 
 export interface SignInResult {
@@ -15,6 +23,22 @@ export interface ResendVerificationResult {
   success: boolean;
   error?: string;
 }
+
+export interface ForgotPasswordResult {
+  success: boolean;
+  error?: string;
+}
+
+export interface ResetPasswordActionResult {
+  success: boolean;
+  error?: string;
+  fieldErrors?: { password?: string; confirmPassword?: string };
+}
+
+const RESET_ERROR_MESSAGES = {
+  invalid: "This reset link is invalid or has already been used. Request a new one.",
+  expired: "This reset link has expired. Request a new one.",
+} as const;
 
 const DEFAULT_REDIRECT = "/dashboard";
 
@@ -83,6 +107,59 @@ export async function resendVerificationEmail(
     console.error("Resending verification email failed:", error);
     return { success: false, error: "Something went wrong. Please try again." };
   }
+}
+
+// Always reports success so the response doesn't reveal which emails have accounts
+export async function requestPasswordReset(
+  _prevState: ForgotPasswordResult,
+  formData: FormData,
+): Promise<ForgotPasswordResult> {
+  const parsed = forgotPasswordSchema.safeParse({ email: formData.get("email") });
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid email" };
+  }
+
+  try {
+    await sendPasswordResetLink(parsed.data.email);
+    return { success: true };
+  } catch (error) {
+    console.error("Requesting password reset failed:", error);
+    return { success: false, error: "Something went wrong. Please try again." };
+  }
+}
+
+export async function resetPasswordWithToken(
+  _prevState: ResetPasswordActionResult,
+  formData: FormData,
+): Promise<ResetPasswordActionResult> {
+  const parsed = resetPasswordSchema.safeParse({
+    token: formData.get("token"),
+    password: formData.get("password"),
+    confirmPassword: formData.get("confirmPassword"),
+  });
+  if (!parsed.success) {
+    const { fieldErrors } = z.flattenError(parsed.error);
+    if (fieldErrors.token) return { success: false, error: RESET_ERROR_MESSAGES.invalid };
+    return {
+      success: false,
+      fieldErrors: {
+        password: fieldErrors.password?.[0],
+        confirmPassword: fieldErrors.confirmPassword?.[0],
+      },
+    };
+  }
+
+  let result;
+  try {
+    result = await resetPassword(parsed.data.token, parsed.data.password);
+  } catch (error) {
+    console.error("Resetting password failed:", error);
+    return { success: false, error: "Something went wrong. Please try again." };
+  }
+
+  if (result !== "reset") return { success: false, error: RESET_ERROR_MESSAGES[result] };
+  // Outside the try block because redirect works by throwing
+  redirect("/sign-in?reset=success");
 }
 
 export async function signInWithGitHub(formData: FormData) {
