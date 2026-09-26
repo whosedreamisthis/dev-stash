@@ -1,35 +1,20 @@
-# Current Feature: Items List View
+# Current Feature
 
 <!-- Feature name and short description -->
-
-Dynamic items listing page at `/items/[type]` that shows the signed-in user's items filtered by type.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- Create the dynamic route `/items/[type]` (e.g. `/items/snippets`, `/items/notes`)
-- Fetch and display the signed-in user's items filtered by type
-- Show items in a responsive grid of `ItemCard` components
-- Two columns on medium screens and up
-- Each card has a border colored by its item type
-- Follow existing codebase patterns
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- `[type]` is the item type's plural slug (`ItemType.slug`), matching the sidebar links.
-- Reuse the existing `ItemCard` in `src/components/dashboard/ItemCard.tsx` and the `ItemSummary` shape from `src/lib/db/items.ts` / `src/types/items.ts`.
-- Add the type-filtered query to `src/lib/db/items.ts`, scoped by the session user's ID (as on the dashboard).
-- The page should render inside the dashboard shell (sidebar + top bar) and be protected like `/dashboard` and `/profile`.
-- Visited dynamic pages are reused from the client cache for 30 seconds (`experimental.staleTimes.dynamic`). Server-side caching with Cache Components (`"use cache"`, per-user `cacheTag`, `updateTag` on changes) is planned as its own feature.
 
 ## History
 
@@ -55,3 +40,4 @@ In Progress
 - **Auth Rate Limiting:** Fixed the High and Medium findings of the auth security audit (`docs/audit-results/AUTH_SECURITY_REVIEW.md`, produced by the new `auth-auditor` subagent in `.claude/agents/`). Added a `RateLimit` model (`add_rate_limit` migration) and `src/lib/rate-limit.ts`, a fixed-window limiter stored in Neon whose increment is a single atomic `INSERT ... ON CONFLICT` statement. Credentials sign-in is limited to 5 attempts per email and 20 per IP every 15 minutes, checked inside `authorize` before the user lookup so both the server action and the Auth.js callback endpoint are covered; a correct password clears the email's counter, and a `rate_limited` `CredentialsSignin` error shows "Too many sign-in attempts" on the form. Change password is limited to 5 attempts per user every 15 minutes, and `POST /api/auth/register` to 10 per IP per hour, returning 429 with `Retry-After`. The client IP comes from `x-real-ip` / `x-forwarded-for`; without them the per-IP limit is skipped rather than shared by all clients. Replacing unverified accounts on re-registration was deliberately not done. Expired counter rows are reused per key but not cleaned up.
 - **Rate Limiting for Auth (Upstash):** Replaced the Neon-backed limiter with Upstash Redis (`@upstash/ratelimit`, `@upstash/redis`) using sliding windows; the `remove_rate_limit` migration drops the `RateLimit` table. `src/lib/rate-limit.ts` creates the Upstash client on first use, keeps one limiter per rule under a `devstash:ratelimit:<rule>` prefix, and exposes `checkRateLimit` (returning `{ success, remaining, reset }`), `resetRateLimit`, `getClientIp` (`x-real-ip`, then the first `x-forwarded-for` entry) and message / `Retry-After` helpers. It fails open when `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` are missing, Upstash errors, or a check takes over 3 seconds. Credentials sign-in is checked inside `authorize`: 5 attempts per IP + email and 10 per email from any IP every 15 minutes, both cleared by a correct password. `POST /api/auth/register` allows 3 per IP per hour and returns 429 with "Too many attempts. Please try again in X minutes." and `Retry-After`. The forgot password (3 per IP per hour), reset password (5 per IP per 15 minutes) and resend verification (3 per IP + email per 15 minutes) server actions are limited in place, and change password keeps 5 per user per 15 minutes. IP-only limits are skipped when the IP is unknown. Added the shadcn Sonner `Toaster` (dark theme) to the root layout and a `useRateLimitToast` hook in `src/hooks/`; rate-limit errors show as toasts while other errors stay inline. The Upstash variables are documented in the project overview.
 - **Fix Dashboard Showing Demo User Data:** Signed-in users were seeing the seeded demo user's collections and items because the dashboard and sidebar still loaded data through the temporary `getDemoUser` helper. The dashboard page now reads the user ID from the Auth.js session (redirecting to `/sign-in?callbackUrl=/dashboard` without one), and `getSidebarData` loads item types and collections for the session user, returning empty lists when signed out, which also fixes the profile page's sidebar. `getDemoUser` was removed from `src/lib/db/users.ts`. The demo data stays in the database and is visible when signed in as `demo@devstash.io`.
+- **Items List View:** Added a protected `/items/[type]` page (in the proxy matcher, rendered inside the dashboard shell through `src/app/items/layout.tsx`) that lists the signed-in user's items of one type. `getItemTypeBySlug` in `src/lib/db/items.ts` finds a system type or the user's own custom type by slug (unknown slugs return 404), and `getItemsByType` returns the user's items of that type, pinned first, then newest. The page renders a header with the type's icon, color and plural name, then streams the items through a Suspense boundary into a responsive grid of the existing `ItemCard` (one column, two from `md` up, type-colored borders) with an item count and an empty state. A `loading.tsx` boundary makes navigation from the sidebar immediate, showing the title and icon from the URL (new slug-keyed `ITEM_TYPE_SLUG_ICONS`) and a skeleton grid. Added shared `ItemsHeader`, `ItemGrid` and `ItemGridSkeleton` components in `src/components/items/` and the shadcn Skeleton component. Visited dynamic pages are reused from the client cache for 30 seconds (`experimental.staleTimes.dynamic` in `next.config.ts`); server-side caching with Cache Components (`"use cache"`, per-user `cacheTag`, `updateTag` on changes) is planned as its own feature.
