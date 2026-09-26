@@ -1,32 +1,20 @@
-# Current Feature: Auth Rate Limiting
+# Current Feature
 
 <!-- Feature name and short description -->
-
-Fix the High and Medium issues from the auth security audit (`docs/audit-results/AUTH_SECURITY_REVIEW.md`): unlimited password guessing on sign-in and change password, and unlimited registration.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- Add a Postgres-backed fixed-window rate limiter (new `RateLimit` model and migration)
-- Limit credentials sign-in per email and per IP inside `authorize`, so both the server action and the direct Auth.js callback endpoint are covered, with a clear "too many attempts" message
-- Limit change password attempts per user
-- Limit registration per IP, returning 429
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Counters are stored in Neon so they work across serverless instances; the increment is a single atomic `INSERT ... ON CONFLICT` statement
-- Per-email sign-in limits let someone temporarily lock out a known email; this is the usual trade-off and the lock only lasts for the window
-- Client IP comes from `x-real-ip` / `x-forwarded-for`, which are only trustworthy behind a proxy that sets them (e.g. Vercel); the per-email limit still applies if they're spoofed
-- Overwriting unverified accounts on re-registration (suggested by the audit) is not done: the squatter's password would still work once the owner verified the email
 
 ## History
 
@@ -49,3 +37,4 @@ In Progress
 - **Email Verification Toggle:** Added a server-only `EMAIL_VERIFICATION_ENABLED` flag so email verification can be turned off while Resend has no verified domain. `isEmailVerificationEnabled()` in `src/lib/verification.ts` is the single check, and verification stays on unless the variable is exactly `"false"`. When off, `POST /api/auth/register` skips the token and email (and returns `verificationRequired: false`), credentials sign-in skips the `emailVerified` check, the resend action does nothing, and the register form redirects to `/sign-in?registered=ready` with "Account created. You can sign in now." Accounts created while it's off stay unverified. `EMAIL_VERIFICATION_ENABLED=false` was added to the local `.env`; the deployed app keeps verification on unless the variable is set there.
 - **Forgot Password:** Credentials users can reset a forgotten password through an emailed link. The sign-in form has a "Forgot password?" link to `/forgot-password`, whose Zod-validated `requestPasswordReset` action always shows the same message so it doesn't reveal whether an account exists. `src/lib/password-reset.ts` sends links only to users with a password, at most once a minute, storing 32-byte tokens as SHA-256 hashes in the existing `VerificationToken` table with a 1-hour expiry under a `password-reset:<email>` identifier so they never collide with email verification tokens; unsent tokens are removed. Added `sendPasswordResetEmail` to `src/lib/email.ts`. `/reset-password` checks the token before showing a new password form (shared `resetPasswordSchema`, 8–72 characters) and shows invalid or expired messages with a "Request a new link" link. Resetting deletes the token first inside an interactive transaction so links are single-use, saves the password with 12 bcrypt rounds, marks the email verified, and redirects to `/sign-in?reset=success` with a "Password updated" banner. Token helpers (`generateToken`, `hashToken`, `getAppUrl`, `wasRecentlySent`) moved to `src/lib/tokens.ts` and are shared with email verification, and `verifyEmailToken` now ignores reset tokens. The register and reset schemas share the new-password rule and passwords-match check. No migration was needed; existing JWT sessions are not revoked by a reset.
 - **Profile Page:** Added a protected `/profile` page (in the proxy matcher, and the page redirects to sign-in when there's no session or the user no longer exists) that renders inside the dashboard shell; sidebar loading moved from the dashboard layout to `src/lib/db/sidebar.ts` so both layouts share it. The page shows the user's avatar (GitHub image or initials from the name or email), name, email and join date, then usage stats for the signed-in user: total items, total collections and item counts for each system type, reusing `getItemStats`, `getCollectionStats` and `getSidebarItemTypes`. `getProfileUser` returns `hasPassword` instead of the hash. Email/password users get a Change password dialog (current password plus a confirmed new one, validated by the new `changePasswordSchema`; the server re-checks the current password with bcrypt and saves a 12-round hash). Delete account opens a confirmation alert dialog warning that all collections and items will be permanently deleted; deleting the user cascades to items, collections, tags, custom types, accounts and sessions, removes the email's verification and reset tokens in the same transaction, then signs out to `/sign-in`. Logic lives in `src/lib/account.ts` and `src/actions/profile.ts`. Added the shadcn Dialog and Alert Dialog components; both profile dialogs are centered and capped at 28rem wide. No migration was needed. The dashboard and sidebar still show the demo user's data.
+- **Auth Rate Limiting:** Fixed the High and Medium findings of the auth security audit (`docs/audit-results/AUTH_SECURITY_REVIEW.md`, produced by the new `auth-auditor` subagent in `.claude/agents/`). Added a `RateLimit` model (`add_rate_limit` migration) and `src/lib/rate-limit.ts`, a fixed-window limiter stored in Neon whose increment is a single atomic `INSERT ... ON CONFLICT` statement. Credentials sign-in is limited to 5 attempts per email and 20 per IP every 15 minutes, checked inside `authorize` before the user lookup so both the server action and the Auth.js callback endpoint are covered; a correct password clears the email's counter, and a `rate_limited` `CredentialsSignin` error shows "Too many sign-in attempts" on the form. Change password is limited to 5 attempts per user every 15 minutes, and `POST /api/auth/register` to 10 per IP per hour, returning 429 with `Retry-After`. The client IP comes from `x-real-ip` / `x-forwarded-for`; without them the per-IP limit is skipped rather than shared by all clients. Replacing unverified accounts on re-registration was deliberately not done. Expired counter rows are reused per key but not cleaned up.
