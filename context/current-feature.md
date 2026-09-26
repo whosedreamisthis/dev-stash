@@ -1,20 +1,35 @@
-# Current Feature
+# Current Feature: Profile Page
 
 <!-- Feature name and short description -->
+
+Create the profile page with user info, stats, change password and delete account.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- Create a profile page at the `/profile` route, protected so only signed-in users can open it
+- Display user info: email, name, avatar (GitHub or initials) and account creation date
+- Show usage stats: total items, total collections and a breakdown by item type
+- Add a change password action for email/password users only
+- Add a delete account action with a confirmation dialog
+- Follow existing codebase patterns for data fetching and components
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- Avatar: use the GitHub avatar from OAuth if available, otherwise generate initials from the name or email (the existing `UserAvatar` component already does this)
+- The change password button appears only for users who signed up with email/password (they have a `password`), not GitHub OAuth users
+- Delete account needs a confirmation dialog to prevent accidental deletion
+- The item type breakdown shows counts for each type: snippets, prompts, commands, notes, links, files and images
+- The sidebar `UserMenu` already links to `/profile`
 
 ## History
 

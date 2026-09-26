@@ -28,6 +28,14 @@ export const registerSchema = z
   })
   .refine(passwordsMatch.check, passwordsMatch.params);
 
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Current password is required"),
+    password: newPassword,
+    confirmPassword: z.string(),
+  })
+  .refine(passwordsMatch.check, passwordsMatch.params);
+
 export const resetPasswordSchema = z
   .object({
     token: z.string().min(1, "Reset link is invalid"),
