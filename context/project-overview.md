@@ -134,6 +134,7 @@ Powered by **OpenAI `gpt-5-nano`**.
 | AI | **OpenAI** `gpt-5-nano` | Pro features only |
 | Payments | **Stripe** | Subscriptions (monthly / yearly) |
 | Styling | **Tailwind CSS v4** + **shadcn/ui** | Lucide icons |
+| Testing | **Vitest** | Unit tests for server actions and utilities (no component tests) |
 | Repo | Single codebase | Less overhead |
 
 ### Prisma 7 setup notes
@@ -737,6 +738,7 @@ Other conventions:
 - Validate all input with a schema library (e.g. Zod) on the server.
 - Plan/limit checks live in `src/lib/plan.ts` and run server-side.
 - Use Neon branches for dev/preview databases so migrations can be tested before prod.
+- Unit test server actions and utilities with Vitest (`npm test`); tests mock the database and never touch Neon.
 
 ---
 
