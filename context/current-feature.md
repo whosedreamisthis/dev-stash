@@ -1,31 +1,20 @@
-# Current Feature: Vitest Setup
+# Current Feature
 
 <!-- Feature name and short description -->
-
-Set up Vitest for unit testing server actions and utilities (not components).
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- Install Vitest and add a `vitest.config.ts` (Node environment, `@/` alias, only `src/**/*.test.ts`)
-- Add `npm test` and `npm run test:watch` scripts
-- Add starter tests for a utility and a server action to establish the mocking pattern
-- Update the workflow and docs to include unit testing
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Only `.test.ts` files are collected, so component (`.tsx`) tests are out of scope by design.
-- Tests sit next to the code they test (e.g. `src/lib/tokens.test.ts`).
-- Server actions are tested by mocking their dependencies (`@/auth`, `@/lib/db`, `next/headers`) with `vi.mock`; tests never hit the database.
 
 ## History
 
@@ -52,3 +41,4 @@ In Progress
 - **Rate Limiting for Auth (Upstash):** Replaced the Neon-backed limiter with Upstash Redis (`@upstash/ratelimit`, `@upstash/redis`) using sliding windows; the `remove_rate_limit` migration drops the `RateLimit` table. `src/lib/rate-limit.ts` creates the Upstash client on first use, keeps one limiter per rule under a `devstash:ratelimit:<rule>` prefix, and exposes `checkRateLimit` (returning `{ success, remaining, reset }`), `resetRateLimit`, `getClientIp` (`x-real-ip`, then the first `x-forwarded-for` entry) and message / `Retry-After` helpers. It fails open when `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` are missing, Upstash errors, or a check takes over 3 seconds. Credentials sign-in is checked inside `authorize`: 5 attempts per IP + email and 10 per email from any IP every 15 minutes, both cleared by a correct password. `POST /api/auth/register` allows 3 per IP per hour and returns 429 with "Too many attempts. Please try again in X minutes." and `Retry-After`. The forgot password (3 per IP per hour), reset password (5 per IP per 15 minutes) and resend verification (3 per IP + email per 15 minutes) server actions are limited in place, and change password keeps 5 per user per 15 minutes. IP-only limits are skipped when the IP is unknown. Added the shadcn Sonner `Toaster` (dark theme) to the root layout and a `useRateLimitToast` hook in `src/hooks/`; rate-limit errors show as toasts while other errors stay inline. The Upstash variables are documented in the project overview.
 - **Fix Dashboard Showing Demo User Data:** Signed-in users were seeing the seeded demo user's collections and items because the dashboard and sidebar still loaded data through the temporary `getDemoUser` helper. The dashboard page now reads the user ID from the Auth.js session (redirecting to `/sign-in?callbackUrl=/dashboard` without one), and `getSidebarData` loads item types and collections for the session user, returning empty lists when signed out, which also fixes the profile page's sidebar. `getDemoUser` was removed from `src/lib/db/users.ts`. The demo data stays in the database and is visible when signed in as `demo@devstash.io`.
 - **Items List View:** Added a protected `/items/[type]` page (in the proxy matcher, rendered inside the dashboard shell through `src/app/items/layout.tsx`) that lists the signed-in user's items of one type. `getItemTypeBySlug` in `src/lib/db/items.ts` finds a system type or the user's own custom type by slug (unknown slugs return 404), and `getItemsByType` returns the user's items of that type, pinned first, then newest. The page renders a header with the type's icon, color and plural name, then streams the items through a Suspense boundary into a responsive grid of the existing `ItemCard` (one column, two from `md` up, type-colored borders) with an item count and an empty state. A `loading.tsx` boundary makes navigation from the sidebar immediate, showing the title and icon from the URL (new slug-keyed `ITEM_TYPE_SLUG_ICONS`) and a skeleton grid. Added shared `ItemsHeader`, `ItemGrid` and `ItemGridSkeleton` components in `src/components/items/` and the shadcn Skeleton component. Visited dynamic pages are reused from the client cache for 30 seconds (`experimental.staleTimes.dynamic` in `next.config.ts`); server-side caching with Cache Components (`"use cache"`, per-user `cacheTag`, `updateTag` on changes) is planned as its own feature.
+- **Vitest Setup:** Added Vitest (`vitest` dev dependency) for unit testing server actions and utilities only, not components. `vitest.config.ts` runs in a Node environment, mirrors the `@/` path alias, collects only `src/**/*.test.ts`, and resets mocks and stubbed env variables before each test. Added `npm test` (single run) and `npm run test:watch`. Starter tests sit next to the code they cover and never touch the database: `src/lib/validations/auth.test.ts` (email normalization, password length, passwords-match), `src/lib/tokens.test.ts` (token format, SHA-256 hashing, `getAppUrl` paths and the `wasRecentlySent` cooldown, with `next/headers` and Prisma mocked and fake timers) and `src/actions/profile.test.ts` (`changeUserPassword` and `deleteUserAccount` with `@/auth` and `@/lib/account` mocked, including no session, invalid input, failures and no sign-out when deletion fails), 21 tests in all. The workflow in `context/ai-interaction.md` now includes writing unit tests and running `npm test` with the build before committing; `context/coding-standards.md` has a Testing section (and its unterminated Tailwind code block is closed); Vitest is listed in the project overview's tech stack and development rules; and the feature skill lists the `test` action, checks tests in `review` and runs `npm test` in `complete`.
