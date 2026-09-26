@@ -15,6 +15,7 @@ const AUTH_ERROR_MESSAGES: Record<string, string> = {
 // Banners for ?registered=... (after sign-up) and ?verify=... (from the email link)
 const SUCCESS_MESSAGES: Record<string, string> = {
   registered: "Account created. Check your email for a link to verify your address.",
+  ready: "Account created. You can sign in now.",
   verified: "Email verified. You can sign in now.",
 };
 
@@ -41,6 +42,7 @@ export default async function SignInPage({ searchParams }: PageProps<"/sign-in">
 
   const successMessage =
     (registered === "1" && SUCCESS_MESSAGES.registered) ||
+    (registered === "ready" && SUCCESS_MESSAGES.ready) ||
     (verify === "verified" && SUCCESS_MESSAGES.verified) ||
     undefined;
   const noticeError =

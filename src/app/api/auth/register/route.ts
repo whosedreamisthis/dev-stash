@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { registerSchema } from "@/lib/validations/auth";
-import { sendVerificationLink } from "@/lib/verification";
+import { isEmailVerificationEnabled, sendVerificationLink } from "@/lib/verification";
 
 function emailTakenResponse() {
   return NextResponse.json(
@@ -46,14 +46,18 @@ export async function POST(request: Request) {
       select: { id: true, name: true, email: true },
     });
 
+    const verificationRequired = isEmailVerificationEnabled();
+
     // The account stays created if the email fails; the user can request a new link
-    const emailSent = await sendVerificationLink(email).catch((error: unknown) => {
-      console.error("Sending verification email failed:", error);
-      return false;
-    });
+    const emailSent = verificationRequired
+      ? await sendVerificationLink(email).catch((error: unknown) => {
+          console.error("Sending verification email failed:", error);
+          return false;
+        })
+      : false;
 
     return NextResponse.json(
-      { success: true, data: { ...user, emailSent } },
+      { success: true, data: { ...user, verificationRequired, emailSent } },
       { status: 201 },
     );
   } catch (error) {

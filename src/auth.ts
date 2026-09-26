@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import authConfig from "@/auth.config";
 import { prisma } from "@/lib/db";
 import { signInSchema } from "@/lib/validations/auth";
+import { isEmailVerificationEnabled } from "@/lib/verification";
 
 export const EMAIL_NOT_VERIFIED = "email_not_verified";
 
@@ -38,7 +39,9 @@ const credentialsProvider = Credentials({
     if (!isValid) return null;
 
     // Checked after the password so unverified status isn't revealed to guessers
-    if (!user.emailVerified) throw new EmailNotVerifiedError();
+    if (isEmailVerificationEnabled() && !user.emailVerified) {
+      throw new EmailNotVerifiedError();
+    }
 
     return { id: user.id, name: user.name, email: user.email, image: user.image };
   },

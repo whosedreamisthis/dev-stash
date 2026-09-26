@@ -12,8 +12,14 @@ type FieldErrors = Partial<Record<keyof RegisterValues, string>>;
 
 interface RegisterResponse {
   success: boolean;
-  data?: { emailSent: boolean };
+  data?: { verificationRequired: boolean; emailSent: boolean };
   error?: string;
+}
+
+// Tells the sign-in page which banner to show after registering
+function getRegisteredStatus(data: RegisterResponse["data"]) {
+  if (!data?.verificationRequired) return "ready";
+  return data.emailSent ? "1" : "email-failed";
 }
 
 const INITIAL_VALUES: RegisterValues = {
@@ -64,7 +70,7 @@ export function RegisterForm() {
         setFormError(result.error ?? "Registration failed. Please try again.");
         return;
       }
-      router.push(`/sign-in?registered=${result.data?.emailSent ? "1" : "email-failed"}`);
+      router.push(`/sign-in?registered=${getRegisteredStatus(result.data)}`);
     } catch {
       setFormError("Something went wrong. Please try again.");
     } finally {

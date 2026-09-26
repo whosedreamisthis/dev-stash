@@ -1,20 +1,37 @@
-# Current Feature
+# Current Feature: Email Verification Toggle
 
 <!-- Feature name and short description -->
+
+Add a flag that turns the email verification system on or off. Resend has no verified domain yet, so it only delivers to the Resend account owner's address, which means other emails can't complete registration. With verification off, anyone can register and sign in straight away.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- Add a server-side env variable `EMAIL_VERIFICATION_ENABLED` and a single helper (e.g. `isEmailVerificationEnabled()` in `src/lib/`) that every check reads from
+- Verification stays on by default; it's only off when the variable is exactly `"false"`
+- When off, registration creates the account without creating a token or sending an email
+- When off, credentials sign-in skips the `emailVerified` check
+- When off, the register form redirects to the sign-in page with "Account created. You can sign in now." instead of "Check your email"
+- When off, the resend verification action does nothing
+- Add `EMAIL_VERIFICATION_ENABLED=false` to `.env` for local development
+- When on, everything behaves exactly as it does today
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- An env variable was chosen over a database setting or admin toggle: it needs no migration or UI, and the switch happens on restart or redeploy. Keep it server-only (no `NEXT_PUBLIC_` prefix), since the client just follows the register API's response.
+- Defaulting to on means a missing variable in production never quietly turns verification off.
+- Accounts created while verification is off are not marked verified, because their email really wasn't checked. If verification is turned back on, those users are asked to verify at sign-in and can use the resend button.
+- The `/verify-email` route can stay as it is; old links still work either way.
+- Setting the variable in `.env.production` or the hosting environment is up to you.
 
 ## History
 

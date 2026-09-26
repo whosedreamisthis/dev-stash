@@ -8,6 +8,11 @@ const RESEND_COOLDOWN_MS = 60 * 1000;
 
 export type VerifyEmailResult = "verified" | "invalid" | "expired";
 
+// On unless explicitly disabled, so a missing variable never turns verification off
+export function isEmailVerificationEnabled() {
+  return process.env.EMAIL_VERIFICATION_ENABLED !== "false";
+}
+
 // Only the hash is stored, so a leaked database row can't be used as a link
 function hashToken(token: string) {
   return createHash("sha256").update(token).digest("hex");
@@ -69,6 +74,8 @@ export async function sendVerificationLink(email: string) {
 
 // Sends a new link only to unverified credentials users, at most once a minute
 export async function resendVerificationLink(email: string) {
+  if (!isEmailVerificationEnabled()) return;
+
   const user = await prisma.user.findUnique({
     where: { email },
     select: { password: true, emailVerified: true },
