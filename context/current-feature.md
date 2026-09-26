@@ -1,20 +1,29 @@
-# Current Feature
+# Current Feature: Fix Dashboard Showing Demo User Data
 
 <!-- Feature name and short description -->
+
+Signed-in users see the seeded demo user's collections and items because the dashboard and sidebar still load data with `getDemoUser`.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- The dashboard page loads collections, items and stats for the signed-in session user
+- The sidebar loads item types and collections for the signed-in session user
+- Redirect to `/sign-in` when there's no session
+- Remove the temporary `getDemoUser` helper
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- The demo user's data stays in the database; it's only visible when signed in as `demo@devstash.io`.
 
 ## History
 
