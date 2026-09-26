@@ -1,46 +1,20 @@
-# Current Feature: Rate Limiting for Auth (Upstash)
+# Current Feature
 
 <!-- Feature name and short description -->
-
-Replace the current Neon-backed auth rate limiter with Upstash Redis (`@upstash/ratelimit`) to prevent brute force attacks, credential stuffing and abuse of email-sending endpoints.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- Remove the current rate limit implementation: the Neon-backed `src/lib/rate-limit.ts`, its call sites, and the `RateLimit` model and table (dropped through a new migration, never `db push`)
-- Add `@upstash/redis` and `@upstash/ratelimit`, configured with `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`
-- Create a reusable `src/lib/rate-limit.ts` utility with an Upstash client, using the sliding window algorithm and returning `{ success, remaining, reset }`
-- Extract the client IP from `x-forwarded-for` (Vercel) or the request, and combine IP + email where applicable
-- Protect the auth endpoints with these limits:
-  - Login (credentials sign-in): 5 attempts / 15 min, keyed by IP + email
-  - Register: 3 attempts / 1 hour, keyed by IP
-  - Forgot password: 3 attempts / 1 hour, keyed by IP
-  - Reset password: 5 attempts / 15 min, keyed by IP
-  - Resend verification: 3 attempts / 15 min, keyed by IP + email
-- API routes return 429 with `{ error: "Too many attempts. Please try again in X minutes." }` and a `Retry-After` header
-- The frontend shows a user-friendly error via toast notification
-- Fail open (allow the request) if Upstash is unavailable or not configured
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Spec: `context/features/rate-limiting-spec.md`
-- Forgot password, reset password and resend verification are currently server actions, not `/api/auth/*` routes. Rate limit them inside the actions (returning the same friendly message) rather than adding new API routes, unless decided otherwise.
-- Login limiting with NextAuth credentials is tricky; the existing approach of checking inside `authorize` covers both the server action and the `/api/auth/callback/credentials` endpoint.
-- The existing change-password limit (5 per user / 15 min) is not in the spec; decide whether to keep it on Upstash or drop it.
-- Toasts need shadcn `Sonner`, which may not be installed yet.
-- Upstash free tier allows 10k requests/day, which is enough for auth limiting.
-- Consider rate limiting middleware for a cleaner implementation later.
-- Security fixes from review: sign-in also has a per-email limit (10 / 15 min, any IP) so rotating IPs can't multiply guesses against one account, and `getClientIp` reads `x-real-ip` before `x-forwarded-for`.
-- Decisions: change password stays limited (5 per user / 15 min) on Upstash; a correct sign-in password clears its IP + email counter; IP-only limits are skipped when the IP is unknown; only rate-limit errors are toasts, other errors stay inline.
 
 ## History
 
@@ -64,3 +38,4 @@ In Progress
 - **Forgot Password:** Credentials users can reset a forgotten password through an emailed link. The sign-in form has a "Forgot password?" link to `/forgot-password`, whose Zod-validated `requestPasswordReset` action always shows the same message so it doesn't reveal whether an account exists. `src/lib/password-reset.ts` sends links only to users with a password, at most once a minute, storing 32-byte tokens as SHA-256 hashes in the existing `VerificationToken` table with a 1-hour expiry under a `password-reset:<email>` identifier so they never collide with email verification tokens; unsent tokens are removed. Added `sendPasswordResetEmail` to `src/lib/email.ts`. `/reset-password` checks the token before showing a new password form (shared `resetPasswordSchema`, 8–72 characters) and shows invalid or expired messages with a "Request a new link" link. Resetting deletes the token first inside an interactive transaction so links are single-use, saves the password with 12 bcrypt rounds, marks the email verified, and redirects to `/sign-in?reset=success` with a "Password updated" banner. Token helpers (`generateToken`, `hashToken`, `getAppUrl`, `wasRecentlySent`) moved to `src/lib/tokens.ts` and are shared with email verification, and `verifyEmailToken` now ignores reset tokens. The register and reset schemas share the new-password rule and passwords-match check. No migration was needed; existing JWT sessions are not revoked by a reset.
 - **Profile Page:** Added a protected `/profile` page (in the proxy matcher, and the page redirects to sign-in when there's no session or the user no longer exists) that renders inside the dashboard shell; sidebar loading moved from the dashboard layout to `src/lib/db/sidebar.ts` so both layouts share it. The page shows the user's avatar (GitHub image or initials from the name or email), name, email and join date, then usage stats for the signed-in user: total items, total collections and item counts for each system type, reusing `getItemStats`, `getCollectionStats` and `getSidebarItemTypes`. `getProfileUser` returns `hasPassword` instead of the hash. Email/password users get a Change password dialog (current password plus a confirmed new one, validated by the new `changePasswordSchema`; the server re-checks the current password with bcrypt and saves a 12-round hash). Delete account opens a confirmation alert dialog warning that all collections and items will be permanently deleted; deleting the user cascades to items, collections, tags, custom types, accounts and sessions, removes the email's verification and reset tokens in the same transaction, then signs out to `/sign-in`. Logic lives in `src/lib/account.ts` and `src/actions/profile.ts`. Added the shadcn Dialog and Alert Dialog components; both profile dialogs are centered and capped at 28rem wide. No migration was needed. The dashboard and sidebar still show the demo user's data.
 - **Auth Rate Limiting:** Fixed the High and Medium findings of the auth security audit (`docs/audit-results/AUTH_SECURITY_REVIEW.md`, produced by the new `auth-auditor` subagent in `.claude/agents/`). Added a `RateLimit` model (`add_rate_limit` migration) and `src/lib/rate-limit.ts`, a fixed-window limiter stored in Neon whose increment is a single atomic `INSERT ... ON CONFLICT` statement. Credentials sign-in is limited to 5 attempts per email and 20 per IP every 15 minutes, checked inside `authorize` before the user lookup so both the server action and the Auth.js callback endpoint are covered; a correct password clears the email's counter, and a `rate_limited` `CredentialsSignin` error shows "Too many sign-in attempts" on the form. Change password is limited to 5 attempts per user every 15 minutes, and `POST /api/auth/register` to 10 per IP per hour, returning 429 with `Retry-After`. The client IP comes from `x-real-ip` / `x-forwarded-for`; without them the per-IP limit is skipped rather than shared by all clients. Replacing unverified accounts on re-registration was deliberately not done. Expired counter rows are reused per key but not cleaned up.
+- **Rate Limiting for Auth (Upstash):** Replaced the Neon-backed limiter with Upstash Redis (`@upstash/ratelimit`, `@upstash/redis`) using sliding windows; the `remove_rate_limit` migration drops the `RateLimit` table. `src/lib/rate-limit.ts` creates the Upstash client on first use, keeps one limiter per rule under a `devstash:ratelimit:<rule>` prefix, and exposes `checkRateLimit` (returning `{ success, remaining, reset }`), `resetRateLimit`, `getClientIp` (`x-real-ip`, then the first `x-forwarded-for` entry) and message / `Retry-After` helpers. It fails open when `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` are missing, Upstash errors, or a check takes over 3 seconds. Credentials sign-in is checked inside `authorize`: 5 attempts per IP + email and 10 per email from any IP every 15 minutes, both cleared by a correct password. `POST /api/auth/register` allows 3 per IP per hour and returns 429 with "Too many attempts. Please try again in X minutes." and `Retry-After`. The forgot password (3 per IP per hour), reset password (5 per IP per 15 minutes) and resend verification (3 per IP + email per 15 minutes) server actions are limited in place, and change password keeps 5 per user per 15 minutes. IP-only limits are skipped when the IP is unknown. Added the shadcn Sonner `Toaster` (dark theme) to the root layout and a `useRateLimitToast` hook in `src/hooks/`; rate-limit errors show as toasts while other errors stay inline. The Upstash variables are documented in the project overview.
