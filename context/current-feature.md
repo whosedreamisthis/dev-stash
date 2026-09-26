@@ -1,29 +1,20 @@
-# Current Feature: Fix Dashboard Showing Demo User Data
+# Current Feature
 
 <!-- Feature name and short description -->
-
-Signed-in users see the seeded demo user's collections and items because the dashboard and sidebar still load data with `getDemoUser`.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- The dashboard page loads collections, items and stats for the signed-in session user
-- The sidebar loads item types and collections for the signed-in session user
-- Redirect to `/sign-in` when there's no session
-- Remove the temporary `getDemoUser` helper
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- The demo user's data stays in the database; it's only visible when signed in as `demo@devstash.io`.
 
 ## History
 
@@ -48,3 +39,4 @@ In Progress
 - **Profile Page:** Added a protected `/profile` page (in the proxy matcher, and the page redirects to sign-in when there's no session or the user no longer exists) that renders inside the dashboard shell; sidebar loading moved from the dashboard layout to `src/lib/db/sidebar.ts` so both layouts share it. The page shows the user's avatar (GitHub image or initials from the name or email), name, email and join date, then usage stats for the signed-in user: total items, total collections and item counts for each system type, reusing `getItemStats`, `getCollectionStats` and `getSidebarItemTypes`. `getProfileUser` returns `hasPassword` instead of the hash. Email/password users get a Change password dialog (current password plus a confirmed new one, validated by the new `changePasswordSchema`; the server re-checks the current password with bcrypt and saves a 12-round hash). Delete account opens a confirmation alert dialog warning that all collections and items will be permanently deleted; deleting the user cascades to items, collections, tags, custom types, accounts and sessions, removes the email's verification and reset tokens in the same transaction, then signs out to `/sign-in`. Logic lives in `src/lib/account.ts` and `src/actions/profile.ts`. Added the shadcn Dialog and Alert Dialog components; both profile dialogs are centered and capped at 28rem wide. No migration was needed. The dashboard and sidebar still show the demo user's data.
 - **Auth Rate Limiting:** Fixed the High and Medium findings of the auth security audit (`docs/audit-results/AUTH_SECURITY_REVIEW.md`, produced by the new `auth-auditor` subagent in `.claude/agents/`). Added a `RateLimit` model (`add_rate_limit` migration) and `src/lib/rate-limit.ts`, a fixed-window limiter stored in Neon whose increment is a single atomic `INSERT ... ON CONFLICT` statement. Credentials sign-in is limited to 5 attempts per email and 20 per IP every 15 minutes, checked inside `authorize` before the user lookup so both the server action and the Auth.js callback endpoint are covered; a correct password clears the email's counter, and a `rate_limited` `CredentialsSignin` error shows "Too many sign-in attempts" on the form. Change password is limited to 5 attempts per user every 15 minutes, and `POST /api/auth/register` to 10 per IP per hour, returning 429 with `Retry-After`. The client IP comes from `x-real-ip` / `x-forwarded-for`; without them the per-IP limit is skipped rather than shared by all clients. Replacing unverified accounts on re-registration was deliberately not done. Expired counter rows are reused per key but not cleaned up.
 - **Rate Limiting for Auth (Upstash):** Replaced the Neon-backed limiter with Upstash Redis (`@upstash/ratelimit`, `@upstash/redis`) using sliding windows; the `remove_rate_limit` migration drops the `RateLimit` table. `src/lib/rate-limit.ts` creates the Upstash client on first use, keeps one limiter per rule under a `devstash:ratelimit:<rule>` prefix, and exposes `checkRateLimit` (returning `{ success, remaining, reset }`), `resetRateLimit`, `getClientIp` (`x-real-ip`, then the first `x-forwarded-for` entry) and message / `Retry-After` helpers. It fails open when `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` are missing, Upstash errors, or a check takes over 3 seconds. Credentials sign-in is checked inside `authorize`: 5 attempts per IP + email and 10 per email from any IP every 15 minutes, both cleared by a correct password. `POST /api/auth/register` allows 3 per IP per hour and returns 429 with "Too many attempts. Please try again in X minutes." and `Retry-After`. The forgot password (3 per IP per hour), reset password (5 per IP per 15 minutes) and resend verification (3 per IP + email per 15 minutes) server actions are limited in place, and change password keeps 5 per user per 15 minutes. IP-only limits are skipped when the IP is unknown. Added the shadcn Sonner `Toaster` (dark theme) to the root layout and a `useRateLimitToast` hook in `src/hooks/`; rate-limit errors show as toasts while other errors stay inline. The Upstash variables are documented in the project overview.
+- **Fix Dashboard Showing Demo User Data:** Signed-in users were seeing the seeded demo user's collections and items because the dashboard and sidebar still loaded data through the temporary `getDemoUser` helper. The dashboard page now reads the user ID from the Auth.js session (redirecting to `/sign-in?callbackUrl=/dashboard` without one), and `getSidebarData` loads item types and collections for the session user, returning empty lists when signed out, which also fixes the profile page's sidebar. `getDemoUser` was removed from `src/lib/db/users.ts`. The demo data stays in the database and is visible when signed in as `demo@devstash.io`.
