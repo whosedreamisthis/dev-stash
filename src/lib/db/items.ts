@@ -1,7 +1,12 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import type { CollectionItemType } from "@/types/collections";
-import type { ItemStats, ItemSummary, SidebarItemType } from "@/types/items";
+import type {
+  ItemDetail,
+  ItemStats,
+  ItemSummary,
+  SidebarItemType,
+} from "@/types/items";
 
 const ITEM_TYPE_SELECT = {
   id: true,
@@ -30,6 +35,37 @@ function toItemSummary(item: ItemWithRelations): ItemSummary {
     createdAt: item.createdAt,
     tags: item.tags.map(({ tag }) => tag.name),
     type: item.itemType,
+  };
+}
+
+// Returns null for items that don't exist or belong to another user
+export async function getItemDetail(
+  userId: string,
+  itemId: string
+): Promise<ItemDetail | null> {
+  const item = await prisma.item.findFirst({
+    where: { id: itemId, userId },
+    // One round trip to the database instead of one query per relation
+    relationLoadStrategy: "join",
+    include: {
+      ...ITEM_SUMMARY_INCLUDE,
+      collections: {
+        select: { collection: { select: { id: true, name: true } } },
+        orderBy: { collection: { name: "asc" } },
+      },
+    },
+  });
+  if (!item) return null;
+
+  return {
+    ...toItemSummary(item),
+    contentType: item.contentType,
+    content: item.content,
+    language: item.language,
+    url: item.url,
+    fileName: item.fileName,
+    updatedAt: item.updatedAt,
+    collections: item.collections.map(({ collection }) => collection),
   };
 }
 

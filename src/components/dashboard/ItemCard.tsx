@@ -1,4 +1,7 @@
+"use client";
+
 import { Pin, Star } from "lucide-react";
+import { useItemDrawer } from "@/components/items/ItemDrawerProvider";
 import type { ItemSummary } from "@/types/items";
 import {
   ITEM_TYPE_BORDER_COLORS,
@@ -20,14 +23,24 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
 export function ItemCard({ item }: ItemCardProps) {
   const { type } = item;
   const Icon = ITEM_TYPE_ICONS[type.icon];
+  const { openItem, prefetchItem } = useItemDrawer();
 
   return (
     <article
       className={cn(
-        "flex gap-4 rounded-xl border bg-card p-5 transition-colors hover:bg-accent/40",
+        "relative flex gap-4 rounded-xl border bg-card p-5 transition-colors hover:bg-accent/40",
         ITEM_TYPE_BORDER_COLORS[type.slug]
       )}
     >
+      {/* Covers the whole card so a click anywhere opens the drawer */}
+      <button
+        type="button"
+        aria-label={`Open ${item.title}`}
+        onClick={() => openItem(item)}
+        onPointerEnter={() => prefetchItem(item.id)}
+        onFocus={() => prefetchItem(item.id)}
+        className="absolute inset-0 cursor-pointer rounded-xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+      />
       <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted">
         {Icon && (
           <Icon

@@ -11,6 +11,16 @@ export interface ItemSummary {
   type: CollectionItemType;
 }
 
+export interface ItemDetail extends ItemSummary {
+  contentType: "TEXT" | "URL" | "FILE";
+  content: string | null;
+  language: string | null;
+  url: string | null;
+  fileName: string | null;
+  updatedAt: Date;
+  collections: { id: string; name: string }[];
+}
+
 export interface SidebarItemType extends CollectionItemType {
   // Number of the user's items of this type
   count: number;
