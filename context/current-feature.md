@@ -1,47 +1,20 @@
-# Current Feature: Item Drawer Edit Mode
+# Current Feature
 
 <!-- Feature name and short description -->
-
-Clicking the Edit button (pencil icon) in the item drawer's action bar switches the same open drawer from view mode to an inline edit mode where fields become editable inputs.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- **Mode toggle:** the Edit button switches the drawer into edit mode; the action bar is replaced with Save and Cancel buttons
-- **Cancel** discards changes and returns to view mode
-- **Save** persists changes via a server action, returns to view mode and refreshes the drawer data; toast on success or error
-- **Editable fields (all types):** Title (text input, required), Description (textarea, optional), Tags (comma-separated text input converted to a tag array on save)
-- **Type-specific fields:** Content (textarea) for snippet, prompt, command and note; Language (text input) for snippet and command; URL (text input) for link
-- **Display only in edit mode:** item type, collections and created/updated dates
-- **Validation:** Zod schema for the update payload, validated in the server action before hitting the database
-  - `title`: non-empty string, trimmed
-  - `description`: string or null, optional
-  - `content`: string or null, optional
-  - `url`: valid URL string or null, optional
-  - `language`: string or null, optional
-  - `tags`: array of trimmed non-empty strings
-  - Zod errors returned in the `{ success: false, error }` response so the client can display them
-- **Server action:** `updateItem(itemId, data)` in `src/actions/items.ts` with the `{ success, data, error }` pattern: validates input with Zod, gets the session via `auth()`, checks ownership and calls the query function
-- **Query:** `updateItem` in `src/lib/db/items.ts`; on update, disconnect all existing tags and connect-or-create the new ones; returns the updated `ItemDetail` so the drawer refreshes without a second fetch
-- **After save:** call `router.refresh()` so the underlying card list reflects the changes
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Keep it simple: no form library, controlled inputs with local state
-- Client-side: disable Save when the title is empty (basic UX guard)
-- Server-side: Zod validates all fields in the server action (source of truth)
-- The content textarea doesn't need to be a code editor yet; that comes later
-- The drawer's cached item details (`useItemDetailCache`) must be updated with the returned `ItemDetail` after a save
-- Spec: `context/features/item-drawer-edit-spec.md`
 
 ## History
 
@@ -70,3 +43,4 @@ In Progress
 - **Items List View:** Added a protected `/items/[type]` page (in the proxy matcher, rendered inside the dashboard shell through `src/app/items/layout.tsx`) that lists the signed-in user's items of one type. `getItemTypeBySlug` in `src/lib/db/items.ts` finds a system type or the user's own custom type by slug (unknown slugs return 404), and `getItemsByType` returns the user's items of that type, pinned first, then newest. The page renders a header with the type's icon, color and plural name, then streams the items through a Suspense boundary into a responsive grid of the existing `ItemCard` (one column, two from `md` up, type-colored borders) with an item count and an empty state. A `loading.tsx` boundary makes navigation from the sidebar immediate, showing the title and icon from the URL (new slug-keyed `ITEM_TYPE_SLUG_ICONS`) and a skeleton grid. Added shared `ItemsHeader`, `ItemGrid` and `ItemGridSkeleton` components in `src/components/items/` and the shadcn Skeleton component. Visited dynamic pages are reused from the client cache for 30 seconds (`experimental.staleTimes.dynamic` in `next.config.ts`); server-side caching with Cache Components (`"use cache"`, per-user `cacheTag`, `updateTag` on changes) is planned as its own feature.
 - **Vitest Setup:** Added Vitest (`vitest` dev dependency) for unit testing server actions and utilities only, not components. `vitest.config.ts` runs in a Node environment, mirrors the `@/` path alias, collects only `src/**/*.test.ts`, and resets mocks and stubbed env variables before each test. Added `npm test` (single run) and `npm run test:watch`. Starter tests sit next to the code they cover and never touch the database: `src/lib/validations/auth.test.ts` (email normalization, password length, passwords-match), `src/lib/tokens.test.ts` (token format, SHA-256 hashing, `getAppUrl` paths and the `wasRecentlySent` cooldown, with `next/headers` and Prisma mocked and fake timers) and `src/actions/profile.test.ts` (`changeUserPassword` and `deleteUserAccount` with `@/auth` and `@/lib/account` mocked, including no session, invalid input, failures and no sign-out when deletion fails), 21 tests in all. The workflow in `context/ai-interaction.md` now includes writing unit tests and running `npm test` with the build before committing; `context/coding-standards.md` has a Testing section (and its unterminated Tailwind code block is closed); Vitest is listed in the project overview's tech stack and development rules; and the feature skill lists the `test` action, checks tests in `review` and runs `npm test` in `complete`.
 - **Item Drawer:** Clicking an item card on the dashboard or an `/items/[type]` page opens a right-side shadcn Sheet (`max-w-xl`) with the item's full details, with no page navigation. `getItemDetail` in `src/lib/db/items.ts` looks the item up by ID and the session user's ID (another user's item is treated as missing) and returns the summary fields plus content type, content, language, URL, file name, updated date and collections (new `ItemDetail` type). The new `GET /api/items/[id]` route returns 401 without a session, 404 for missing or other users' items and 500 on failure, using the `{ success, data, error }` pattern. `ItemDrawerProvider` (client, inside `DashboardShell`) holds the drawer state for the server-rendered pages; `ItemCard` is now a client component with a full-card button that opens the drawer on click and prefetches the detail on hover or focus. `useItemDetailCache` loads each item at most once per page so a prefetch and the following click share one request (failed loads are retried), using `fetchItemDetail` in `src/lib/items-api.ts`, which revives dates and maps API and non-JSON errors to a readable message. The drawer shows the type icon, title, type and language badges; an action bar with Favorite, Pin, Copy, Edit and Delete; and Description, Content (plain preformatted text, a link or the file name), Tags, Collections and Details (created and updated dates) sections. The header renders instantly from the card's data while a skeleton shows until the detail loads. The action bar is display-only for now: Copy copies the content or URL, and the other actions show a "Coming soon" toast. `getSafeHttpUrl` in `src/lib/url.ts` makes only absolute http(s) links clickable. The `relationJoins` Prisma preview feature is enabled so included relations load in a single joined query (now the default strategy app-wide), with `relationLoadStrategy: "join"` set explicitly in `getItemDetail`; after enabling it, the running dev server had to be restarted with the `.next` cache cleared to pick up the regenerated client. Added 15 Vitest tests (36 in total) for `getItemDetail`, the API route, `getSafeHttpUrl` and `fetchItemDetail`. The drawer's cached details will need updating or invalidating once Edit, Favorite and Pin are implemented.
+- **Item Drawer Edit Mode:** The drawer's Edit button switches the open drawer to an inline edit form, with Save and Cancel replacing the action bar; Cancel or closing the drawer discards changes, and opening another item starts in view mode. The title is edited in the drawer header (the shared new `ItemDrawerHeader` keeps the sheet title for screen readers); description and comma-separated tags are editable for every type, content for text types, language for snippets and commands, and URL for links, while the type, collections and dates stay read-only (`ItemMetaSections`, split out of `ItemDetailSections`). `updateItemSchema` in `src/lib/validations/items.ts` trims and requires the title, turns empty optional fields into null, keeps content indentation, accepts only http(s) URLs and trims tags, rejecting blanks and dropping duplicates; `parseTagInput` splits the tags input. The `updateItem` server action in `src/actions/items.ts` checks the session, validates with Zod and returns `{ success, data, error, fieldErrors }`. The `updateItem` query in `src/lib/db/items.ts` scopes the update to the user, writes only the fields that belong to the item's content type, and in one batch transaction removes the item's tag links before updating it and connecting or creating each tag, so saving unchanged tags doesn't collide; it returns the updated `ItemDetail` through a `toItemDetail` helper shared with `getItemDetail`. After a save the drawer's cached detail is replaced through the new `setDetail` in `useItemDetailCache`, a toast is shown and `router.refresh()` updates the card lists; Save is disabled while the title is empty and field errors show inline. Added the shadcn Textarea component and 20 Vitest tests (56 in total) for the schema, tag parsing, query and action. No migration was needed.
