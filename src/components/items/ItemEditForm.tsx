@@ -7,42 +7,16 @@ import { toast } from "sonner";
 import { updateItem, type UpdateItemFieldErrors } from "@/actions/items";
 import { ItemMetaSections } from "@/components/items/ItemDetailSections";
 import { ItemDrawerHeader } from "@/components/items/ItemDrawerHeader";
+import { ItemFormField as EditField } from "@/components/items/ItemFormField";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { parseTagInput, type UpdateItemInput } from "@/lib/validations/items";
+import {
+  LANGUAGE_TYPE_SLUGS,
+  parseTagInput,
+  type UpdateItemInput,
+} from "@/lib/validations/items";
 import type { ItemDetail } from "@/types/items";
-
-// Item types whose content is code, so a language can be set
-const LANGUAGE_TYPE_SLUGS = new Set(["snippets", "commands"]);
-
-interface EditFieldProps {
-  id: string;
-  label: string;
-  error?: string;
-  children: (props: { id: string; "aria-invalid"?: boolean; "aria-describedby"?: string }) => React.ReactNode;
-}
-
-function EditField({ id, label, error, children }: EditFieldProps) {
-  const errorId = `${id}-error`;
-
-  return (
-    <div className="flex flex-col gap-2">
-      <Label htmlFor={id}>{label}</Label>
-      {children({
-        id,
-        "aria-invalid": error ? true : undefined,
-        "aria-describedby": error ? errorId : undefined,
-      })}
-      {error && (
-        <p id={errorId} className="text-xs text-destructive">
-          {error}
-        </p>
-      )}
-    </div>
-  );
-}
 
 function toFormValues(item: ItemDetail) {
   return {

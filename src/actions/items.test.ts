@@ -2,14 +2,19 @@ import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import type { Session } from "next-auth";
 import { auth } from "@/auth";
 import {
+  createItem as createItemQuery,
   deleteItem as deleteItemQuery,
   updateItem as updateItemQuery,
 } from "@/lib/db/items";
-import { deleteItem, updateItem } from "@/actions/items";
+import { createItem, deleteItem, updateItem } from "@/actions/items";
 import type { ItemDetail } from "@/types/items";
 
 vi.mock("@/auth", () => ({ auth: vi.fn() }));
-vi.mock("@/lib/db/items", () => ({ updateItem: vi.fn(), deleteItem: vi.fn() }));
+vi.mock("@/lib/db/items", () => ({
+  createItem: vi.fn(),
+  updateItem: vi.fn(),
+  deleteItem: vi.fn(),
+}));
 
 // auth() is overloaded (it also wraps middleware), so narrow it to the session getter
 const mockAuth = auth as unknown as Mock<() => Promise<Session | null>>;
@@ -19,6 +24,72 @@ function signIn(userId = "user-1") {
 }
 
 const INPUT = { title: " useAuth Hook ", description: "", tags: ["react", "react"] };
+
+describe("createItem", () => {
+  const CREATE_INPUT = { ...INPUT, typeSlug: "snippets" as const, content: "  code" };
+
+  beforeEach(() => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  it("requires a session", async () => {
+    mockAuth.mockResolvedValue(null);
+    await expect(createItem(CREATE_INPUT)).resolves.toEqual({
+      success: false,
+      error: "You must be signed in.",
+    });
+    expect(createItemQuery).not.toHaveBeenCalled();
+  });
+
+  it("returns field errors for invalid input", async () => {
+    signIn();
+    const result = await createItem({ ...CREATE_INPUT, typeSlug: "links", title: "" });
+    expect(result.success).toBe(false);
+    expect(result.error).toBe("Please fix the highlighted fields.");
+    expect(result.fieldErrors?.title).toBe("Title is required");
+    expect(result.fieldErrors?.url).toBe("URL is required");
+    expect(createItemQuery).not.toHaveBeenCalled();
+  });
+
+  it("rejects types that can't be created", async () => {
+    signIn();
+    const result = await createItem({ ...CREATE_INPUT, typeSlug: "files" as never });
+    expect(result.fieldErrors?.typeSlug).toBe("Choose an item type");
+    expect(createItemQuery).not.toHaveBeenCalled();
+  });
+
+  it("creates the parsed input for the session user and returns the item", async () => {
+    signIn("user-42");
+    const created = { id: "item-1", title: "useAuth Hook" } as ItemDetail;
+    vi.mocked(createItemQuery).mockResolvedValue(created);
+    await expect(createItem(CREATE_INPUT)).resolves.toEqual({ success: true, data: created });
+    expect(createItemQuery).toHaveBeenCalledWith("user-42", {
+      typeSlug: "snippets",
+      title: "useAuth Hook",
+      description: null,
+      content: "  code",
+      tags: ["react"],
+    });
+  });
+
+  it("reports a missing item type", async () => {
+    signIn();
+    vi.mocked(createItemQuery).mockResolvedValue(null);
+    await expect(createItem(CREATE_INPUT)).resolves.toEqual({
+      success: false,
+      error: "That item type isn't available.",
+    });
+  });
+
+  it("returns a generic error when creating fails", async () => {
+    signIn();
+    vi.mocked(createItemQuery).mockRejectedValue(new Error("db down"));
+    await expect(createItem(CREATE_INPUT)).resolves.toEqual({
+      success: false,
+      error: "Something went wrong. Please try again.",
+    });
+  });
+});
 
 describe("updateItem", () => {
   beforeEach(() => {

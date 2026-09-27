@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseTagInput, updateItemSchema } from "@/lib/validations/items";
+import { createItemSchema, parseTagInput, updateItemSchema } from "@/lib/validations/items";
 
 const VALID = { title: "useAuth Hook", tags: [] };
 
@@ -46,6 +46,44 @@ describe("updateItemSchema", () => {
       "hooks",
     ]);
     expect(updateItemSchema.safeParse({ ...VALID, tags: ["  "] }).success).toBe(false);
+  });
+});
+
+describe("createItemSchema", () => {
+  it("accepts each creatable type", () => {
+    for (const typeSlug of ["snippets", "prompts", "commands", "notes"]) {
+      expect(createItemSchema.safeParse({ ...VALID, typeSlug }).success).toBe(true);
+    }
+  });
+
+  it.each(["files", "images", "unknown", ""])("rejects the type %s", (typeSlug) => {
+    const result = createItemSchema.safeParse({ ...VALID, typeSlug });
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0].message).toBe("Choose an item type");
+  });
+
+  it.each([undefined, "", "   "])("requires a URL for links (%s)", (url) => {
+    const result = createItemSchema.safeParse({ ...VALID, typeSlug: "links", url });
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0]).toMatchObject({ message: "URL is required", path: ["url"] });
+  });
+
+  it("accepts a link with a valid URL and rejects an invalid one", () => {
+    const link = { ...VALID, typeSlug: "links" };
+    expect(createItemSchema.parse({ ...link, url: "https://example.com" }).url).toBe(
+      "https://example.com"
+    );
+    const result = createItemSchema.safeParse({ ...link, url: "nope" });
+    expect(result.error?.issues[0].message).toBe("Enter a valid http(s) URL");
+  });
+
+  it("applies the shared title and tag rules", () => {
+    const data = createItemSchema.parse({
+      typeSlug: "notes",
+      title: "  Note  ",
+      tags: ["a", "a"],
+    });
+    expect(data).toMatchObject({ typeSlug: "notes", title: "Note", tags: ["a"] });
   });
 });
 

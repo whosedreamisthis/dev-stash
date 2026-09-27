@@ -1,4 +1,5 @@
-import { FolderPlus, PanelLeft, Plus, Search } from "lucide-react";
+import { FolderPlus, PanelLeft, Search } from "lucide-react";
+import { NewItemDialog } from "@/components/items/NewItemDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -44,10 +45,7 @@ export function TopBar({ onToggleSidebar, onOpenMobileSidebar }: TopBarProps) {
           <FolderPlus />
           New Collection
         </Button>
-        <Button>
-          <Plus />
-          New Item
-        </Button>
+        <NewItemDialog />
       </div>
     </header>
   );

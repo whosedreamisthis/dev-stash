@@ -1,10 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { prisma } from "@/lib/db";
-import { deleteItem, getItemDetail, updateItem } from "@/lib/db/items";
+import { createItem, deleteItem, getItemDetail, updateItem } from "@/lib/db/items";
 
 vi.mock("@/lib/db", () => ({
   prisma: {
-    item: { findFirst: vi.fn(), update: vi.fn(), deleteMany: vi.fn() },
+    item: { findFirst: vi.fn(), create: vi.fn(), update: vi.fn(), deleteMany: vi.fn() },
+    itemType: { findFirst: vi.fn() },
     itemTag: { deleteMany: vi.fn() },
     $transaction: vi.fn(),
   },
@@ -145,6 +146,86 @@ describe("updateItem", () => {
       where: { itemId: "item-1", item: { userId: "user-1" } },
     });
     expect(updateArgs().data.tags).toEqual({
+      create: ["react", "auth"].map((name) => ({
+        tag: {
+          connectOrCreate: {
+            where: { userId_name: { userId: "user-1", name } },
+            create: { name, userId: "user-1" },
+          },
+        },
+      })),
+    });
+  });
+});
+
+describe("createItem", () => {
+  const findType = vi.mocked(prisma.itemType.findFirst);
+  const create = vi.mocked(prisma.item.create);
+
+  const DATA = {
+    typeSlug: "snippets" as const,
+    title: "useAuth Hook",
+    description: null,
+    content: "export function useAuth() {}",
+    language: "typescript",
+    url: "https://example.com",
+    tags: ["react", "auth"],
+  };
+
+  function createData() {
+    return create.mock.calls[0][0].data;
+  }
+
+  it("looks up the system type by slug and returns null when it's missing", async () => {
+    findType.mockResolvedValue(null);
+    await expect(createItem("user-1", DATA)).resolves.toBeNull();
+    expect(findType).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { slug: "snippets", isSystem: true, userId: null } })
+    );
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("creates the item for the user with the type's content type and returns the detail", async () => {
+    findType.mockResolvedValue({ id: "t1", contentType: "TEXT" } as never);
+    create.mockResolvedValue(ITEM_ROW as never);
+    const result = await createItem("user-1", DATA);
+    expect(createData()).toMatchObject({
+      title: "useAuth Hook",
+      description: null,
+      contentType: "TEXT",
+      content: DATA.content,
+      language: "typescript",
+      url: null,
+      userId: "user-1",
+      itemTypeId: "t1",
+    });
+    expect(result).toMatchObject({ id: "item-1", tags: ["react", "auth"] });
+  });
+
+  it("drops the language for text types that don't take one", async () => {
+    findType.mockResolvedValue({ id: "t2", contentType: "TEXT" } as never);
+    create.mockResolvedValue(ITEM_ROW as never);
+    await createItem("user-1", { ...DATA, typeSlug: "prompts" });
+    expect(createData()).toMatchObject({ content: DATA.content, language: null });
+  });
+
+  it("saves only the URL for links", async () => {
+    findType.mockResolvedValue({ id: "t5", contentType: "URL" } as never);
+    create.mockResolvedValue(ITEM_ROW as never);
+    await createItem("user-1", { ...DATA, typeSlug: "links" });
+    expect(createData()).toMatchObject({
+      contentType: "URL",
+      content: null,
+      language: null,
+      url: "https://example.com",
+    });
+  });
+
+  it("connects or creates each tag for the user", async () => {
+    findType.mockResolvedValue({ id: "t1", contentType: "TEXT" } as never);
+    create.mockResolvedValue(ITEM_ROW as never);
+    await createItem("user-1", DATA);
+    expect(createData().tags).toEqual({
       create: ["react", "auth"].map((name) => ({
         tag: {
           connectOrCreate: {

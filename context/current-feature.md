@@ -1,20 +1,39 @@
-# Current Feature
+# Current Feature: Item Create
 
 <!-- Feature name and short description -->
+
+Add new items through a modal dialog opened from the "New Item" button in the top bar.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- "New Item" button in the top bar opens a shadcn Dialog
+- Type selector for snippet, prompt, command, note and link
+- Fields change with the selected type:
+  - All types: title (required), description, tags
+  - Snippet / command: content, language
+  - Prompt / note: content
+  - Link: URL (required)
+- `createItem` server action with Zod validation
+- `createItem` query function in `src/lib/db/items.ts`
+- On success: show a toast, close the dialog and refresh the page
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- Spec: `context/features/item-create-spec.md`
+- File and Image types are left out of the selector (they need R2 uploads, not built yet).
+- Reuse existing pieces where they fit: `updateItemSchema` / `parseTagInput` in `src/lib/validations/items.ts`, the `{ success, data, error, fieldErrors }` action pattern in `src/actions/items.ts`, and the tag connect-or-create logic in the `updateItem` query.
+- Items are scoped to the session user; the item type is looked up server-side (never trust a client-supplied type ID).
+- Write Vitest tests for the new schema, query and action.
 
 ## History
 
