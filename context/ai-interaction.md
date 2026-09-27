@@ -7,6 +7,7 @@
 - Ask before large refactors or architectural changes
 - Don't add features not in the project spec
 - Never delete files without clarification
+- At each implementation step, show me a full list of Todos with which items are completed and which is currently being worked on.
 
 ## Workflow
 
