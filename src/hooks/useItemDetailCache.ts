@@ -38,5 +38,18 @@ export function useItemDetailCache() {
     setDetails((prev) => ({ ...prev, [detail.id]: detail }));
   }, []);
 
-  return { details, errors, loadItem, setDetail };
+  // Drops a deleted item. Its ID stays marked as requested so the card, which
+  // regains focus as the drawer closes and stays mounted until the refresh
+  // finishes, doesn't prefetch it again and get a 404.
+  const removeDetail = useCallback((itemId: string) => {
+    requests.current.add(itemId);
+    setErrors((prev) => without(prev, itemId));
+    setDetails((prev) => {
+      const copy = { ...prev };
+      delete copy[itemId];
+      return copy;
+    });
+  }, []);
+
+  return { details, errors, loadItem, setDetail, removeDetail };
 }

@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { prisma } from "@/lib/db";
-import { getItemDetail, updateItem } from "@/lib/db/items";
+import { deleteItem, getItemDetail, updateItem } from "@/lib/db/items";
 
 vi.mock("@/lib/db", () => ({
   prisma: {
-    item: { findFirst: vi.fn(), update: vi.fn() },
+    item: { findFirst: vi.fn(), update: vi.fn(), deleteMany: vi.fn() },
     itemTag: { deleteMany: vi.fn() },
     $transaction: vi.fn(),
   },
@@ -154,5 +154,20 @@ describe("updateItem", () => {
         },
       })),
     });
+  });
+});
+
+describe("deleteItem", () => {
+  const deleteMany = vi.mocked(prisma.item.deleteMany);
+
+  it("scopes the delete to the user and reports success", async () => {
+    deleteMany.mockResolvedValue({ count: 1 });
+    await expect(deleteItem("user-1", "item-1")).resolves.toBe(true);
+    expect(deleteMany).toHaveBeenCalledWith({ where: { id: "item-1", userId: "user-1" } });
+  });
+
+  it("returns false when the item is missing or not the user's", async () => {
+    deleteMany.mockResolvedValue({ count: 0 });
+    await expect(deleteItem("user-1", "item-1")).resolves.toBe(false);
   });
 });

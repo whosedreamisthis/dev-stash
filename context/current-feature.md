@@ -1,20 +1,35 @@
-# Current Feature
+# Current Feature: Delete Item
 
 <!-- Feature name and short description -->
+
+Wire up the item drawer's Delete button so users can permanently delete an item after confirming in a shadcn Alert Dialog, with a toast on success.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- Clicking the drawer's Delete (trash) button opens a shadcn Alert Dialog asking the user to confirm, naming the item and warning that the action can't be undone
+- The dialog has Cancel and a destructive Delete button; Delete shows a pending state and both buttons are disabled while deleting
+- A `deleteItem` query in `src/lib/db/items.ts` deletes the item scoped to the user's ID (another user's item is treated as missing); tag and collection links are removed by the existing cascades
+- A `deleteItem` server action in `src/actions/items.ts` checks the session, validates the item ID with Zod and returns `{ success, data, error }` ("Item not found." for missing items, a generic message on failure)
+- On success: close the dialog and drawer, show a success toast (e.g. "Item deleted"), drop the item from the drawer's detail cache and `router.refresh()` so the dashboard, item lists, stats and sidebar counts update
+- On failure: keep the dialog open and show the error as a toast
+- The Delete button is disabled while the item's detail is still loading
+- Vitest unit tests for the `deleteItem` query and server action (no session, invalid ID, not found, failure, success)
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- The shadcn Alert Dialog component was already added for the profile page's Delete account flow; reuse it and match that dialog's styling (centered, capped at 28rem)
+- Favorite and Pin stay "Coming soon" for now
+- No migration needed: `ItemCollection` and `ItemTag` already cascade on item delete; orphaned tags are left in place
 
 ## History
 

@@ -27,7 +27,7 @@ interface ItemDrawerProviderProps {
 export function ItemDrawerProvider({ children }: ItemDrawerProviderProps) {
   const [item, setItem] = useState<ItemSummary | null>(null);
   const [open, setOpen] = useState(false);
-  const { details, errors, loadItem, setDetail } = useItemDetailCache();
+  const { details, errors, loadItem, setDetail, removeDetail } = useItemDetailCache();
 
   const openItem = useCallback(
     (nextItem: ItemSummary) => {
@@ -54,6 +54,7 @@ export function ItemDrawerProvider({ children }: ItemDrawerProviderProps) {
         open={open}
         onOpenChange={setOpen}
         onSaved={setDetail}
+        onDeleted={removeDetail}
       />
     </ItemDrawerContext>
   );
