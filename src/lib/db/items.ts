@@ -1,6 +1,10 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
-import type { UpdateItemData } from "@/lib/validations/items";
+import {
+  LANGUAGE_TYPE_SLUGS,
+  type CreateItemData,
+  type UpdateItemData,
+} from "@/lib/validations/items";
 import type { CollectionItemType } from "@/types/collections";
 import type {
   ItemDetail,
@@ -121,6 +125,48 @@ export async function updateItem(
       include: ITEM_DETAIL_INCLUDE,
     }),
   ]);
+
+  return toItemDetail(item);
+}
+
+// Returns null when the system type for the slug doesn't exist
+export async function createItem(
+  userId: string,
+  data: CreateItemData
+): Promise<ItemDetail | null> {
+  const itemType = await prisma.itemType.findFirst({
+    where: { slug: data.typeSlug, isSystem: true, userId: null },
+    select: { id: true, contentType: true },
+  });
+  if (!itemType) return null;
+
+  // Only the fields that belong to the type's content type are saved
+  const isText = itemType.contentType === "TEXT";
+  const isUrl = itemType.contentType === "URL";
+
+  const item = await prisma.item.create({
+    data: {
+      title: data.title,
+      description: data.description,
+      contentType: itemType.contentType,
+      content: isText ? data.content : null,
+      language: LANGUAGE_TYPE_SLUGS.has(data.typeSlug) ? data.language : null,
+      url: isUrl ? data.url : null,
+      userId,
+      itemTypeId: itemType.id,
+      tags: {
+        create: data.tags.map((name) => ({
+          tag: {
+            connectOrCreate: {
+              where: { userId_name: { userId, name } },
+              create: { name, userId },
+            },
+          },
+        })),
+      },
+    },
+    include: ITEM_DETAIL_INCLUDE,
+  });
 
   return toItemDetail(item);
 }

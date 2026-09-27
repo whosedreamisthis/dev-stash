@@ -23,6 +23,32 @@ export const updateItemSchema = z.object({
 export type UpdateItemInput = z.input<typeof updateItemSchema>;
 export type UpdateItemData = z.output<typeof updateItemSchema>;
 
+// File and Image need uploads, so they can't be created from the form yet
+export const CREATABLE_TYPE_SLUGS = [
+  "snippets",
+  "prompts",
+  "commands",
+  "notes",
+  "links",
+] as const;
+
+export type CreatableTypeSlug = (typeof CREATABLE_TYPE_SLUGS)[number];
+
+// Item types whose content is code, so a language can be set
+export const LANGUAGE_TYPE_SLUGS: ReadonlySet<string> = new Set(["snippets", "commands"]);
+
+export const createItemSchema = updateItemSchema
+  .extend({
+    typeSlug: z.enum(CREATABLE_TYPE_SLUGS, "Choose an item type"),
+  })
+  .refine((data) => data.typeSlug !== "links" || data.url, {
+    message: "URL is required",
+    path: ["url"],
+  });
+
+export type CreateItemInput = z.input<typeof createItemSchema>;
+export type CreateItemData = z.output<typeof createItemSchema>;
+
 // Turns the comma-separated tags input into a tag list
 export function parseTagInput(value: string): string[] {
   return value
