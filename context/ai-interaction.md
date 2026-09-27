@@ -7,7 +7,7 @@
 - Ask before large refactors or architectural changes
 - Don't add features not in the project spec
 - Never delete files without clarification
-- At each implementation step, show me a full list of Todos with which items are completed and which is currently being worked on.
+- Before implementing each step, show the full list of implementation steps for the feature: completed steps checked and struck through (`- [x] ~~step~~`), the current step in bold marked "← current", and pending steps unchecked. Show it before the first step too, and never merge or drop steps.
 
 ## Workflow
 
