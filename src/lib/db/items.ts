@@ -1,5 +1,6 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
+import type { UpdateItemData } from "@/lib/validations/items";
 import type { CollectionItemType } from "@/types/collections";
 import type {
   ItemDetail,
@@ -38,25 +39,19 @@ function toItemSummary(item: ItemWithRelations): ItemSummary {
   };
 }
 
-// Returns null for items that don't exist or belong to another user
-export async function getItemDetail(
-  userId: string,
-  itemId: string
-): Promise<ItemDetail | null> {
-  const item = await prisma.item.findFirst({
-    where: { id: itemId, userId },
-    // One round trip to the database instead of one query per relation
-    relationLoadStrategy: "join",
-    include: {
-      ...ITEM_SUMMARY_INCLUDE,
-      collections: {
-        select: { collection: { select: { id: true, name: true } } },
-        orderBy: { collection: { name: "asc" } },
-      },
-    },
-  });
-  if (!item) return null;
+const ITEM_DETAIL_INCLUDE = {
+  ...ITEM_SUMMARY_INCLUDE,
+  collections: {
+    select: { collection: { select: { id: true, name: true } } },
+    orderBy: { collection: { name: "asc" } },
+  },
+} satisfies Prisma.ItemInclude;
 
+type ItemWithDetailRelations = Prisma.ItemGetPayload<{
+  include: typeof ITEM_DETAIL_INCLUDE;
+}>;
+
+function toItemDetail(item: ItemWithDetailRelations): ItemDetail {
   return {
     ...toItemSummary(item),
     contentType: item.contentType,
@@ -67,6 +62,67 @@ export async function getItemDetail(
     updatedAt: item.updatedAt,
     collections: item.collections.map(({ collection }) => collection),
   };
+}
+
+// Returns null for items that don't exist or belong to another user
+export async function getItemDetail(
+  userId: string,
+  itemId: string
+): Promise<ItemDetail | null> {
+  const item = await prisma.item.findFirst({
+    where: { id: itemId, userId },
+    // One round trip to the database instead of one query per relation
+    relationLoadStrategy: "join",
+    include: ITEM_DETAIL_INCLUDE,
+  });
+
+  return item ? toItemDetail(item) : null;
+}
+
+// Returns null for items that don't exist or belong to another user
+export async function updateItem(
+  userId: string,
+  itemId: string,
+  data: UpdateItemData
+): Promise<ItemDetail | null> {
+  const existing = await prisma.item.findFirst({
+    where: { id: itemId, userId },
+    select: { contentType: true },
+  });
+  if (!existing) return null;
+
+  // Only the fields that belong to the item's content type are written
+  const isText = existing.contentType === "TEXT";
+  const isUrl = existing.contentType === "URL";
+
+  // Old tag links are removed first in the same transaction, so saving the same
+  // tags again doesn't collide with the links being replaced
+  const [, item] = await prisma.$transaction([
+    prisma.itemTag.deleteMany({ where: { itemId, item: { userId } } }),
+    prisma.item.update({
+      where: { id: itemId, userId },
+      data: {
+        title: data.title,
+        description: data.description,
+        content: isText ? data.content : undefined,
+        language: isText ? data.language : undefined,
+        url: isUrl ? data.url : undefined,
+        tags: {
+          create: data.tags.map((name) => ({
+            tag: {
+              connectOrCreate: {
+                where: { userId_name: { userId, name } },
+                create: { name, userId },
+              },
+            },
+          })),
+        },
+      },
+      include: ITEM_DETAIL_INCLUDE,
+    }),
+  ]);
+
+  return toItemDetail(item);
 }
 
 export async function getPinnedItems(userId: string): Promise<ItemSummary[]> {

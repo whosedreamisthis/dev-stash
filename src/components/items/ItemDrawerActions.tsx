@@ -10,9 +10,11 @@ interface ItemDrawerActionsProps {
   isPinned: boolean;
   // Text to copy; null while loading or when the item has nothing to copy
   copyValue: string | null;
+  // Undefined while the item is loading, which disables the button
+  onEdit?: () => void;
 }
 
-// Favorite, pin, edit and delete are wired up in a later feature
+// Favorite, pin and delete are wired up in a later feature
 function showComingSoon() {
   toast("Coming soon");
 }
@@ -26,7 +28,12 @@ async function copyToClipboard(value: string) {
   }
 }
 
-export function ItemDrawerActions({ isFavorite, isPinned, copyValue }: ItemDrawerActionsProps) {
+export function ItemDrawerActions({
+  isFavorite,
+  isPinned,
+  copyValue,
+  onEdit,
+}: ItemDrawerActionsProps) {
   return (
     <div className="flex items-center gap-1 border-b px-6 py-3">
       <Button
@@ -58,7 +65,7 @@ export function ItemDrawerActions({ isFavorite, isPinned, copyValue }: ItemDrawe
         <Copy />
         Copy
       </Button>
-      <Button variant="ghost" size="sm" className="ml-auto" onClick={showComingSoon}>
+      <Button variant="ghost" size="sm" className="ml-auto" disabled={!onEdit} onClick={onEdit}>
         <Pencil />
         Edit
       </Button>

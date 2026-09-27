@@ -31,5 +31,12 @@ export function useItemDetailCache() {
       });
   }, []);
 
-  return { details, errors, loadItem };
+  // Replaces a cached item with a fresh copy, such as the result of a save
+  const setDetail = useCallback((detail: ItemDetail) => {
+    requests.current.add(detail.id);
+    setErrors((prev) => without(prev, detail.id));
+    setDetails((prev) => ({ ...prev, [detail.id]: detail }));
+  }, []);
+
+  return { details, errors, loadItem, setDetail };
 }
