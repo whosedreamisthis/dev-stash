@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { TopBar } from "@/components/dashboard/TopBar";
+import { ItemDrawerProvider } from "@/components/items/ItemDrawerProvider";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import type { SidebarData } from "@/types/sidebar";
@@ -39,7 +40,9 @@ export function DashboardShell({ sidebar, children }: DashboardShellProps) {
           onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
           onOpenMobileSidebar={() => setMobileOpen(true)}
         />
-        <main className="scrollbar-none flex-1 overflow-y-auto p-6">{children}</main>
+        <main className="scrollbar-none flex-1 overflow-y-auto p-6">
+          <ItemDrawerProvider>{children}</ItemDrawerProvider>
+        </main>
       </div>
     </div>
   );

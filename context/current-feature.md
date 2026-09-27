@@ -1,20 +1,43 @@
-# Current Feature
+# Current Feature: Item Drawer
 
 <!-- Feature name and short description -->
+
+Right-side slide-in drawer that opens when an item card is clicked. It is the item detail view; there is no separate item page.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- Use the shadcn Sheet component, opening from the right
+- Clicking an `ItemCard` opens the drawer with that item's full data
+- Works on both the dashboard and the `/items/[type]` list pages
+- Client wrapper component manages the drawer state, since the pages are server components
+- Feels snappy: fetch on click, no page navigation
+- Card data (title, description, tags, etc.) is still fetched by the server components as before
+- Full item detail (content, collections, language, etc.) is fetched on click from a new API route, `GET /api/items/[id]`
+- The query function lives in `src/lib/db/items.ts`; the API route calls it after an auth check
+- The drawer shows a skeleton/loading state while fetching
+- Header: type icon, title, type badge and language badge, and a close button
+- Action bar: Favorite (star, yellow when active), Pin, Copy, Edit (pencil), and Delete (trash, right-aligned in red)
+- Detail sections: Description, Content, Tags, Collections, and Details (created and updated dates)
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- Visual reference: `context/screenshots/dashboard-ui-drawer.png`.
+- Only the details display is in scope. The code editor, syntax highlighting and other item-specific extras come later, so content is shown as plain preformatted text for now.
+- The action bar is display-only for this feature, as the spec limits it to the details display: Favorite and Pin reflect the item's current state, Copy copies the content (or URL) to the clipboard, and Edit and Delete are not wired up yet.
+- The API route must scope the lookup to the session user's ID and return 404 for items that don't exist or belong to someone else (never trust the client-supplied ID for ownership). It returns 401 without a session.
+- Use the `{ success, data, error }` response pattern, as in `POST /api/auth/register`.
+- Add Vitest tests for the new query function and API route (mock `@/auth` and `@/lib/db`).
+- Performance: the `relationJoins` Prisma preview feature is enabled, so included relations load in one joined query (it's the default strategy app-wide once enabled), and item cards prefetch their detail on hover or focus through a shared per-page cache in `ItemDrawerProvider`.
 
 ## History
 
