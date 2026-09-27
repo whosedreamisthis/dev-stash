@@ -1,43 +1,20 @@
-# Current Feature: Item Drawer
+# Current Feature
 
 <!-- Feature name and short description -->
-
-Right-side slide-in drawer that opens when an item card is clicked. It is the item detail view; there is no separate item page.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- Use the shadcn Sheet component, opening from the right
-- Clicking an `ItemCard` opens the drawer with that item's full data
-- Works on both the dashboard and the `/items/[type]` list pages
-- Client wrapper component manages the drawer state, since the pages are server components
-- Feels snappy: fetch on click, no page navigation
-- Card data (title, description, tags, etc.) is still fetched by the server components as before
-- Full item detail (content, collections, language, etc.) is fetched on click from a new API route, `GET /api/items/[id]`
-- The query function lives in `src/lib/db/items.ts`; the API route calls it after an auth check
-- The drawer shows a skeleton/loading state while fetching
-- Header: type icon, title, type badge and language badge, and a close button
-- Action bar: Favorite (star, yellow when active), Pin, Copy, Edit (pencil), and Delete (trash, right-aligned in red)
-- Detail sections: Description, Content, Tags, Collections, and Details (created and updated dates)
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Visual reference: `context/screenshots/dashboard-ui-drawer.png`.
-- Only the details display is in scope. The code editor, syntax highlighting and other item-specific extras come later, so content is shown as plain preformatted text for now.
-- The action bar is display-only for this feature, as the spec limits it to the details display: Favorite and Pin reflect the item's current state, Copy copies the content (or URL) to the clipboard, and Edit and Delete are not wired up yet.
-- The API route must scope the lookup to the session user's ID and return 404 for items that don't exist or belong to someone else (never trust the client-supplied ID for ownership). It returns 401 without a session.
-- Use the `{ success, data, error }` response pattern, as in `POST /api/auth/register`.
-- Add Vitest tests for the new query function and API route (mock `@/auth` and `@/lib/db`).
-- Performance: the `relationJoins` Prisma preview feature is enabled, so included relations load in one joined query (it's the default strategy app-wide once enabled), and item cards prefetch their detail on hover or focus through a shared per-page cache in `ItemDrawerProvider`.
 
 ## History
 
@@ -65,3 +42,4 @@ In Progress
 - **Fix Dashboard Showing Demo User Data:** Signed-in users were seeing the seeded demo user's collections and items because the dashboard and sidebar still loaded data through the temporary `getDemoUser` helper. The dashboard page now reads the user ID from the Auth.js session (redirecting to `/sign-in?callbackUrl=/dashboard` without one), and `getSidebarData` loads item types and collections for the session user, returning empty lists when signed out, which also fixes the profile page's sidebar. `getDemoUser` was removed from `src/lib/db/users.ts`. The demo data stays in the database and is visible when signed in as `demo@devstash.io`.
 - **Items List View:** Added a protected `/items/[type]` page (in the proxy matcher, rendered inside the dashboard shell through `src/app/items/layout.tsx`) that lists the signed-in user's items of one type. `getItemTypeBySlug` in `src/lib/db/items.ts` finds a system type or the user's own custom type by slug (unknown slugs return 404), and `getItemsByType` returns the user's items of that type, pinned first, then newest. The page renders a header with the type's icon, color and plural name, then streams the items through a Suspense boundary into a responsive grid of the existing `ItemCard` (one column, two from `md` up, type-colored borders) with an item count and an empty state. A `loading.tsx` boundary makes navigation from the sidebar immediate, showing the title and icon from the URL (new slug-keyed `ITEM_TYPE_SLUG_ICONS`) and a skeleton grid. Added shared `ItemsHeader`, `ItemGrid` and `ItemGridSkeleton` components in `src/components/items/` and the shadcn Skeleton component. Visited dynamic pages are reused from the client cache for 30 seconds (`experimental.staleTimes.dynamic` in `next.config.ts`); server-side caching with Cache Components (`"use cache"`, per-user `cacheTag`, `updateTag` on changes) is planned as its own feature.
 - **Vitest Setup:** Added Vitest (`vitest` dev dependency) for unit testing server actions and utilities only, not components. `vitest.config.ts` runs in a Node environment, mirrors the `@/` path alias, collects only `src/**/*.test.ts`, and resets mocks and stubbed env variables before each test. Added `npm test` (single run) and `npm run test:watch`. Starter tests sit next to the code they cover and never touch the database: `src/lib/validations/auth.test.ts` (email normalization, password length, passwords-match), `src/lib/tokens.test.ts` (token format, SHA-256 hashing, `getAppUrl` paths and the `wasRecentlySent` cooldown, with `next/headers` and Prisma mocked and fake timers) and `src/actions/profile.test.ts` (`changeUserPassword` and `deleteUserAccount` with `@/auth` and `@/lib/account` mocked, including no session, invalid input, failures and no sign-out when deletion fails), 21 tests in all. The workflow in `context/ai-interaction.md` now includes writing unit tests and running `npm test` with the build before committing; `context/coding-standards.md` has a Testing section (and its unterminated Tailwind code block is closed); Vitest is listed in the project overview's tech stack and development rules; and the feature skill lists the `test` action, checks tests in `review` and runs `npm test` in `complete`.
+- **Item Drawer:** Clicking an item card on the dashboard or an `/items/[type]` page opens a right-side shadcn Sheet (`max-w-xl`) with the item's full details, with no page navigation. `getItemDetail` in `src/lib/db/items.ts` looks the item up by ID and the session user's ID (another user's item is treated as missing) and returns the summary fields plus content type, content, language, URL, file name, updated date and collections (new `ItemDetail` type). The new `GET /api/items/[id]` route returns 401 without a session, 404 for missing or other users' items and 500 on failure, using the `{ success, data, error }` pattern. `ItemDrawerProvider` (client, inside `DashboardShell`) holds the drawer state for the server-rendered pages; `ItemCard` is now a client component with a full-card button that opens the drawer on click and prefetches the detail on hover or focus. `useItemDetailCache` loads each item at most once per page so a prefetch and the following click share one request (failed loads are retried), using `fetchItemDetail` in `src/lib/items-api.ts`, which revives dates and maps API and non-JSON errors to a readable message. The drawer shows the type icon, title, type and language badges; an action bar with Favorite, Pin, Copy, Edit and Delete; and Description, Content (plain preformatted text, a link or the file name), Tags, Collections and Details (created and updated dates) sections. The header renders instantly from the card's data while a skeleton shows until the detail loads. The action bar is display-only for now: Copy copies the content or URL, and the other actions show a "Coming soon" toast. `getSafeHttpUrl` in `src/lib/url.ts` makes only absolute http(s) links clickable. The `relationJoins` Prisma preview feature is enabled so included relations load in a single joined query (now the default strategy app-wide), with `relationLoadStrategy: "join"` set explicitly in `getItemDetail`; after enabling it, the running dev server had to be restarted with the `.next` cache cleared to pick up the regenerated client. Added 15 Vitest tests (36 in total) for `getItemDetail`, the API route, `getSafeHttpUrl` and `fetchItemDetail`. The drawer's cached details will need updating or invalidating once Edit, Favorite and Pin are implemented.
