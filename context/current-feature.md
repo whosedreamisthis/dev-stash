@@ -1,20 +1,30 @@
-# Current Feature
+# Current Feature: Item Type Dropdown
 
 <!-- Feature name and short description -->
+
+Choose the item type in the New Item dialog from a dropdown instead of a row of toggle buttons.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- Replace the New Item dialog's toggle-button type selector with a shadcn Select dropdown
+- Each option and the selected value show the type's colored icon and name
+- Snippet stays the default; changing the type still shows the matching fields and clears field errors
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- Adds the shadcn Select component.
+- The type-colored highlight classes for the toggle buttons are no longer needed and are removed.
+- UI-only change: no server, schema or test changes.
 
 ## History
 

@@ -18,9 +18,15 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { ITEM_TYPE_SLUG_ICONS, ITEM_TYPE_TEXT_COLORS } from "@/lib/item-type-icons";
-import { cn } from "@/lib/utils";
 import {
   CREATABLE_TYPE_SLUGS,
   LANGUAGE_TYPE_SLUGS,
@@ -35,15 +41,6 @@ const TYPE_LABELS: Record<CreatableTypeSlug, string> = {
   commands: "Command",
   notes: "Note",
   links: "Link",
-};
-
-// Static class names so Tailwind can detect the selected type colors at build time
-const SELECTED_TYPE_CLASSES: Record<CreatableTypeSlug, string> = {
-  snippets: "border-[#3b82f6] bg-[#3b82f6]/15 hover:bg-[#3b82f6]/20",
-  prompts: "border-[#8b5cf6] bg-[#8b5cf6]/15 hover:bg-[#8b5cf6]/20",
-  commands: "border-[#f97316] bg-[#f97316]/15 hover:bg-[#f97316]/20",
-  notes: "border-[#fde047] bg-[#fde047]/15 hover:bg-[#fde047]/20",
-  links: "border-[#10b981] bg-[#10b981]/15 hover:bg-[#10b981]/20",
 };
 
 const EMPTY_VALUES = {
@@ -76,32 +73,40 @@ interface TypeSelectorProps {
   onChange: (value: CreatableTypeSlug) => void;
 }
 
+function TypeOption({ slug }: { slug: CreatableTypeSlug }) {
+  const Icon = ITEM_TYPE_SLUG_ICONS[slug];
+  return (
+    <>
+      <Icon className={ITEM_TYPE_TEXT_COLORS[slug]} />
+      {TYPE_LABELS[slug]}
+    </>
+  );
+}
+
 function TypeSelector({ value, onChange }: TypeSelectorProps) {
   return (
-    <div role="group" aria-label="Item type" className="flex flex-wrap gap-2">
-      {CREATABLE_TYPE_SLUGS.map((slug) => {
-        const Icon = ITEM_TYPE_SLUG_ICONS[slug];
-        const selected = slug === value;
-        return (
-          <Button
-            key={slug}
-            type="button"
-            aria-pressed={selected}
-            variant="outline"
-            size="sm"
-            onClick={() => onChange(slug)}
-            className={cn(
-              selected
-                ? cn("font-semibold text-foreground", SELECTED_TYPE_CLASSES[slug])
-                : "text-muted-foreground"
-            )}
-          >
-            <Icon className={ITEM_TYPE_TEXT_COLORS[slug]} />
-            {TYPE_LABELS[slug]}
-          </Button>
-        );
-      })}
-    </div>
+    <ItemFormField id="new-item-type" label="Type">
+      {(props) => (
+        <Select
+          value={value}
+          // The value is never cleared, so null can be ignored
+          onValueChange={(next) => next && onChange(next)}
+        >
+          <SelectTrigger {...props} className="w-full">
+            <SelectValue>
+              {(slug: CreatableTypeSlug) => <TypeOption slug={slug} />}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {CREATABLE_TYPE_SLUGS.map((slug) => (
+              <SelectItem key={slug} value={slug}>
+                <TypeOption slug={slug} />
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+    </ItemFormField>
   );
 }
 
