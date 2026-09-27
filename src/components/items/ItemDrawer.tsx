@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { DeleteItemDialog } from "@/components/items/DeleteItemDialog";
 import { ItemDrawerActions } from "@/components/items/ItemDrawerActions";
 import { ItemDrawerHeader } from "@/components/items/ItemDrawerHeader";
 import { ItemDetailSections, ItemDetailSkeleton } from "@/components/items/ItemDetailSections";
@@ -15,6 +16,7 @@ interface ItemDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSaved: (item: ItemDetail) => void;
+  onDeleted: (itemId: string) => void;
 }
 
 function getCopyValue(detail: ItemDetail | null) {
@@ -29,10 +31,13 @@ export function ItemDrawer({
   open,
   onOpenChange,
   onSaved,
+  onDeleted,
 }: ItemDrawerProps) {
   // Tracks the edited item's ID so opening another item starts in view mode
   const [editingId, setEditingId] = useState<string | null>(null);
-  const isLoading = !detail && !error;
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  // A deleted item leaves the cache as the drawer closes, so no skeleton flashes
+  const isLoading = open && !detail && !error;
   const isEditing = detail !== null && editingId === detail.id;
 
   function handleOpenChange(nextOpen: boolean) {
@@ -44,6 +49,12 @@ export function ItemDrawer({
   function handleSaved(saved: ItemDetail) {
     onSaved(saved);
     setEditingId(null);
+  }
+
+  function handleDeleted(itemId: string) {
+    setIsDeleteOpen(false);
+    handleOpenChange(false);
+    onDeleted(itemId);
   }
 
   // The card's summary renders the header instantly while the full item loads
@@ -69,6 +80,7 @@ export function ItemDrawer({
                   isPinned={current.isPinned}
                   copyValue={getCopyValue(detail)}
                   onEdit={detail ? () => setEditingId(detail.id) : undefined}
+                  onDelete={detail ? () => setIsDeleteOpen(true) : undefined}
                 />
 
                 <div className="scrollbar-none flex-1 overflow-y-auto p-6">
@@ -77,6 +89,14 @@ export function ItemDrawer({
                   {detail && <ItemDetailSections item={detail} />}
                 </div>
               </>
+            )}
+            {detail && (
+              <DeleteItemDialog
+                item={detail}
+                open={isDeleteOpen}
+                onOpenChange={setIsDeleteOpen}
+                onDeleted={handleDeleted}
+              />
             )}
           </>
         )}

@@ -2,7 +2,10 @@
 
 import { z } from "zod";
 import { auth } from "@/auth";
-import { updateItem as updateItemQuery } from "@/lib/db/items";
+import {
+  deleteItem as deleteItemQuery,
+  updateItem as updateItemQuery,
+} from "@/lib/db/items";
 import { updateItemSchema, type UpdateItemInput } from "@/lib/validations/items";
 import type { ItemDetail } from "@/types/items";
 
@@ -46,6 +49,32 @@ export async function updateItem(
     return { success: true, data: item };
   } catch (error) {
     console.error("Updating item failed:", error);
+    return { success: false, error: "Something went wrong. Please try again." };
+  }
+}
+
+const itemIdSchema = z.string().trim().min(1);
+
+export interface DeleteItemResult {
+  success: boolean;
+  data?: { id: string };
+  error?: string;
+}
+
+export async function deleteItem(itemId: string): Promise<DeleteItemResult> {
+  const session = await auth();
+  const userId = session?.user?.id;
+  if (!userId) return { success: false, error: "You must be signed in." };
+
+  const parsed = itemIdSchema.safeParse(itemId);
+  if (!parsed.success) return { success: false, error: "Item not found." };
+
+  try {
+    const deleted = await deleteItemQuery(userId, parsed.data);
+    if (!deleted) return { success: false, error: "Item not found." };
+    return { success: true, data: { id: parsed.data } };
+  } catch (error) {
+    console.error("Deleting item failed:", error);
     return { success: false, error: "Something went wrong. Please try again." };
   }
 }

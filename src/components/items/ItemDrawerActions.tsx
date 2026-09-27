@@ -10,11 +10,12 @@ interface ItemDrawerActionsProps {
   isPinned: boolean;
   // Text to copy; null while loading or when the item has nothing to copy
   copyValue: string | null;
-  // Undefined while the item is loading, which disables the button
+  // Undefined while the item is loading, which disables the buttons
   onEdit?: () => void;
+  onDelete?: () => void;
 }
 
-// Favorite, pin and delete are wired up in a later feature
+// Favorite and pin are wired up in a later feature
 function showComingSoon() {
   toast("Coming soon");
 }
@@ -33,6 +34,7 @@ export function ItemDrawerActions({
   isPinned,
   copyValue,
   onEdit,
+  onDelete,
 }: ItemDrawerActionsProps) {
   return (
     <div className="flex items-center gap-1 border-b px-6 py-3">
@@ -73,7 +75,8 @@ export function ItemDrawerActions({
         variant="ghost"
         size="icon-sm"
         aria-label="Delete"
-        onClick={showComingSoon}
+        disabled={!onDelete}
+        onClick={onDelete}
         className="text-destructive hover:text-destructive"
       >
         <Trash2 />

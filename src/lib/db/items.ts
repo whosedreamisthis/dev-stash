@@ -125,6 +125,13 @@ export async function updateItem(
   return toItemDetail(item);
 }
 
+// Returns false for items that don't exist or belong to another user.
+// Tag and collection links are removed by the cascades on the join tables.
+export async function deleteItem(userId: string, itemId: string): Promise<boolean> {
+  const { count } = await prisma.item.deleteMany({ where: { id: itemId, userId } });
+  return count > 0;
+}
+
 export async function getPinnedItems(userId: string): Promise<ItemSummary[]> {
   const items = await prisma.item.findMany({
     where: { userId, isPinned: true },
