@@ -1,39 +1,20 @@
-# Current Feature: Item Create
+# Current Feature
 
 <!-- Feature name and short description -->
-
-Add new items through a modal dialog opened from the "New Item" button in the top bar.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- "New Item" button in the top bar opens a shadcn Dialog
-- Type selector for snippet, prompt, command, note and link
-- Fields change with the selected type:
-  - All types: title (required), description, tags
-  - Snippet / command: content, language
-  - Prompt / note: content
-  - Link: URL (required)
-- `createItem` server action with Zod validation
-- `createItem` query function in `src/lib/db/items.ts`
-- On success: show a toast, close the dialog and refresh the page
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Spec: `context/features/item-create-spec.md`
-- File and Image types are left out of the selector (they need R2 uploads, not built yet).
-- Reuse existing pieces where they fit: `updateItemSchema` / `parseTagInput` in `src/lib/validations/items.ts`, the `{ success, data, error, fieldErrors }` action pattern in `src/actions/items.ts`, and the tag connect-or-create logic in the `updateItem` query.
-- Items are scoped to the session user; the item type is looked up server-side (never trust a client-supplied type ID).
-- Write Vitest tests for the new schema, query and action.
 
 ## History
 
@@ -64,3 +45,4 @@ In Progress
 - **Item Drawer:** Clicking an item card on the dashboard or an `/items/[type]` page opens a right-side shadcn Sheet (`max-w-xl`) with the item's full details, with no page navigation. `getItemDetail` in `src/lib/db/items.ts` looks the item up by ID and the session user's ID (another user's item is treated as missing) and returns the summary fields plus content type, content, language, URL, file name, updated date and collections (new `ItemDetail` type). The new `GET /api/items/[id]` route returns 401 without a session, 404 for missing or other users' items and 500 on failure, using the `{ success, data, error }` pattern. `ItemDrawerProvider` (client, inside `DashboardShell`) holds the drawer state for the server-rendered pages; `ItemCard` is now a client component with a full-card button that opens the drawer on click and prefetches the detail on hover or focus. `useItemDetailCache` loads each item at most once per page so a prefetch and the following click share one request (failed loads are retried), using `fetchItemDetail` in `src/lib/items-api.ts`, which revives dates and maps API and non-JSON errors to a readable message. The drawer shows the type icon, title, type and language badges; an action bar with Favorite, Pin, Copy, Edit and Delete; and Description, Content (plain preformatted text, a link or the file name), Tags, Collections and Details (created and updated dates) sections. The header renders instantly from the card's data while a skeleton shows until the detail loads. The action bar is display-only for now: Copy copies the content or URL, and the other actions show a "Coming soon" toast. `getSafeHttpUrl` in `src/lib/url.ts` makes only absolute http(s) links clickable. The `relationJoins` Prisma preview feature is enabled so included relations load in a single joined query (now the default strategy app-wide), with `relationLoadStrategy: "join"` set explicitly in `getItemDetail`; after enabling it, the running dev server had to be restarted with the `.next` cache cleared to pick up the regenerated client. Added 15 Vitest tests (36 in total) for `getItemDetail`, the API route, `getSafeHttpUrl` and `fetchItemDetail`. The drawer's cached details will need updating or invalidating once Edit, Favorite and Pin are implemented.
 - **Item Drawer Edit Mode:** The drawer's Edit button switches the open drawer to an inline edit form, with Save and Cancel replacing the action bar; Cancel or closing the drawer discards changes, and opening another item starts in view mode. The title is edited in the drawer header (the shared new `ItemDrawerHeader` keeps the sheet title for screen readers); description and comma-separated tags are editable for every type, content for text types, language for snippets and commands, and URL for links, while the type, collections and dates stay read-only (`ItemMetaSections`, split out of `ItemDetailSections`). `updateItemSchema` in `src/lib/validations/items.ts` trims and requires the title, turns empty optional fields into null, keeps content indentation, accepts only http(s) URLs and trims tags, rejecting blanks and dropping duplicates; `parseTagInput` splits the tags input. The `updateItem` server action in `src/actions/items.ts` checks the session, validates with Zod and returns `{ success, data, error, fieldErrors }`. The `updateItem` query in `src/lib/db/items.ts` scopes the update to the user, writes only the fields that belong to the item's content type, and in one batch transaction removes the item's tag links before updating it and connecting or creating each tag, so saving unchanged tags doesn't collide; it returns the updated `ItemDetail` through a `toItemDetail` helper shared with `getItemDetail`. After a save the drawer's cached detail is replaced through the new `setDetail` in `useItemDetailCache`, a toast is shown and `router.refresh()` updates the card lists; Save is disabled while the title is empty and field errors show inline. Added the shadcn Textarea component and 20 Vitest tests (56 in total) for the schema, tag parsing, query and action. No migration was needed.
 - **Delete Item:** The drawer's Delete (trash) button opens the new `DeleteItemDialog`, a shadcn Alert Dialog styled like the profile page's Delete account dialog (centered, capped at 28rem) that names the item and warns the delete can't be undone; while deleting it shows "Deleting..." and disables both buttons and dismissal. The trash button is disabled until the item's detail has loaded, like Edit. The `deleteItem` query in `src/lib/db/items.ts` uses `deleteMany` scoped to the item and user IDs and returns false for missing or other users' items; tag and collection links go through the existing cascades and orphaned tags are left in place. The `deleteItem` server action in `src/actions/items.ts` checks the session, validates the ID with Zod and returns `{ success, data: { id }, error }`. On success the dialog and drawer close, an "Item deleted" toast shows, the item is dropped from the detail cache through the new `removeDetail` in `useItemDetailCache` and `router.refresh()` updates card lists, stats and sidebar counts; on failure the dialog stays open with an error toast. `removeDetail` keeps the deleted ID marked as requested, because the card regains focus as the drawer closes and stays mounted until the refresh finishes, and its hover/focus prefetch otherwise requested the deleted item and got a 404. The detail skeleton now only shows while the drawer is open so it doesn't flash during the close animation. Added 7 Vitest tests (63 in total) for the query and action. No migration was needed.
+- **Item Create:** The top bar's "New Item" button opens the new `NewItemDialog`, a shadcn Dialog (capped at 32rem) for creating snippets, prompts, commands, notes and links; File and Image are left out until R2 uploads exist. A type selector of `aria-pressed` toggle buttons highlights the selected type with a border and tint in its color. Title (required), description and comma-separated tags show for every type, content for text types, language for snippets and commands, and a required URL for links; only the selected type's fields are sent. Editing a field clears its error and switching types clears all errors, and Create is disabled until the title (and a link's URL) is filled. On success a "Snippet created" style toast shows, the dialog closes and `router.refresh()` updates card lists, stats and sidebar counts; the form resets each time the dialog opens. `createItemSchema` in `src/lib/validations/items.ts` extends `updateItemSchema` with a `typeSlug` limited to `CREATABLE_TYPE_SLUGS` and requires a URL for links; `LANGUAGE_TYPE_SLUGS` moved there so the query, edit form and dialog share it. The `createItem` server action in `src/actions/items.ts` checks the session, validates with Zod and returns `{ success, data, error, fieldErrors }`, sharing a `toFieldErrors` helper with `updateItem`. The `createItem` query in `src/lib/db/items.ts` looks up the system type by slug on the server (never a client-supplied type ID), saves only the fields that belong to its content type, connects or creates the user's tags and returns the `ItemDetail`, or null when the type is missing. The edit form's field wrapper was extracted into a shared `ItemFormField` component. Added 21 Vitest tests (84 in total) for the schema, query and action. No migration was needed.
