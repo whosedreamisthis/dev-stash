@@ -1,20 +1,47 @@
-# Current Feature
+# Current Feature: Item Drawer Edit Mode
 
 <!-- Feature name and short description -->
+
+Clicking the Edit button (pencil icon) in the item drawer's action bar switches the same open drawer from view mode to an inline edit mode where fields become editable inputs.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- **Mode toggle:** the Edit button switches the drawer into edit mode; the action bar is replaced with Save and Cancel buttons
+- **Cancel** discards changes and returns to view mode
+- **Save** persists changes via a server action, returns to view mode and refreshes the drawer data; toast on success or error
+- **Editable fields (all types):** Title (text input, required), Description (textarea, optional), Tags (comma-separated text input converted to a tag array on save)
+- **Type-specific fields:** Content (textarea) for snippet, prompt, command and note; Language (text input) for snippet and command; URL (text input) for link
+- **Display only in edit mode:** item type, collections and created/updated dates
+- **Validation:** Zod schema for the update payload, validated in the server action before hitting the database
+  - `title`: non-empty string, trimmed
+  - `description`: string or null, optional
+  - `content`: string or null, optional
+  - `url`: valid URL string or null, optional
+  - `language`: string or null, optional
+  - `tags`: array of trimmed non-empty strings
+  - Zod errors returned in the `{ success: false, error }` response so the client can display them
+- **Server action:** `updateItem(itemId, data)` in `src/actions/items.ts` with the `{ success, data, error }` pattern: validates input with Zod, gets the session via `auth()`, checks ownership and calls the query function
+- **Query:** `updateItem` in `src/lib/db/items.ts`; on update, disconnect all existing tags and connect-or-create the new ones; returns the updated `ItemDetail` so the drawer refreshes without a second fetch
+- **After save:** call `router.refresh()` so the underlying card list reflects the changes
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- Keep it simple: no form library, controlled inputs with local state
+- Client-side: disable Save when the title is empty (basic UX guard)
+- Server-side: Zod validates all fields in the server action (source of truth)
+- The content textarea doesn't need to be a code editor yet; that comes later
+- The drawer's cached item details (`useItemDetailCache`) must be updated with the returned `ItemDetail` after a save
+- Spec: `context/features/item-drawer-edit-spec.md`
 
 ## History
 

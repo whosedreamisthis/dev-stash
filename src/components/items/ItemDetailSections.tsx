@@ -79,6 +79,15 @@ export function ItemDetailSections({ item }: { item: ItemDetail }) {
           </div>
         </Section>
       )}
+      <ItemMetaSections item={item} />
+    </div>
+  );
+}
+
+// Collections and dates, which are read-only in both view and edit mode
+export function ItemMetaSections({ item }: { item: ItemDetail }) {
+  return (
+    <>
       {item.collections.length > 0 && (
         <Section title="Collections" icon={FolderOpen}>
           <div className="flex flex-wrap gap-2">
@@ -98,7 +107,7 @@ export function ItemDetailSections({ item }: { item: ItemDetail }) {
           <dd className="text-right">{dateFormatter.format(item.updatedAt)}</dd>
         </dl>
       </Section>
-    </div>
+    </>
   );
 }
 

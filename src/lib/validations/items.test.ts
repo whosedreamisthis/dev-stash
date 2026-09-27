@@ -1,0 +1,60 @@
+import { describe, expect, it } from "vitest";
+import { parseTagInput, updateItemSchema } from "@/lib/validations/items";
+
+const VALID = { title: "useAuth Hook", tags: [] };
+
+describe("updateItemSchema", () => {
+  it("trims the title and rejects an empty one", () => {
+    expect(updateItemSchema.parse({ ...VALID, title: "  Hook  " }).title).toBe("Hook");
+    const result = updateItemSchema.safeParse({ ...VALID, title: "   " });
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0].message).toBe("Title is required");
+  });
+
+  it("turns empty optional fields into null and keeps omitted ones undefined", () => {
+    const data = updateItemSchema.parse({ ...VALID, description: "  ", language: "" });
+    expect(data.description).toBeNull();
+    expect(data.language).toBeNull();
+    expect(data.content).toBeUndefined();
+    expect(data.url).toBeUndefined();
+  });
+
+  it("keeps the leading indentation of content", () => {
+    const content = "  if (ok) {\n    run();\n  }";
+    expect(updateItemSchema.parse({ ...VALID, content }).content).toBe(content);
+  });
+
+  it("accepts http(s) URLs and clears an empty one", () => {
+    expect(updateItemSchema.parse({ ...VALID, url: " https://example.com " }).url).toBe(
+      "https://example.com"
+    );
+    expect(updateItemSchema.parse({ ...VALID, url: "" }).url).toBeNull();
+  });
+
+  it.each(["not a url", "javascript:alert(1)", "ftp://example.com"])(
+    "rejects the URL %s",
+    (url) => {
+      const result = updateItemSchema.safeParse({ ...VALID, url });
+      expect(result.success).toBe(false);
+      expect(result.error?.issues[0].message).toBe("Enter a valid http(s) URL");
+    }
+  );
+
+  it("trims tags, rejects empty ones and drops duplicates", () => {
+    expect(updateItemSchema.parse({ ...VALID, tags: [" react ", "hooks", "react"] }).tags).toEqual([
+      "react",
+      "hooks",
+    ]);
+    expect(updateItemSchema.safeParse({ ...VALID, tags: ["  "] }).success).toBe(false);
+  });
+});
+
+describe("parseTagInput", () => {
+  it("splits on commas, trims and skips blanks", () => {
+    expect(parseTagInput(" react, hooks ,, typescript, ")).toEqual(["react", "hooks", "typescript"]);
+  });
+
+  it("returns no tags for an empty input", () => {
+    expect(parseTagInput("   ")).toEqual([]);
+  });
+});
