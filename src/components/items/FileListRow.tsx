@@ -1,0 +1,74 @@
+"use client";
+
+import { Download, Pin, Star } from "lucide-react";
+import { FileTypeIcon } from "@/components/items/FileTypeIcon";
+import { useItemDrawer } from "@/components/items/ItemDrawerProvider";
+import { buttonVariants } from "@/components/ui/button";
+import { formatFileSize } from "@/lib/upload-constraints";
+import { cn } from "@/lib/utils";
+import type { ItemSummary } from "@/types/items";
+
+const dateFormatter = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+  timeZone: "UTC",
+});
+
+interface FileListRowProps {
+  item: ItemSummary;
+}
+
+export function FileListRow({ item }: FileListRowProps) {
+  const { openItem, prefetchItem } = useItemDrawer();
+  const fileName = item.fileName ?? "Untitled file";
+
+  return (
+    <li className="relative flex items-center gap-4 px-4 py-3 transition-colors hover:bg-accent/40">
+      {/* Covers the whole row so a click anywhere opens the drawer */}
+      <button
+        type="button"
+        aria-label={`Open ${item.title}`}
+        onClick={() => openItem(item)}
+        onPointerEnter={() => prefetchItem(item.id)}
+        onFocus={() => prefetchItem(item.id)}
+        className="absolute inset-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset"
+      />
+      <FileTypeIcon fileName={item.fileName} typeSlug={item.type.slug} />
+
+      {/* Stacked on mobile; name, size and date become columns from sm up */}
+      <div className="min-w-0 flex-1 sm:flex sm:items-center sm:gap-6">
+        <div className="min-w-0 sm:flex-1">
+          <div className="flex items-center gap-2">
+            <h3 className="truncate font-medium">{item.title}</h3>
+            {item.isPinned && <Pin className="size-4 shrink-0 text-muted-foreground" />}
+            {item.isFavorite && (
+              <Star className="size-4 shrink-0 fill-yellow-400 text-yellow-400" />
+            )}
+          </div>
+          <p className="truncate text-sm text-muted-foreground">{fileName}</p>
+        </div>
+        <div className="mt-1 flex gap-3 text-xs text-muted-foreground sm:contents sm:text-sm">
+          <span className="sm:w-20 sm:text-right">
+            {item.fileSize != null ? formatFileSize(item.fileSize) : "—"}
+          </span>
+          <time dateTime={item.createdAt.toISOString()} className="sm:w-28 sm:text-right">
+            {dateFormatter.format(item.createdAt)}
+          </time>
+        </div>
+      </div>
+
+      {/* Above the row's button, and stops the click so the drawer doesn't open */}
+      <a
+        href={`/api/items/${encodeURIComponent(item.id)}/file`}
+        download={item.fileName ?? true}
+        onClick={(event) => event.stopPropagation()}
+        aria-label={`Download ${fileName}`}
+        className={cn(buttonVariants({ variant: "outline", size: "sm" }), "relative z-10 shrink-0")}
+      >
+        <Download />
+        <span className="hidden sm:inline">Download</span>
+      </a>
+    </li>
+  );
+}

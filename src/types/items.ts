@@ -9,6 +9,9 @@ export interface ItemSummary {
   createdAt: Date;
   tags: string[];
   type: CollectionItemType;
+  // Null for items without an uploaded file
+  fileName: string | null;
+  fileSize: number | null;
 }
 
 export interface ItemDetail extends ItemSummary {
@@ -16,8 +19,6 @@ export interface ItemDetail extends ItemSummary {
   content: string | null;
   language: string | null;
   url: string | null;
-  fileName: string | null;
-  fileSize: number | null;
   fileMimeType: string | null;
   updatedAt: Date;
   collections: { id: string; name: string }[];

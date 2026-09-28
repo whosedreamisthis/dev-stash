@@ -41,6 +41,8 @@ function toItemSummary(item: ItemWithRelations): ItemSummary {
     createdAt: item.createdAt,
     tags: item.tags.map(({ tag }) => tag.name),
     type: item.itemType,
+    fileName: item.fileName,
+    fileSize: item.fileSize,
   };
 }
 
@@ -63,8 +65,6 @@ function toItemDetail(item: ItemWithDetailRelations): ItemDetail {
     content: item.content,
     language: item.language,
     url: item.url,
-    fileName: item.fileName,
-    fileSize: item.fileSize,
     fileMimeType: item.fileMimeType,
     updatedAt: item.updatedAt,
     collections: item.collections.map(({ collection }) => collection),

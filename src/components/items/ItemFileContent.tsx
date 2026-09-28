@@ -1,4 +1,5 @@
-import { Download, File as FileIcon } from "lucide-react";
+import { Download } from "lucide-react";
+import { FileTypeIcon } from "@/components/items/FileTypeIcon";
 import { buttonVariants } from "@/components/ui/button";
 import { formatFileSize } from "@/lib/upload-constraints";
 import type { ItemDetail } from "@/types/items";
@@ -24,9 +25,7 @@ export function ItemFileContent({ item }: { item: ItemDetail }) {
         />
       )}
       <div className="flex items-center gap-3 rounded-lg border p-3">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-muted">
-          <FileIcon className="size-5 text-muted-foreground" />
-        </div>
+        <FileTypeIcon fileName={item.fileName} typeSlug={item.type.slug} />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium">{item.fileName ?? "Untitled file"}</p>
           {details.length > 0 && (
