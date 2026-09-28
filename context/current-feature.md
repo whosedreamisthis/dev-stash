@@ -1,20 +1,31 @@
-# Current Feature
+# Current Feature: Pagination
 
 <!-- Feature name and short description -->
+
+Server-side pagination with numbered page links for item and collection listings.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- Paginate `/items/[type]` and `/collections/[id]` pages
+- Pagination controls at the bottom with page numbers and prev/next links
+- Prev/next are disabled (greyed out) when not available
+- Constants: `ITEMS_PER_PAGE = 21`, `COLLECTIONS_PER_PAGE = 21`
+- Dashboard limits: `DASHBOARD_COLLECTIONS_LIMIT = 6`, `DASHBOARD_RECENT_ITEMS_LIMIT = 10`
+- Paginate on the server: fetch only the rows the current page needs (skip/take + count), not everything at once
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- Spec: `context/features/pagination-spec.md`
 
 ## Completed Features
 

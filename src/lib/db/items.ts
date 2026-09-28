@@ -5,9 +5,11 @@ import {
   type CreateItemData,
   type UpdateItemData,
 } from "@/lib/validations/items";
+import { DASHBOARD_RECENT_ITEMS_LIMIT, ITEMS_PER_PAGE, paginate } from "@/lib/pagination";
 import { toContentPreview } from "@/lib/search";
 import type { UploadedFile } from "@/lib/upload-token";
 import type { CollectionItemType } from "@/types/collections";
+import type { PaginatedResult } from "@/types/pagination";
 import type { SearchItem } from "@/types/search";
 import type {
   ItemDetail,
@@ -267,7 +269,7 @@ export async function getPinnedItems(userId: string): Promise<ItemSummary[]> {
 
 export async function getRecentItems(
   userId: string,
-  limit = 10
+  limit = DASHBOARD_RECENT_ITEMS_LIMIT
 ): Promise<ItemSummary[]> {
   const items = await prisma.item.findMany({
     where: { userId },
@@ -294,31 +296,43 @@ export async function getItemTypeBySlug(
   });
 }
 
-export async function getItemsByType(
-  userId: string,
-  itemTypeId: string
-): Promise<ItemSummary[]> {
-  const items = await prisma.item.findMany({
-    where: { userId, itemTypeId },
-    orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
-    include: ITEM_SUMMARY_INCLUDE,
-  });
-
-  return items.map(toItemSummary);
+// Fetches one page of the items matching the filter, pinned first. The id
+// breaks ties so no item shows up on two pages.
+function paginateItems(where: Prisma.ItemWhereInput, page: number) {
+  return paginate(
+    page,
+    ITEMS_PER_PAGE,
+    () => prisma.item.count({ where }),
+    async (range) => {
+      const items = await prisma.item.findMany({
+        where,
+        orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }, { id: "asc" }],
+        ...range,
+        include: ITEM_SUMMARY_INCLUDE,
+      });
+      return items.map(toItemSummary);
+    }
+  );
 }
 
-export async function getItemsByCollection(
+export function getItemsByType(
   userId: string,
-  collectionId: string
-): Promise<ItemSummary[]> {
-  const items = await prisma.item.findMany({
-    // Both the item and the collection must belong to the user
-    where: { userId, collections: { some: { collectionId, collection: { userId } } } },
-    orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
-    include: ITEM_SUMMARY_INCLUDE,
-  });
+  itemTypeId: string,
+  page = 1
+): Promise<PaginatedResult<ItemSummary>> {
+  return paginateItems({ userId, itemTypeId }, page);
+}
 
-  return items.map(toItemSummary);
+export function getItemsByCollection(
+  userId: string,
+  collectionId: string,
+  page = 1
+): Promise<PaginatedResult<ItemSummary>> {
+  // Both the item and the collection must belong to the user
+  return paginateItems(
+    { userId, collections: { some: { collectionId, collection: { userId } } } },
+    page
+  );
 }
 
 // All of the user's items for the command palette, pinned and recently changed first

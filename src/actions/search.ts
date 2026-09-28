@@ -1,6 +1,6 @@
 "use server";
 
-import { getCollections } from "@/lib/db/collections";
+import { getSearchCollections } from "@/lib/db/collections";
 import { getSearchItems } from "@/lib/db/items";
 import { getSessionUserId, NOT_SIGNED_IN_ERROR } from "@/lib/session";
 import type { SearchData } from "@/types/search";
@@ -19,7 +19,7 @@ export async function getSearchData(): Promise<GetSearchDataResult> {
   try {
     const [items, collections] = await Promise.all([
       getSearchItems(userId),
-      getCollections(userId),
+      getSearchCollections(userId),
     ]);
     return { success: true, data: { items, collections } };
   } catch (error) {

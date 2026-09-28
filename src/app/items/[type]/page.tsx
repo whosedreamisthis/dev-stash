@@ -8,15 +8,18 @@ import { ItemsHeader } from "@/components/items/ItemsHeader";
 import { NewItemDialog } from "@/components/items/NewItemDialog";
 import { getItemTypeBySlug } from "@/lib/db/items";
 import { getItemLayout } from "@/lib/item-grid";
+import { parsePage } from "@/lib/pagination";
 import { isCreatableTypeSlug } from "@/lib/validations/items";
 
 export default async function ItemsByTypePage({
   params,
+  searchParams,
 }: PageProps<"/items/[type]">) {
   // Render per request so the list reflects the current database state
   await connection();
 
   const { type: slug } = await params;
+  const page = parsePage((await searchParams).page);
 
   const session = await auth();
   const userId = session?.user?.id;
@@ -33,12 +36,14 @@ export default async function ItemsByTypePage({
         icon={type.icon}
         action={isCreatableTypeSlug(type.slug) && <NewItemDialog defaultType={type.slug} />}
       />
-      <Suspense fallback={<ItemGridSkeleton layout={getItemLayout(type.slug)} />}>
+      {/* Keyed by page so the skeleton shows while another page loads */}
+      <Suspense key={page} fallback={<ItemGridSkeleton layout={getItemLayout(type.slug)} />}>
         <ItemGrid
           userId={userId}
           itemTypeId={type.id}
           typeName={type.name}
           typeSlug={type.slug}
+          page={page}
         />
       </Suspense>
     </div>

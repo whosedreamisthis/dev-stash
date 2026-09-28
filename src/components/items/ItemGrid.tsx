@@ -1,6 +1,7 @@
 import { ItemCard } from "@/components/dashboard/ItemCard";
 import { FileListRow } from "@/components/items/FileListRow";
 import { ImageThumbnailCard } from "@/components/items/ImageThumbnailCard";
+import { Pagination } from "@/components/shared/Pagination";
 import { getItemsByType } from "@/lib/db/items";
 import { ITEM_LAYOUT_CLASSES, getItemLayout } from "@/lib/item-grid";
 import type { ItemSummary } from "@/types/items";
@@ -10,6 +11,7 @@ interface ItemGridProps {
   itemTypeId: string;
   typeName: string;
   typeSlug: string;
+  page: number;
 }
 
 function renderItems(items: ItemSummary[], typeSlug: string) {
@@ -36,10 +38,16 @@ function renderItems(items: ItemSummary[], typeSlug: string) {
   );
 }
 
-export async function ItemGrid({ userId, itemTypeId, typeName, typeSlug }: ItemGridProps) {
-  const items = await getItemsByType(userId, itemTypeId);
+export async function ItemGrid({
+  userId,
+  itemTypeId,
+  typeName,
+  typeSlug,
+  page,
+}: ItemGridProps) {
+  const result = await getItemsByType(userId, itemTypeId, page);
 
-  if (items.length === 0) {
+  if (result.total === 0) {
     return (
       <p className="rounded-xl border border-dashed p-10 text-center text-muted-foreground">
         No {typeName.toLowerCase()}s yet.
@@ -50,9 +58,14 @@ export async function ItemGrid({ userId, itemTypeId, typeName, typeSlug }: ItemG
   return (
     <section>
       <p className="mb-4 text-muted-foreground">
-        {items.length} {items.length === 1 ? "item" : "items"}
+        {result.total} {result.total === 1 ? "item" : "items"}
       </p>
-      {renderItems(items, typeSlug)}
+      {renderItems(result.items, typeSlug)}
+      <Pagination
+        basePath={`/items/${typeSlug}`}
+        page={result.page}
+        totalPages={result.totalPages}
+      />
     </section>
   );
 }

@@ -6,6 +6,7 @@ import {
   getItemDetail,
   getItemFile,
   getItemsByCollection,
+  getItemsByType,
   getSearchItems,
   toCollectionLinks,
   toTagLinks,
@@ -15,6 +16,7 @@ import {
 vi.mock("@/lib/db", () => ({
   prisma: {
     item: {
+      count: vi.fn(),
       findFirst: vi.fn(),
       findMany: vi.fn(),
       create: vi.fn(),
@@ -30,6 +32,8 @@ vi.mock("@/lib/db", () => ({
 }));
 
 const findFirst = vi.mocked(prisma.item.findFirst);
+const findMany = vi.mocked(prisma.item.findMany);
+const count = vi.mocked(prisma.item.count);
 const update = vi.mocked(prisma.item.update);
 const deleteTagLinks = vi.mocked(prisma.itemTag.deleteMany);
 const deleteCollectionLinks = vi.mocked(prisma.itemCollection.deleteMany);
@@ -449,26 +453,61 @@ describe("deleteItem", () => {
 });
 
 describe("getItemsByCollection", () => {
-  it("returns the user's items in the user's collection, pinned first, as summaries", async () => {
-    const findMany = vi.mocked(prisma.item.findMany);
+  const COLLECTION_WHERE = {
+    userId: "user-1",
+    collections: { some: { collectionId: "c1", collection: { userId: "user-1" } } },
+  };
+
+  it("returns one page of the user's items in the user's collection, pinned first", async () => {
     findMany.mockResolvedValue([ITEM_ROW] as never);
-    const items = await getItemsByCollection("user-1", "c1");
+    count.mockResolvedValue(3);
+    const result = await getItemsByCollection("user-1", "c1");
+    expect(count).toHaveBeenCalledWith({ where: COLLECTION_WHERE });
     expect(findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: {
-          userId: "user-1",
-          collections: { some: { collectionId: "c1", collection: { userId: "user-1" } } },
-        },
-        orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
+        where: COLLECTION_WHERE,
+        orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }, { id: "asc" }],
+        skip: 0,
+        take: 21,
       })
     );
-    expect(items).toEqual([expect.objectContaining({ id: "item-1", tags: ["react", "auth"] })]);
+    expect(result).toEqual({
+      items: [expect.objectContaining({ id: "item-1", tags: ["react", "auth"] })],
+      total: 3,
+      page: 1,
+      totalPages: 1,
+    });
+  });
+});
+
+describe("getItemsByType", () => {
+  it("skips the earlier pages of the user's items of the type", async () => {
+    findMany.mockResolvedValue([ITEM_ROW] as never);
+    count.mockResolvedValue(50);
+    const result = await getItemsByType("user-1", "t1", 3);
+    expect(count).toHaveBeenCalledWith({ where: { userId: "user-1", itemTypeId: "t1" } });
+    expect(findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { userId: "user-1", itemTypeId: "t1" },
+        skip: 42,
+        take: 21,
+      })
+    );
+    expect(result).toMatchObject({ total: 50, page: 3, totalPages: 3 });
+  });
+
+  it("falls back to the last page when the page is past the end", async () => {
+    findMany.mockResolvedValueOnce([] as never).mockResolvedValueOnce([ITEM_ROW] as never);
+    count.mockResolvedValue(22);
+    const result = await getItemsByType("user-1", "t1", 5);
+    expect(findMany).toHaveBeenLastCalledWith(expect.objectContaining({ skip: 21, take: 21 }));
+    expect(result).toMatchObject({ total: 22, page: 2, totalPages: 2 });
+    expect(result.items).toHaveLength(1);
   });
 });
 
 describe("getSearchItems", () => {
   it("returns all of the user's items, pinned first, with a preview instead of copy text", async () => {
-    const findMany = vi.mocked(prisma.item.findMany);
     findMany.mockResolvedValue([ITEM_ROW] as never);
     const items = await getSearchItems("user-1");
     expect(findMany).toHaveBeenCalledWith(

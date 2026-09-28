@@ -1,6 +1,8 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
+import { COLLECTIONS_PER_PAGE, DASHBOARD_COLLECTIONS_LIMIT, paginate } from "@/lib/pagination";
 import type { CreateCollectionData, UpdateCollectionData } from "@/lib/validations/collections";
+import type { PaginatedResult } from "@/types/pagination";
 import type {
   CollectionDetail,
   CollectionItemType,
@@ -61,7 +63,7 @@ function toCollectionSummary(
 
 export async function getRecentCollections(
   userId: string,
-  limit = 6
+  limit = DASHBOARD_COLLECTIONS_LIMIT
 ): Promise<CollectionSummary[]> {
   const collections = await prisma.collection.findMany({
     where: { userId },
@@ -73,7 +75,8 @@ export async function getRecentCollections(
   return collections.map(toCollectionSummary);
 }
 
-export async function getCollections(userId: string): Promise<CollectionSummary[]> {
+// All of the user's collections for the command palette, favorites first
+export async function getSearchCollections(userId: string): Promise<CollectionSummary[]> {
   const collections = await prisma.collection.findMany({
     where: { userId },
     orderBy: [{ isFavorite: "desc" }, { updatedAt: "desc" }],
@@ -81,6 +84,29 @@ export async function getCollections(userId: string): Promise<CollectionSummary[
   });
 
   return collections.map(toCollectionSummary);
+}
+
+// The id breaks ties so no collection shows up on two pages
+export function getCollections(
+  userId: string,
+  page = 1
+): Promise<PaginatedResult<CollectionSummary>> {
+  const where = { userId };
+
+  return paginate(
+    page,
+    COLLECTIONS_PER_PAGE,
+    () => prisma.collection.count({ where }),
+    async (range) => {
+      const collections = await prisma.collection.findMany({
+        where,
+        orderBy: [{ isFavorite: "desc" }, { updatedAt: "desc" }, { id: "asc" }],
+        ...range,
+        include: COLLECTION_SUMMARY_INCLUDE,
+      });
+      return collections.map(toCollectionSummary);
+    }
+  );
 }
 
 // Returns null for collections that don't exist or belong to another user

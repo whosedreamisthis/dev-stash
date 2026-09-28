@@ -6,12 +6,14 @@ import {
   getCollectionById,
   getCollectionOptions,
   getCollections,
+  getSearchCollections,
   updateCollection,
 } from "@/lib/db/collections";
 
 vi.mock("@/lib/db", () => ({
   prisma: {
     collection: {
+      count: vi.fn(),
       create: vi.fn(),
       findMany: vi.fn(),
       findFirst: vi.fn(),
@@ -26,39 +28,66 @@ const create = vi.mocked(prisma.collection.create);
 const SNIPPET = { id: "t1", name: "Snippet", slug: "snippets", icon: "Code", color: "#3b82f6" };
 const NOTE = { id: "t4", name: "Note", slug: "notes", icon: "StickyNote", color: "#fde047" };
 
-describe("getCollections", () => {
+const COLLECTION_ROW = {
+  id: "c1",
+  name: "React Patterns",
+  description: null,
+  isFavorite: true,
+  defaultType: null,
+  items: [
+    { item: { itemType: NOTE } },
+    { item: { itemType: SNIPPET } },
+    { item: { itemType: SNIPPET } },
+  ],
+};
+
+const COLLECTION_SUMMARY = {
+  id: "c1",
+  name: "React Patterns",
+  description: null,
+  isFavorite: true,
+  itemCount: 3,
+  types: [SNIPPET, NOTE],
+  mainType: SNIPPET,
+};
+
+describe("getSearchCollections", () => {
   it("returns all of the user's collections, favorites first, as summaries", async () => {
     const findMany = vi.mocked(prisma.collection.findMany);
-    findMany.mockResolvedValue([
-      {
-        id: "c1",
-        name: "React Patterns",
-        description: null,
-        isFavorite: true,
-        defaultType: null,
-        items: [
-          { item: { itemType: NOTE } },
-          { item: { itemType: SNIPPET } },
-          { item: { itemType: SNIPPET } },
-        ],
-      },
-    ] as never);
+    findMany.mockResolvedValue([COLLECTION_ROW] as never);
 
-    await expect(getCollections("user-1")).resolves.toEqual([
-      {
-        id: "c1",
-        name: "React Patterns",
-        description: null,
-        isFavorite: true,
-        itemCount: 3,
-        types: [SNIPPET, NOTE],
-        mainType: SNIPPET,
-      },
-    ]);
+    await expect(getSearchCollections("user-1")).resolves.toEqual([COLLECTION_SUMMARY]);
     expect(findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { userId: "user-1" },
         orderBy: [{ isFavorite: "desc" }, { updatedAt: "desc" }],
+      })
+    );
+    expect(findMany.mock.calls[0][0]).not.toHaveProperty("take");
+  });
+});
+
+describe("getCollections", () => {
+  const findMany = vi.mocked(prisma.collection.findMany);
+  const count = vi.mocked(prisma.collection.count);
+
+  it("fetches only the requested page of the user's collections", async () => {
+    findMany.mockResolvedValue([COLLECTION_ROW] as never);
+    count.mockResolvedValue(45);
+
+    await expect(getCollections("user-1", 2)).resolves.toEqual({
+      items: [COLLECTION_SUMMARY],
+      total: 45,
+      page: 2,
+      totalPages: 3,
+    });
+    expect(count).toHaveBeenCalledWith({ where: { userId: "user-1" } });
+    expect(findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { userId: "user-1" },
+        orderBy: [{ isFavorite: "desc" }, { updatedAt: "desc" }, { id: "asc" }],
+        skip: 21,
+        take: 21,
       })
     );
   });
