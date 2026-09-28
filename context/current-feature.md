@@ -1,51 +1,24 @@
-# Current Feature: Collections Pages
+# Current Feature
 
 <!-- Feature name and short description -->
-
-Add a `/collections` page listing all of the user's collections and a `/collections/[id]` page showing the items in one collection, using the existing cards.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- `getCollections(userId)` in `src/lib/db/collections.ts`: all of the user's collections as `CollectionSummary`, favorites first, then most recently updated
-- `/collections` page: header with a "New Collection" button, a responsive grid of the existing `CollectionCard`s, and an empty state
-- `getCollectionById(userId, id)` and `getItemsByCollection(userId, collectionId)` in `src/lib/db`: scoped to the user, so another user's collection is a 404; items pinned first, then newest
-- `/collections/[id]` page: collection name, description and item count, then the items as the existing `ItemCard`s (clicking opens the item drawer), with an empty state
-- `src/app/collections/layout.tsx` renders inside `DashboardShell` like `/items`, and `/collections/:path*` is added to the proxy matcher
-- Loading skeletons for both pages, following `/items/[type]`
-- "View all collections" in the sidebar, "View all" on the dashboard and every collection card (dashboard cards and sidebar links) go to these pages
-- Vitest tests for the new queries
-
 ## Notes
 
 <!-- Any extra notes -->
 
-- The links already exist: `CollectionCard` and `SidebarCollectionLink` point to `/collections/${id}`, and the sidebar's "View all collections" and the dashboard's "View all" point to `/collections`. Those routes currently 404, so this feature mainly adds the pages
-- A collection holds items of any type, so the detail page uses the `ItemCard` grid rather than the image gallery or file list layouts
-- Editing or deleting a collection, and removing items from it on this page, are out of scope
-
 ## Progress
 
 <!-- Step checklist, updated before every step. Cleared when the feature is completed -->
-
-`/feature complete`:
-
-- [x] ~~1. Run `npm test` and `npm run build` (tests passed; build skipped at your request, it passed before and no code changed since)~~
-- [ ] **2. Stage all changes and commit the feature ← current**
-- [ ] 3. Switch to main and merge the feature branch
-- [ ] 4. Delete the local feature branch
-- [ ] 5. Append the full summary to feature-history.md
-- [ ] 6. Reset current-feature.md (clears this Progress section) and add the one-line Completed Features entry
-- [ ] 7. Commit both context files
-- [ ] 8. Push main to origin
-- [ ] 9. Delete the remote feature branch if it was pushed
 
 ## Completed Features
 
@@ -88,3 +61,4 @@ In Progress
 - **Extract Helpers Refactor:** `toTagLinks`, `createUser` (`src/lib/db/users.ts`), `getSessionUserId` (`src/lib/session.ts`), split `Sidebar` links, upload hooks moved to `src/hooks/`.
 - **Collection Create:** top bar `NewCollectionDialog` (name + description) with `createCollection` action (`src/actions/collections.ts`), user-scoped query and Zod schema; refreshes on save.
 - **Add Items to Collections:** `CollectionSelector` multi-select in the new/edit item forms, options from `GET /api/collections`; queries link only the user's own collections.
+- **Collections Pages:** `/collections` grid of `CollectionCard`s and `/collections/[id]` with streamed `ItemCard`s; clicked collections show their name instantly (`src/lib/collection-preview.ts`).
