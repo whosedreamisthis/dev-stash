@@ -25,3 +25,8 @@ export const createCollectionSchema = z.object({
 
 export type CreateCollectionInput = z.input<typeof createCollectionSchema>;
 export type CreateCollectionData = z.output<typeof createCollectionSchema>;
+
+export const updateCollectionSchema = createCollectionSchema;
+
+export type UpdateCollectionInput = z.input<typeof updateCollectionSchema>;
+export type UpdateCollectionData = z.output<typeof updateCollectionSchema>;

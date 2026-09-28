@@ -1,7 +1,5 @@
 # Load Action
 
-Before anything else, show the full todo list for this action (e.g. read the spec, look at the related code, write current-feature.md, confirm) and update the list in the Progress section of current-feature.md as the first edit of each step, as described in the **Todo List** section of `context/ai-interaction.md`.
-
 1. Check $ARGUMENTS (after "load"):
    - If it looks like a filename (single word, no spaces): Look for `context/features/{name}.md` OR `context/fixes/{name}.md`
    - If it's multiple words: Use as inline feature description, generate goals
@@ -11,7 +9,6 @@ Before anything else, show the full todo list for this action (e.g. read the spe
    - Update H1 heading to include feature name (e.g., `# Current Feature: Add Navbar`)
    - Write goals as bullet points under ## Goals
    - Write any additional notes/context under ## Notes
-   - Keep the `## Progress` section (with its comment) for the load action's own step list
    - Set Status to "Not Started"
 
 3. Confirm spec loaded and show the feature summary

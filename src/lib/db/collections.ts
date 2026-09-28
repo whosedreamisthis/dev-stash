@@ -1,6 +1,6 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
-import type { CreateCollectionData } from "@/lib/validations/collections";
+import type { CreateCollectionData, UpdateCollectionData } from "@/lib/validations/collections";
 import type {
   CollectionDetail,
   CollectionItemType,
@@ -145,4 +145,31 @@ export async function createCollection(
   });
 
   return toCollectionSummary(collection);
+}
+
+// Returns null for collections that don't exist or belong to another user
+export async function updateCollection(
+  userId: string,
+  collectionId: string,
+  data: UpdateCollectionData
+): Promise<CollectionSummary | null> {
+  const existing = await prisma.collection.findFirst({
+    where: { id: collectionId, userId },
+    select: { id: true },
+  });
+  if (!existing) return null;
+
+  const collection = await prisma.collection.update({
+    where: { id: collectionId },
+    data: { name: data.name, description: data.description },
+    include: COLLECTION_SUMMARY_INCLUDE,
+  });
+
+  return toCollectionSummary(collection);
+}
+
+// Deletes the collection and its item links; the items themselves are kept
+export async function deleteCollection(userId: string, collectionId: string): Promise<boolean> {
+  const { count } = await prisma.collection.deleteMany({ where: { id: collectionId, userId } });
+  return count > 0;
 }

@@ -2,13 +2,23 @@ import { describe, expect, it, vi } from "vitest";
 import { prisma } from "@/lib/db";
 import {
   createCollection,
+  deleteCollection,
   getCollectionById,
   getCollectionOptions,
   getCollections,
+  updateCollection,
 } from "@/lib/db/collections";
 
 vi.mock("@/lib/db", () => ({
-  prisma: { collection: { create: vi.fn(), findMany: vi.fn(), findFirst: vi.fn() } },
+  prisma: {
+    collection: {
+      create: vi.fn(),
+      findMany: vi.fn(),
+      findFirst: vi.fn(),
+      update: vi.fn(),
+      deleteMany: vi.fn(),
+    },
+  },
 }));
 
 const create = vi.mocked(prisma.collection.create);
@@ -106,5 +116,53 @@ describe("createCollection", () => {
         data: { name: "React Patterns", description: null, userId: "user-1" },
       })
     );
+  });
+});
+
+describe("updateCollection", () => {
+  const DATA = { name: "Hooks", description: "Custom hooks" };
+
+  it("returns null without updating when the collection isn't the user's", async () => {
+    vi.mocked(prisma.collection.findFirst).mockResolvedValue(null);
+    await expect(updateCollection("user-1", "c1", DATA)).resolves.toBeNull();
+    expect(prisma.collection.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: "c1", userId: "user-1" } })
+    );
+    expect(prisma.collection.update).not.toHaveBeenCalled();
+  });
+
+  it("updates the name and description and returns the summary", async () => {
+    vi.mocked(prisma.collection.findFirst).mockResolvedValue({ id: "c1" } as never);
+    vi.mocked(prisma.collection.update).mockResolvedValue({
+      id: "c1",
+      ...DATA,
+      isFavorite: false,
+      defaultType: null,
+      items: [{ item: { itemType: SNIPPET } }],
+    } as never);
+
+    await expect(updateCollection("user-1", "c1", DATA)).resolves.toEqual({
+      id: "c1",
+      ...DATA,
+      isFavorite: false,
+      itemCount: 1,
+      types: [SNIPPET],
+      mainType: SNIPPET,
+    });
+    expect(prisma.collection.update).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: "c1" }, data: DATA })
+    );
+  });
+});
+
+describe("deleteCollection", () => {
+  it("deletes only the user's collection and reports whether one was deleted", async () => {
+    const deleteMany = vi.mocked(prisma.collection.deleteMany);
+    deleteMany.mockResolvedValue({ count: 1 });
+    await expect(deleteCollection("user-1", "c1")).resolves.toBe(true);
+    expect(deleteMany).toHaveBeenCalledWith({ where: { id: "c1", userId: "user-1" } });
+
+    deleteMany.mockResolvedValue({ count: 0 });
+    await expect(deleteCollection("user-1", "other")).resolves.toBe(false);
   });
 });

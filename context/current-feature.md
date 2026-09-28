@@ -1,4 +1,4 @@
-# Current Feature
+# Current Feature: Collection Card Actions (Edit, Delete, Favorite)
 
 <!-- Feature name and short description -->
 
@@ -6,19 +6,27 @@
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- On `/collections/[id]`, add edit, delete and favorite buttons/icons for the collection.
+  - Favorite is icon/button only for now — no working favorite behavior yet.
+  - Edit opens a modal to edit the collection's metadata (name, description).
+  - Delete shows a confirmation dialog before deleting.
+  - Deleting a collection must NOT delete its items — items just stop belonging to that collection (remove the `ItemCollection` join rows, keep the `Item` rows).
+- On `CollectionCard` (used on `/collections` and the dashboard), the existing 3-dot icon opens a dropdown menu with Edit, Delete and Favorite options.
+  - Clicking anywhere else on the card still navigates to the collection's page.
+
 ## Notes
 
 <!-- Any extra notes -->
 
-## Progress
-
-<!-- Step checklist, updated before every step. Cleared when the feature is completed -->
+- `Collection` already has an `isFavorite` field in the schema; only the button/icon is needed now, not the toggle logic.
+- Reuse the existing delete-confirmation pattern from item delete (`Delete Item` feature) where possible.
+- Check whether `CollectionCard` already renders a 3-dot icon (per Completed Features, dashboard/collections cards exist) — confirm during implementation whether it's currently non-functional or absent.
 
 ## Completed Features
 

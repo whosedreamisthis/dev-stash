@@ -20,7 +20,6 @@ current-feature.md has these sections:
 - `## Status` - Not Started | In Progress | Complete
 - `## Goals` - Bullet points of what success looks like
 - `## Notes` - Additional context, constraints, or details from spec
-- `## Progress` - The current action's step checklist, updated before every step; cleared on completion
 - `## Completed Features` - One short line per completed feature (append only, earliest to latest), so every session knows what exists
 
 ### History File
@@ -43,13 +42,3 @@ Execute the requested action: $ARGUMENTS
 See [actions/](actions/) for detailed instructions.
 
 If no action provided, explain the available options.
-
-## Todo List
-
-Every action, not just implementation, follows the **Todo List** section of `context/ai-interaction.md`:
-
-- Break the action into numbered steps and write the full list into the `## Progress` section of current-feature.md before doing anything else, including reading files or running commands.
-- The first edit of every step updates the Progress section (tick off the finished step, mark the next current), so the user sees it as a diff in the approval prompt. Also post the list as text; mid-turn text isn't reliably visible to the user, so the Progress section is what counts. Don't pause between steps (no Continue buttons, no asking the user to type "continue").
-- Format: completed steps `- [x] ~~N. step~~`, the current step `- [ ] **N. step ← current**` with one line saying what it will do, and pending steps `- [ ] N. step`.
-- Never merge steps into ranges, drop completed ones or renumber them. If a step is added mid-way, say so.
-- End with the final list, all steps checked, followed by the summary.
