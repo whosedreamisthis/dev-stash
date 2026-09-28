@@ -52,6 +52,7 @@ function toFieldErrors(error: z.ZodError): CreateItemFieldErrors {
     url: fieldErrors.url?.[0],
     language: fieldErrors.language?.[0],
     tags: fieldErrors.tags?.[0],
+    collectionIds: fieldErrors.collectionIds?.[0],
     uploadToken: fieldErrors.uploadToken?.[0],
   };
 }

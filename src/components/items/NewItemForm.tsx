@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createItem, type CreateItemFieldErrors } from "@/actions/items";
+import { CollectionSelector } from "@/components/collections/CollectionSelector";
 import { CodeEditor } from "@/components/items/CodeEditor";
 import { FileUpload } from "@/components/items/FileUpload";
 import { ItemFormField } from "@/components/items/ItemFormField";
@@ -33,6 +34,7 @@ export function NewItemForm({ defaultType, onCreated }: NewItemFormProps) {
   const router = useRouter();
   const [typeSlug, setTypeSlug] = useState<CreatableTypeSlug>(defaultType);
   const [values, setValues] = useState(EMPTY_ITEM_FORM_VALUES);
+  const [collectionIds, setCollectionIds] = useState<string[]>([]);
   const [fieldErrors, setFieldErrors] = useState<CreateItemFieldErrors>({});
   const [uploadToken, setUploadToken] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -60,6 +62,11 @@ export function NewItemForm({ defaultType, onCreated }: NewItemFormProps) {
     setFieldErrors((prev) => ({ ...prev, content: undefined }));
   }
 
+  function handleCollectionsChange(ids: string[]) {
+    setCollectionIds(ids);
+    setFieldErrors((prev) => ({ ...prev, collectionIds: undefined }));
+  }
+
   function handleUploaded(token: string | null) {
     setUploadToken(token);
     setFieldErrors((prev) => ({ ...prev, uploadToken: undefined }));
@@ -79,6 +86,7 @@ export function NewItemForm({ defaultType, onCreated }: NewItemFormProps) {
       const result = await createItem({
         ...toItemPayload(values, fields),
         typeSlug,
+        collectionIds,
         ...(fields.upload && uploadToken && { uploadToken }),
       });
       if (!result.success) {
@@ -189,6 +197,13 @@ export function NewItemForm({ defaultType, onCreated }: NewItemFormProps) {
             />
           )}
         </ItemFormField>
+        <CollectionSelector
+          id="new-item-collections"
+          value={collectionIds}
+          onChange={handleCollectionsChange}
+          error={fieldErrors.collectionIds}
+          disabled={isPending}
+        />
       </div>
 
       <DialogFooter>

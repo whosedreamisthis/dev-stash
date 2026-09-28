@@ -5,6 +5,7 @@ import {
   deleteItem,
   getItemDetail,
   getItemFile,
+  toCollectionLinks,
   toTagLinks,
   updateItem,
 } from "@/lib/db/items";
@@ -14,6 +15,8 @@ vi.mock("@/lib/db", () => ({
     item: { findFirst: vi.fn(), create: vi.fn(), update: vi.fn(), deleteMany: vi.fn() },
     itemType: { findFirst: vi.fn() },
     itemTag: { deleteMany: vi.fn() },
+    itemCollection: { deleteMany: vi.fn() },
+    collection: { findMany: vi.fn() },
     $transaction: vi.fn(),
   },
 }));
@@ -21,6 +24,19 @@ vi.mock("@/lib/db", () => ({
 const findFirst = vi.mocked(prisma.item.findFirst);
 const update = vi.mocked(prisma.item.update);
 const deleteTagLinks = vi.mocked(prisma.itemTag.deleteMany);
+const deleteCollectionLinks = vi.mocked(prisma.itemCollection.deleteMany);
+const findCollections = vi.mocked(prisma.collection.findMany);
+
+describe("toCollectionLinks", () => {
+  it("connects each collection by ID", () => {
+    expect(toCollectionLinks(["c1", "c2"])).toEqual({
+      create: [
+        { collection: { connect: { id: "c1" } } },
+        { collection: { connect: { id: "c2" } } },
+      ],
+    });
+  });
+});
 
 describe("toTagLinks", () => {
   it("connects or creates each of the user's tags by name", () => {
@@ -215,6 +231,41 @@ describe("updateItem", () => {
       })),
     });
   });
+
+  it("leaves the collections unchanged when none were sent", async () => {
+    findFirst.mockResolvedValue({ contentType: "TEXT" } as never);
+    update.mockResolvedValue(ITEM_ROW as never);
+    await updateItem("user-1", "item-1", DATA);
+    expect(findCollections).not.toHaveBeenCalled();
+    expect(deleteCollectionLinks).toHaveBeenCalledWith({ where: { itemId: { in: [] } } });
+    expect(updateArgs().data.collections).toBeUndefined();
+  });
+
+  it("replaces the collections with the user's own collections only", async () => {
+    findFirst.mockResolvedValue({ contentType: "TEXT" } as never);
+    findCollections.mockResolvedValue([{ id: "c1" }] as never);
+    update.mockResolvedValue(ITEM_ROW as never);
+    await updateItem("user-1", "item-1", { ...DATA, collectionIds: ["c1", "other-users"] });
+    expect(findCollections).toHaveBeenCalledWith({
+      where: { id: { in: ["c1", "other-users"] }, userId: "user-1" },
+      select: { id: true },
+    });
+    expect(deleteCollectionLinks).toHaveBeenCalledWith({
+      where: { itemId: "item-1", item: { userId: "user-1" } },
+    });
+    expect(updateArgs().data.collections).toEqual(toCollectionLinks(["c1"]));
+  });
+
+  it("removes every collection when an empty list was sent", async () => {
+    findFirst.mockResolvedValue({ contentType: "TEXT" } as never);
+    update.mockResolvedValue(ITEM_ROW as never);
+    await updateItem("user-1", "item-1", { ...DATA, collectionIds: [] });
+    expect(findCollections).not.toHaveBeenCalled();
+    expect(deleteCollectionLinks).toHaveBeenCalledWith({
+      where: { itemId: "item-1", item: { userId: "user-1" } },
+    });
+    expect(updateArgs().data.collections).toEqual({ create: [] });
+  });
 });
 
 describe("createItem", () => {
@@ -334,6 +385,26 @@ describe("createItem", () => {
         },
       })),
     });
+  });
+
+  it("adds the item to the user's own chosen collections only", async () => {
+    findType.mockResolvedValue({ id: "t1", contentType: "TEXT" } as never);
+    findCollections.mockResolvedValue([{ id: "c1" }] as never);
+    create.mockResolvedValue(ITEM_ROW as never);
+    await createItem("user-1", { ...DATA, collectionIds: ["c1", "other-users"] });
+    expect(findCollections).toHaveBeenCalledWith({
+      where: { id: { in: ["c1", "other-users"] }, userId: "user-1" },
+      select: { id: true },
+    });
+    expect(createData().collections).toEqual(toCollectionLinks(["c1"]));
+  });
+
+  it("adds no collections when none were chosen", async () => {
+    findType.mockResolvedValue({ id: "t1", contentType: "TEXT" } as never);
+    create.mockResolvedValue(ITEM_ROW as never);
+    await createItem("user-1", DATA);
+    expect(findCollections).not.toHaveBeenCalled();
+    expect(createData().collections).toEqual({ create: [] });
   });
 });
 

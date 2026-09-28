@@ -1,5 +1,7 @@
 # Test Action
 
+Before anything else, show the full todo list for this action (the steps below, with the functions to test listed once they're identified) and repost it before every step, as described in the **Todo List** section of `context/ai-interaction.md`.
+
 1. Read current-feature.md to understand what was implemented
 2. Identify server actions and utility functions added/modified for this feature
 3. Check if tests already exist for these functions

@@ -87,6 +87,23 @@ describe("updateItemSchema", () => {
         ?.issues[0].message
     ).toBe("Tags can be up to 50 characters");
   });
+
+  it("keeps omitted collection IDs undefined and drops duplicate or blank ones", () => {
+    expect(updateItemSchema.parse(VALID).collectionIds).toBeUndefined();
+    expect(
+      updateItemSchema.parse({ ...VALID, collectionIds: [" c1 ", "c2", "c1"] }).collectionIds
+    ).toEqual(["c1", "c2"]);
+    expect(updateItemSchema.safeParse({ ...VALID, collectionIds: [" "] }).success).toBe(false);
+  });
+
+  it("limits the number of collections", () => {
+    const collectionIds = Array.from({ length: ITEM_LIMITS.collections + 1 }, (_, i) => `c${i}`);
+    const result = updateItemSchema.safeParse({ ...VALID, collectionIds });
+    expect(result.error?.issues[0]).toMatchObject({
+      message: "An item can be in up to 50 collections",
+      path: ["collectionIds"],
+    });
+  });
 });
 
 describe("createItemSchema", () => {

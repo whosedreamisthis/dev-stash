@@ -7,7 +7,28 @@
 - Ask before large refactors or architectural changes
 - Don't add features not in the project spec
 - Never delete files without clarification
-- Before implementing each step, show the full list of implementation steps for the feature: completed steps checked and struck through (`- [x] ~~step~~`), the current step in bold marked "← current", and pending steps unchecked. Show it before the first step too, and never merge or drop steps.
+- Always show the todo list before every step (see **Todo List** below)
+
+## Todo List
+
+Every piece of work on a feature or fix is tracked with a visible todo list. This applies to **every** action, not just implementation: loading a spec (`/feature load`), starting (status update, branch creation, reading code), implementing, testing, reviewing, and completing (commit, merge, branch delete, context reset, push).
+
+1. **Plan first.** At the very start of an action, break it into numbered steps and show the full list before doing anything, including before reading files or running commands.
+2. **Show it before every step.** Before each step, repost the **full** list in the message immediately before that step's tool calls (edits, commands, file creation), so I see it before approving anything. Don't just show it once at the start or only at the end.
+3. **Use this exact format:**
+
+   ```
+   - [x] ~~1. Completed step~~
+   - [ ] **2. Current step ← current**
+   - [ ] 3. Pending step
+   ```
+
+   - Completed steps: checked **and** struck through
+   - Current step: unchecked, bold, marked `← current`
+   - Pending steps: unchecked, plain text
+4. **Say what the current step does.** Under the list, add one line saying what the current step does and why.
+5. **Never merge, drop or renumber steps.** Don't collapse steps into ranges like "1–5", and don't leave completed steps out. If a new step turns out to be needed, add it to the list and say so.
+6. **Finish with the list.** When the action is done, show the final list with every step checked and struck through, followed by the summary.
 
 ## Workflow
 
@@ -15,8 +36,7 @@ This is the common workflow that we will use for every single feature/fix:
 
 1. **Document** - Document the feature in @context/current-feature.md.
 2. **Branch** - Create new branch for feature, fix, etc
-3. **Implement** - Implement the feature/fix that I create in @context/current-feature.md. implement one feature goal at a time, show me which goal is being implemented when you are asking permission to make changes.
-   when implemneting show a todo list of tasks for this feature along with the current item checlked
+3. **Implement** - Implement the feature/fix that I create in @context/current-feature.md. implement one feature goal at a time, show me which goal is being implemented when you are asking permission to make changes. Show the full todo list before every step, as described in **Todo List** above.
 4. **Test** - Write Vitest unit tests for new or changed server actions and utilities (not components), where there is logic worth testing. Run `npm test` and `npm run build` and fix any failures. I verify the feature in the browser
 5. **Iterate** - Iterate and change things if needed
 6. **Commit** - Only after build passes and everything works. create a verbose commit message, don't include that claude co authored feature.

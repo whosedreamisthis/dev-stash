@@ -92,6 +92,26 @@ export function toTagLinks(userId: string, tags: string[]) {
   } satisfies Prisma.ItemTagCreateNestedManyWithoutItemInput;
 }
 
+// Keeps only the IDs of collections the user owns, so an item can't be added
+// to another user's collection
+async function getOwnedCollectionIds(
+  userId: string,
+  collectionIds: string[] | undefined
+): Promise<string[] | undefined> {
+  if (!collectionIds?.length) return collectionIds;
+  const owned = await prisma.collection.findMany({
+    where: { id: { in: collectionIds }, userId },
+    select: { id: true },
+  });
+  return owned.map(({ id }) => id);
+}
+
+export function toCollectionLinks(collectionIds: string[]) {
+  return {
+    create: collectionIds.map((id) => ({ collection: { connect: { id } } })),
+  } satisfies Prisma.ItemCollectionCreateNestedManyWithoutItemInput;
+}
+
 // Returns null for items that don't exist or belong to another user
 export async function getItemDetail(
   userId: string,
@@ -122,11 +142,19 @@ export async function updateItem(
   // Only the fields that belong to the item's content type are written
   const isText = existing.contentType === "TEXT";
   const isUrl = existing.contentType === "URL";
+  const collectionIds = await getOwnedCollectionIds(userId, data.collectionIds);
 
-  // Old tag links are removed first in the same transaction, so saving the same
-  // tags again doesn't collide with the links being replaced
-  const [, item] = await prisma.$transaction([
+  // Collections are only replaced when the form sent them; otherwise the
+  // delete below matches no links and they stay unchanged
+  const matchNone = { itemId: { in: [] } };
+
+  // Old tag and collection links are removed first in the same transaction, so
+  // saving the same ones again doesn't collide with the links being replaced
+  const [, , item] = await prisma.$transaction([
     prisma.itemTag.deleteMany({ where: { itemId, item: { userId } } }),
+    prisma.itemCollection.deleteMany({
+      where: collectionIds ? { itemId, item: { userId } } : matchNone,
+    }),
     prisma.item.update({
       where: { id: itemId, userId },
       data: {
@@ -136,6 +164,7 @@ export async function updateItem(
         language: isText ? data.language : undefined,
         url: isUrl ? data.url : undefined,
         tags: toTagLinks(userId, data.tags),
+        collections: collectionIds && toCollectionLinks(collectionIds),
       },
       include: ITEM_DETAIL_INCLUDE,
     }),
@@ -163,6 +192,8 @@ export async function createItem(
   const isFile = itemType.contentType === "FILE";
   if (isFile && !file) return null;
 
+  const collectionIds = await getOwnedCollectionIds(userId, data.collectionIds);
+
   const item = await prisma.item.create({
     data: {
       title: data.title,
@@ -179,6 +210,7 @@ export async function createItem(
       userId,
       itemTypeId: itemType.id,
       tags: toTagLinks(userId, data.tags),
+      collections: toCollectionLinks(collectionIds ?? []),
     },
     include: ITEM_DETAIL_INCLUDE,
   });

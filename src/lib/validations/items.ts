@@ -15,6 +15,7 @@ export const ITEM_LIMITS = {
   language: 50,
   tags: 20,
   tag: 50,
+  collections: 50,
 } as const;
 
 function optionalText(max: number, message: string) {
@@ -59,6 +60,16 @@ export const updateItemSchema = z.object({
     )
     .max(ITEM_LIMITS.tags, `An item can have up to ${ITEM_LIMITS.tags} tags`)
     .transform((tags) => [...new Set(tags)]),
+  // Replaces the item's collections; left out, they stay unchanged.
+  // Ownership is checked in the query, which skips other users' collections.
+  collectionIds: z
+    .array(z.string().trim().min(1))
+    .max(
+      ITEM_LIMITS.collections,
+      `An item can be in up to ${ITEM_LIMITS.collections} collections`
+    )
+    .transform((ids) => [...new Set(ids)])
+    .optional(),
 });
 
 export type UpdateItemInput = z.input<typeof updateItemSchema>;

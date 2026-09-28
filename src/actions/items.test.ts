@@ -62,6 +62,25 @@ describe("createItem", () => {
     expect(createItemQuery).not.toHaveBeenCalled();
   });
 
+  it("passes the chosen collection IDs to the query, without duplicates", async () => {
+    signIn("user-42");
+    vi.mocked(createItemQuery).mockResolvedValue({ id: "item-1" } as ItemDetail);
+    await createItem({ ...CREATE_INPUT, collectionIds: ["c1", "c2", "c1"] });
+    expect(createItemQuery).toHaveBeenCalledWith(
+      "user-42",
+      expect.objectContaining({ collectionIds: ["c1", "c2"] }),
+      undefined
+    );
+  });
+
+  it("returns a field error for too many collections", async () => {
+    signIn();
+    const collectionIds = Array.from({ length: 51 }, (_, i) => `c${i}`);
+    const result = await createItem({ ...CREATE_INPUT, collectionIds });
+    expect(result.fieldErrors?.collectionIds).toBe("An item can be in up to 50 collections");
+    expect(createItemQuery).not.toHaveBeenCalled();
+  });
+
   it("rejects types that can't be created", async () => {
     signIn();
     const result = await createItem({ ...CREATE_INPUT, typeSlug: "videos" as never });

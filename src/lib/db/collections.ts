@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import type { CreateCollectionData } from "@/lib/validations/collections";
 import type {
   CollectionItemType,
+  CollectionOption,
   CollectionStats,
   CollectionSummary,
   SidebarCollections,
@@ -102,6 +103,14 @@ export async function getCollectionStats(userId: string): Promise<CollectionStat
   ]);
 
   return { total, favorites };
+}
+
+export async function getCollectionOptions(userId: string): Promise<CollectionOption[]> {
+  return prisma.collection.findMany({
+    where: { userId },
+    orderBy: { name: "asc" },
+    select: { id: true, name: true },
+  });
 }
 
 export async function createCollection(

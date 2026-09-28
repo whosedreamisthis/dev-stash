@@ -23,6 +23,12 @@ export interface SidebarCollections {
   recent: CollectionSummary[];
 }
 
+// A collection an item can be added to, for the item forms' picker
+export interface CollectionOption {
+  id: string;
+  name: string;
+}
+
 export interface CollectionStats {
   total: number;
   favorites: number;

@@ -42,3 +42,13 @@ Execute the requested action: $ARGUMENTS
 See [actions/](actions/) for detailed instructions.
 
 If no action provided, explain the available options.
+
+## Todo List
+
+Every action, not just implementation, follows the **Todo List** section of `context/ai-interaction.md`:
+
+- Break the action into numbered steps and show the full list before doing anything, including reading files or running commands.
+- Repost the full list before every step, in the message immediately before that step's tool calls.
+- Format: completed steps `- [x] ~~N. step~~`, the current step `- [ ] **N. step ← current**` with one line saying what it does, and pending steps `- [ ] N. step`.
+- Never merge steps into ranges, drop completed ones or renumber them. If a step is added mid-way, say so.
+- End with the final list, all steps checked, followed by the summary.

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { updateItem, type UpdateItemFieldErrors } from "@/actions/items";
+import { CollectionSelector } from "@/components/collections/CollectionSelector";
 import { CodeEditor } from "@/components/items/CodeEditor";
 import { ItemMetaSections } from "@/components/items/ItemDetailSections";
 import { ItemDrawerHeader } from "@/components/items/ItemDrawerHeader";
@@ -37,6 +38,9 @@ interface ItemEditFormProps {
 export function ItemEditForm({ item, onCancel, onSaved }: ItemEditFormProps) {
   const router = useRouter();
   const [values, setValues] = useState(() => toFormValues(item));
+  const [collectionIds, setCollectionIds] = useState(() =>
+    item.collections.map((collection) => collection.id)
+  );
   const [fieldErrors, setFieldErrors] = useState<UpdateItemFieldErrors>({});
   const [isPending, startTransition] = useTransition();
   const fields = getItemFields(item.type.slug);
@@ -50,7 +54,10 @@ export function ItemEditForm({ item, onCancel, onSaved }: ItemEditFormProps) {
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     startTransition(async () => {
-      const result = await updateItem(item.id, toItemPayload(values, fields));
+      const result = await updateItem(item.id, {
+        ...toItemPayload(values, fields),
+        collectionIds,
+      });
       if (!result.success || !result.data) {
         setFieldErrors(result.fieldErrors ?? {});
         toast.error(result.error ?? "Couldn't save the item");
@@ -161,6 +168,13 @@ export function ItemEditForm({ item, onCancel, onSaved }: ItemEditFormProps) {
             />
           )}
         </EditField>
+        <CollectionSelector
+          id="item-collections"
+          value={collectionIds}
+          onChange={setCollectionIds}
+          error={fieldErrors.collectionIds}
+          disabled={isPending}
+        />
         <ItemMetaSections item={item} />
       </div>
     </form>
