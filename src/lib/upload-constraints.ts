@@ -13,10 +13,11 @@ export interface UploadConstraint {
 const MB = 1024 * 1024;
 
 export const UPLOAD_CONSTRAINTS: Record<UploadTypeSlug, UploadConstraint> = {
+  // No SVG: it can carry scripts, which would run if it's ever opened directly
   images: {
     maxSize: 5 * MB,
-    extensions: [".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg"],
-    mimeTypes: ["image/png", "image/jpeg", "image/gif", "image/webp", "image/svg+xml"],
+    extensions: [".png", ".jpg", ".jpeg", ".gif", ".webp"],
+    mimeTypes: ["image/png", "image/jpeg", "image/gif", "image/webp"],
   },
   files: {
     maxSize: 10 * MB,

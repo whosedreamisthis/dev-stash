@@ -13,15 +13,11 @@ import { MarkdownEditor } from "@/components/items/MarkdownEditor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  LANGUAGE_TYPE_SLUGS,
-  MARKDOWN_TYPE_SLUGS,
-  parseTagInput,
-  type UpdateItemInput,
-} from "@/lib/validations/items";
+import { getItemFields, toItemPayload, type ItemFormValues } from "@/lib/item-fields";
+import { MARKDOWN_TYPE_SLUGS } from "@/lib/validations/items";
 import type { ItemDetail } from "@/types/items";
 
-function toFormValues(item: ItemDetail) {
+function toFormValues(item: ItemDetail): ItemFormValues {
   return {
     title: item.title,
     description: item.description ?? "",
@@ -29,20 +25,6 @@ function toFormValues(item: ItemDetail) {
     language: item.language ?? "",
     url: item.url ?? "",
     tags: item.tags.join(", "),
-  };
-}
-
-type FormValues = ReturnType<typeof toFormValues>;
-
-// Sends only the fields that belong to the item's type
-function toPayload(item: ItemDetail, values: FormValues): UpdateItemInput {
-  return {
-    title: values.title,
-    description: values.description,
-    tags: parseTagInput(values.tags),
-    ...(item.contentType === "TEXT" && { content: values.content }),
-    ...(LANGUAGE_TYPE_SLUGS.has(item.type.slug) && { language: values.language }),
-    ...(item.contentType === "URL" && { url: values.url }),
   };
 }
 
@@ -57,10 +39,10 @@ export function ItemEditForm({ item, onCancel, onSaved }: ItemEditFormProps) {
   const [values, setValues] = useState(() => toFormValues(item));
   const [fieldErrors, setFieldErrors] = useState<UpdateItemFieldErrors>({});
   const [isPending, startTransition] = useTransition();
-  const isCode = LANGUAGE_TYPE_SLUGS.has(item.type.slug);
+  const fields = getItemFields(item.type.slug);
   const isMarkdown = MARKDOWN_TYPE_SLUGS.has(item.type.slug);
 
-  function setValue(field: keyof FormValues) {
+  function setValue(field: keyof ItemFormValues) {
     return (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       setValues((prev) => ({ ...prev, [field]: event.target.value }));
   }
@@ -68,7 +50,7 @@ export function ItemEditForm({ item, onCancel, onSaved }: ItemEditFormProps) {
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     startTransition(async () => {
-      const result = await updateItem(item.id, toPayload(item, values));
+      const result = await updateItem(item.id, toItemPayload(values, fields));
       if (!result.success || !result.data) {
         setFieldErrors(result.fieldErrors ?? {});
         toast.error(result.error ?? "Couldn't save the item");
@@ -124,10 +106,10 @@ export function ItemEditForm({ item, onCancel, onSaved }: ItemEditFormProps) {
             <Textarea {...props} value={values.description} onChange={setValue("description")} />
           )}
         </EditField>
-        {item.contentType === "TEXT" && (
+        {fields.content && (
           <EditField id="item-content" label="Content" error={fieldErrors.content}>
             {(props) =>
-              isCode ? (
+              fields.language ? (
                 <CodeEditor
                   value={values.content}
                   language={values.language}
@@ -155,14 +137,14 @@ export function ItemEditForm({ item, onCancel, onSaved }: ItemEditFormProps) {
             }
           </EditField>
         )}
-        {isCode && (
+        {fields.language && (
           <EditField id="item-language" label="Language" error={fieldErrors.language}>
             {(props) => (
               <Input {...props} value={values.language} onChange={setValue("language")} />
             )}
           </EditField>
         )}
-        {item.contentType === "URL" && (
+        {fields.url && (
           <EditField id="item-url" label="URL" error={fieldErrors.url}>
             {(props) => (
               <Input {...props} type="url" value={values.url} onChange={setValue("url")} />

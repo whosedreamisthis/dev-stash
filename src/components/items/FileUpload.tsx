@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { File as FileIcon, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "cn";
+import { cn } from "@/lib/utils";
 import {
   UPLOAD_CONSTRAINTS,
   formatFileSize,

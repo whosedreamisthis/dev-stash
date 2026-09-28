@@ -71,7 +71,7 @@ The app ships with seven **system types** that cannot be edited or deleted. **Cu
 | File | File | `File` | ![#6b7280](https://placehold.co/12x12/6b7280/6b7280.png) `#6b7280` gray | **Pro** |
 | Image | File | `Image` | ![#ec4899](https://placehold.co/12x12/ec4899/ec4899.png) `#ec4899` pink | **Pro** |
 
-- **Content kinds:** `TEXT` (markdown / code), `URL` (links), `FILE` (uploaded to R2).
+- **Content kinds:** `TEXT` (markdown / code), `URL` (links), `FILE` (uploaded to UploadThing).
 - **Type URLs** use the plural slug: `/items/snippets`, `/items/prompts`, `/items/links`, etc.
 - Items are **created and opened in a drawer** for fast access without leaving the current page.
 
@@ -129,7 +129,7 @@ Powered by **OpenAI `gpt-5-nano`**.
 | Database | **Neon** (serverless PostgreSQL) | Cloud-hosted, with branching for dev |
 | ORM | **Prisma 7** | Uses `prisma.config.ts` + Neon driver adapter |
 | Caching | Redis *(optional, later)* | e.g. Upstash if needed |
-| File storage | **Cloudflare R2** | S3-compatible; stores File/Image uploads |
+| File storage | **UploadThing** | Stores File/Image uploads; downloads go through a signed-URL proxy |
 | Auth | **Auth.js (NextAuth v5)** | Credentials + GitHub, Prisma adapter |
 | AI | **OpenAI** `gpt-5-nano` | Pro features only |
 | Payments | **Stripe** | Subscriptions (monthly / yearly) |
@@ -196,12 +196,8 @@ EMAIL_VERIFICATION_ENABLED= # "false" turns verification off; on by default
 UPSTASH_REDIS_REST_URL=
 UPSTASH_REDIS_REST_TOKEN=
 
-# Cloudflare R2
-R2_ACCOUNT_ID=
-R2_ACCESS_KEY_ID=
-R2_SECRET_ACCESS_KEY=
-R2_BUCKET_NAME=
-R2_PUBLIC_URL=
+# File storage (UploadThing)
+UPLOADTHING_TOKEN=
 
 # OpenAI
 OPENAI_API_KEY=
@@ -232,7 +228,7 @@ flowchart LR
 
     subgraph Services["☁️ External Services"]
         DB[("Neon<br/>PostgreSQL")]
-        R2[("Cloudflare R2<br/>File storage")]
+        UT[("UploadThing<br/>File storage")]
         OAI["OpenAI<br/>gpt-5-nano"]
         STRIPE["Stripe"]
         GH["GitHub OAuth"]
@@ -243,8 +239,8 @@ flowchart LR
     UI --> API
     RSC -->|Prisma| DB
     API -->|Prisma| DB
-    API -->|Presigned upload| R2
-    UI -.->|Direct upload| R2
+    API -->|Upload checks, signed URLs| UT
+    UI -.->|Direct upload| UT
     API --> OAI
     API --> STRIPE
     STRIPE -.->|Webhooks| API
@@ -259,14 +255,17 @@ flowchart LR
 sequenceDiagram
     participant U as User
     participant A as Next.js API
-    participant R as Cloudflare R2
+    participant R as UploadThing
     participant D as Neon DB
 
-    U->>A: Request upload (fileName, size, mime)
-    A->>A: Check auth, Pro status, size/type limits
-    A-->>U: Presigned PUT URL
+    U->>A: Request upload (/api/uploadthing)
+    A->>A: Middleware: check auth, size/extension limits
+    A-->>U: Upload URL
     U->>R: Upload file directly
-    U->>A: Confirm upload (key)
+    R->>A: onUploadComplete: re-check stored file
+    A-->>U: Signed upload token (key, name, size, mime)
+    U->>A: createItem server action (with upload token)
+    A->>A: Verify token belongs to user and type
     A->>D: Create Item (fileUrl, fileName, fileSize)
     A-->>U: Item created ✅
 ```
@@ -470,7 +469,7 @@ model Item {
   url String?
 
   // FILE
-  fileUrl      String? // R2 URL / key
+  fileUrl      String? // UploadThing file key
   fileName     String? // original filename
   fileSize     Int? // bytes
   fileMimeType String?
@@ -596,7 +595,9 @@ const systemTypes = [
 | `/settings/billing` | Plan & Stripe customer portal |
 | `/api/auth/[...nextauth]` | Auth.js handlers |
 | `/api/auth/register` | Email/password registration |
-| `/api/uploads` | Presigned R2 upload URLs |
+| `/api/items/[id]` | Item details for the drawer |
+| `/api/items/[id]/file` | File download proxy (signed UploadThing URL) |
+| `/api/uploadthing` | UploadThing file router (auth and limit checks) |
 | `/api/ai/*` | Tag suggestions, summaries, explain, prompt optimizer |
 | `/api/webhooks/stripe` | Stripe webhooks |
 
@@ -766,7 +767,7 @@ Other conventions:
 | Neon + Prisma | https://neon.com/docs/guides/prisma |
 | Auth.js (NextAuth v5) | https://authjs.dev |
 | Auth.js Prisma adapter | https://authjs.dev/getting-started/adapters/prisma |
-| Cloudflare R2 | https://developers.cloudflare.com/r2/ |
+| UploadThing | https://docs.uploadthing.com |
 | OpenAI API | https://platform.openai.com/docs |
 | Stripe Billing | https://docs.stripe.com/billing |
 | Tailwind CSS v4 | https://tailwindcss.com/docs |

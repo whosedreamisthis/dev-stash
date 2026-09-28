@@ -10,9 +10,13 @@ const MB = 1024 * 1024;
 describe("getUploadError", () => {
   it("accepts allowed images up to 5 MB", () => {
     expect(getUploadError("images", { name: "a.PNG", size: 5 * MB, type: "image/png" })).toBeNull();
+    expect(getUploadError("images", { name: "a.webp", size: 100, type: "image/webp" })).toBeNull();
+  });
+
+  it("rejects SVG images, which can carry scripts", () => {
     expect(
       getUploadError("images", { name: "logo.svg", size: 100, type: "image/svg+xml" })
-    ).toBeNull();
+    ).toMatch(/^Allowed file types/);
   });
 
   it("rejects images that are too large, the wrong extension or the wrong type", () => {

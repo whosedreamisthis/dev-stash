@@ -6,18 +6,58 @@ function emptyToNull(value: string | null | undefined) {
   return value === "" ? null : value;
 }
 
-const optionalText = z.string().trim().nullish().transform(emptyToNull);
+// Keeps a single item from bloating the database or the list queries
+export const ITEM_LIMITS = {
+  title: 200,
+  description: 2_000,
+  content: 100_000,
+  url: 2_048,
+  language: 50,
+  tags: 20,
+  tag: 50,
+} as const;
+
+function optionalText(max: number, message: string) {
+  return z.string().trim().max(max, message).nullish().transform(emptyToNull);
+}
 
 export const updateItemSchema = z.object({
-  title: z.string().trim().min(1, "Title is required"),
-  description: optionalText,
+  title: z
+    .string()
+    .trim()
+    .min(1, "Title is required")
+    .max(ITEM_LIMITS.title, `Title can be up to ${ITEM_LIMITS.title} characters`),
+  description: optionalText(
+    ITEM_LIMITS.description,
+    `Description can be up to ${ITEM_LIMITS.description.toLocaleString("en-US")} characters`
+  ),
   // Not trimmed so leading indentation in code is kept
-  content: z.string().nullish().transform(emptyToNull),
-  url: optionalText.pipe(z.httpUrl("Enter a valid http(s) URL").nullish()),
-  language: optionalText,
+  content: z
+    .string()
+    .max(
+      ITEM_LIMITS.content,
+      `Content can be up to ${ITEM_LIMITS.content.toLocaleString("en-US")} characters`
+    )
+    .nullish()
+    .transform(emptyToNull),
+  url: optionalText(
+    ITEM_LIMITS.url,
+    `URL can be up to ${ITEM_LIMITS.url.toLocaleString("en-US")} characters`
+  ).pipe(z.httpUrl("Enter a valid http(s) URL").nullish()),
+  language: optionalText(
+    ITEM_LIMITS.language,
+    `Language can be up to ${ITEM_LIMITS.language} characters`
+  ),
   // Duplicates are dropped so each tag is linked once
   tags: z
-    .array(z.string().trim().min(1))
+    .array(
+      z
+        .string()
+        .trim()
+        .min(1)
+        .max(ITEM_LIMITS.tag, `Tags can be up to ${ITEM_LIMITS.tag} characters`)
+    )
+    .max(ITEM_LIMITS.tags, `An item can have up to ${ITEM_LIMITS.tags} tags`)
     .transform((tags) => [...new Set(tags)]),
 });
 

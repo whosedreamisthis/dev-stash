@@ -4,6 +4,7 @@ import {
   CREATABLE_TYPE_SLUGS,
   createItemSchema,
   isCreatableTypeSlug,
+  ITEM_LIMITS,
   LANGUAGE_TYPE_SLUGS,
   MARKDOWN_TYPE_SLUGS,
   parseTagInput,
@@ -55,6 +56,36 @@ describe("updateItemSchema", () => {
       "hooks",
     ]);
     expect(updateItemSchema.safeParse({ ...VALID, tags: ["  "] }).success).toBe(false);
+  });
+
+  it.each([
+    ["title", "Title can be up to 200 characters"],
+    ["description", "Description can be up to 2,000 characters"],
+    ["content", "Content can be up to 100,000 characters"],
+    ["language", "Language can be up to 50 characters"],
+  ] as const)("accepts a %s at the limit and rejects a longer one", (field, message) => {
+    const max = ITEM_LIMITS[field];
+    expect(updateItemSchema.safeParse({ ...VALID, [field]: "a".repeat(max) }).success).toBe(true);
+    const result = updateItemSchema.safeParse({ ...VALID, [field]: "a".repeat(max + 1) });
+    expect(result.error?.issues[0]).toMatchObject({ message, path: [field] });
+  });
+
+  it("rejects a URL over the length limit", () => {
+    const url = `https://example.com/${"a".repeat(ITEM_LIMITS.url)}`;
+    const result = updateItemSchema.safeParse({ ...VALID, url });
+    expect(result.error?.issues[0].message).toBe("URL can be up to 2,048 characters");
+  });
+
+  it("limits the number and length of tags", () => {
+    const tags = Array.from({ length: ITEM_LIMITS.tags }, (_, i) => `tag${i}`);
+    expect(updateItemSchema.safeParse({ ...VALID, tags }).success).toBe(true);
+    expect(
+      updateItemSchema.safeParse({ ...VALID, tags: [...tags, "extra"] }).error?.issues[0].message
+    ).toBe("An item can have up to 20 tags");
+    expect(
+      updateItemSchema.safeParse({ ...VALID, tags: ["a".repeat(ITEM_LIMITS.tag + 1)] }).error
+        ?.issues[0].message
+    ).toBe("Tags can be up to 50 characters");
   });
 });
 

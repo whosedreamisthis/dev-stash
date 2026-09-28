@@ -14,8 +14,15 @@ import { cn } from "@/lib/utils";
 
 const THEME_NAME = "devstash-dark";
 
-// Dark theme matching the app's neutral palette, including the scrollbar
-const defineTheme: BeforeMount = (monaco) => {
+const handleBeforeMount: BeforeMount = (monaco) => {
+  // Snippets are standalone, so imports like "react" can never resolve; only
+  // syntax errors are shown, as Monaco already does for JavaScript
+  monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+    noSemanticValidation: true,
+    noSyntaxValidation: false,
+  });
+
+  // Dark theme matching the app's neutral palette, including the scrollbar
   monaco.editor.defineTheme(THEME_NAME, {
     base: "vs-dark",
     inherit: true,
@@ -77,7 +84,7 @@ export function CodeEditor({
         value={value}
         language={toMonacoLanguage(language)}
         theme={THEME_NAME}
-        beforeMount={defineTheme}
+        beforeMount={handleBeforeMount}
         onMount={handleMount}
         onChange={(next) => onChange?.(next ?? "")}
         loading={<div className="size-full bg-neutral-900" />}
