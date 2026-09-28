@@ -1,31 +1,20 @@
-# Current Feature: Pagination
+# Current Feature
 
 <!-- Feature name and short description -->
-
-Server-side pagination with numbered page links for item and collection listings.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- Paginate `/items/[type]` and `/collections/[id]` pages
-- Pagination controls at the bottom with page numbers and prev/next links
-- Prev/next are disabled (greyed out) when not available
-- Constants: `ITEMS_PER_PAGE = 21`, `COLLECTIONS_PER_PAGE = 21`
-- Dashboard limits: `DASHBOARD_COLLECTIONS_LIMIT = 6`, `DASHBOARD_RECENT_ITEMS_LIMIT = 10`
-- Paginate on the server: fetch only the rows the current page needs (skip/take + count), not everything at once
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Spec: `context/features/pagination-spec.md`
 
 ## Completed Features
 
@@ -71,3 +60,4 @@ In Progress
 - **Collections Pages:** `/collections` grid of `CollectionCard`s and `/collections/[id]` with streamed `ItemCard`s; clicked collections show their name instantly (`src/lib/collection-preview.ts`).
 - **Collection Card Actions:** Edit/Delete (items kept) via `EditCollectionDialog` and `DeleteCollectionDialog` in the collection header and a `CollectionCard` 3-dot menu; Favorite shown but disabled.
 - **Global Search / Command Palette:** Cmd+K / Ctrl+K `CommandPalette` fuzzy searches items and collections in the browser, with data from the `getSearchData` action (`src/actions/search.ts`); the TopBar search box opens it.
+- **Pagination:** server-side `?page=N` pagination (21 per page) on `/items/[type]`, `/collections` and `/collections/[id]` via `src/lib/pagination.ts` and the `Pagination` component.
