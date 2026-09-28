@@ -2,31 +2,19 @@
 
 <!-- Feature name and short description -->
 
-**Extract Helpers Refactor:** break up duplicated or oversized code into shared functions, components and hooks, with no change in behavior.
-
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- Share the tag `connectOrCreate` block in `src/lib/db/items.ts` through a `toTagLinks` helper
-- Move password hashing and user creation out of `POST /api/auth/register` into `createUser` in `src/lib/db/users.ts`
-- Add `getSessionUserId` in `src/lib/session.ts` and use it in the item and profile server actions
-- Split `Sidebar` into `SidebarTypeLink` and `SidebarCollectionLink` components
-- Move `useIsMountedRef` and `usePreviewUrl` from `FileUpload.tsx` into `src/hooks/`
-- Extract `getSignInError` and a shared base result type in `src/actions/auth.ts`
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Pure refactor: responses, messages and UI stay the same.
-- The shared content-editor field for the create and edit forms was left out on purpose.
 
 ## Completed Features
 
@@ -66,3 +54,4 @@ In Progress
 - **File List View:** `/items/files` shows `FileListRow` rows with extension icons (`src/lib/file-icons.ts`, `FileTypeIcon`) and a Download button.
 - **Quick Copy on Cards:** `CopyButton` on `ItemCard` copies `ItemSummary.copyText` (content or URL) without opening the drawer.
 - **Audit Fixes:** item field length limits (`ITEM_LIMITS`), `NewItemDialog` split with shared `src/lib/item-fields.ts`, no SVG uploads, no Monaco import errors in TS snippets.
+- **Extract Helpers Refactor:** `toTagLinks`, `createUser` (`src/lib/db/users.ts`), `getSessionUserId` (`src/lib/session.ts`), split `Sidebar` links, upload hooks moved to `src/hooks/`.
