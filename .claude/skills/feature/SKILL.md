@@ -47,8 +47,8 @@ If no action provided, explain the available options.
 
 Every action, not just implementation, follows the **Todo List** section of `context/ai-interaction.md`:
 
-- Break the action into numbered steps and end the turn with the full list before doing anything, including reading files or running commands.
-- One step per turn: do one step, then end the turn with the full, updated list as the final message and wait for "continue". Text between tool calls mid-turn isn't visible to the user, so never rely on it for the list.
+- Break the action into numbered steps and pause with the list before doing anything, including reading files or running commands.
+- One step per turn: before the first step and after each step, pause with AskUserQuestion. The question names the next step ("Step N of M: ... Continue?"), the first option is "Continue" with the full, updated list in its `preview`, and the second is "Stop here". Text between tool calls mid-turn isn't visible to the user, so never rely on it for the list, and don't ask them to type "continue".
 - Format: completed steps `- [x] ~~N. step~~`, the current step `- [ ] **N. step ← current**` with one line saying what it will do, and pending steps `- [ ] N. step`.
 - Never merge steps into ranges, drop completed ones or renumber them. If a step is added mid-way, say so.
 - End with the final list, all steps checked, followed by the summary.

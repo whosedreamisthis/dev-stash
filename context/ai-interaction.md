@@ -14,7 +14,7 @@
 Every piece of work on a feature or fix is tracked with a visible todo list. This applies to **every** action, not just implementation: loading a spec (`/feature load`), starting (status update, branch creation, reading code), implementing, testing, reviewing, and completing (commit, merge, branch delete, context reset, push).
 
 1. **Plan first.** At the very start of an action, break it into numbered steps and end the turn with the full list, before doing anything, including before reading files or running commands.
-2. **One step per turn.** Do one step, then end the turn with the **full**, updated list as the final message (the next step marked current) and wait for me to say "continue". Text written between tool calls in the middle of a turn doesn't show up in my editor, so the list must be the final message of the turn, never only a message between tool calls. Don't run several steps in one turn.
+2. **One step per turn, with a Continue button.** Before the first step and after each step, pause with the AskUserQuestion tool: the question names the next step (e.g. "Step 8 of 9: Push main to origin. Continue?"), the first option is **Continue** with the **full**, updated list in its preview, and the second is **Stop here**. On Continue, do only that step, then pause again. Text written between tool calls in the middle of a turn doesn't show up in my editor, so never rely on it for the list, and don't make me type "continue".
 3. **Use this exact format:**
 
    ```

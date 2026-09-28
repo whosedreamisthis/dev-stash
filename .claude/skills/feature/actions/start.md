@@ -5,5 +5,5 @@
 3. Break the whole action into one numbered todo list and show it before doing anything else. It covers the setup steps (set Status to "In Progress", create the branch, read the related code), one step per implementation goal, and the final "run `npm test`, lint and `npm run build`" step
 4. Set Status to "In Progress"
 5. Create and checkout the feature branch (derive name from H1 heading)
-6. Implement the steps one per turn, ending each turn with the full updated list and waiting for "continue", as described in the **Todo List** section of `context/ai-interaction.md`: completed steps checked and struck through (`- [x] ~~step~~`), the current step in bold marked "← current", and pending steps unchecked. Never merge, drop or renumber steps
+6. Implement the steps one per turn, pausing after each with a Continue button that shows the full updated list, as described in the **Todo List** section of `context/ai-interaction.md`: completed steps checked and struck through (`- [x] ~~step~~`), the current step in bold marked "← current", and pending steps unchecked. Never merge, drop or renumber steps
 7. End with the final list, all steps checked, followed by the summary

@@ -1,6 +1,6 @@
 # Review Action
 
-Before anything else, show the full todo list for this action (the steps below) then work one step per turn, ending each turn with the updated list and waiting for "continue", as described in the **Todo List** section of `context/ai-interaction.md`.
+Before anything else, show the full todo list for this action (the steps below) then work one step per turn, pausing after each with a Continue button that shows the updated list, as described in the **Todo List** section of `context/ai-interaction.md`.
 
 1. Read current-feature.md to understand the goals
 2. Review all code changes made for this feature

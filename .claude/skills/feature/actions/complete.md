@@ -1,6 +1,6 @@
 # Complete Action
 
-Before anything else, show the full todo list for this action (the steps below: tests and build, commit, merge, branch delete, context reset, context commit, push, remote branch cleanup) then work one step per turn, ending each turn with the updated list and waiting for "continue", as described in the **Todo List** section of `context/ai-interaction.md`.
+Before anything else, show the full todo list for this action (the steps below: tests and build, commit, merge, branch delete, context reset, context commit, push, remote branch cleanup) then work one step per turn, pausing after each with a Continue button that shows the updated list, as described in the **Todo List** section of `context/ai-interaction.md`.
 
 1. Make sure `npm test` and `npm run build` pass, then stage all changes and commit with a descriptive message
 2. Switch to main and merge the feature branch (no push yet)
