@@ -2,34 +2,19 @@
 
 <!-- Feature name and short description -->
 
-Image Gallery View: show image items as a 3-column gallery of thumbnail cards instead of the regular item cards.
-
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- Create an image thumbnail card that replaces the regular `ItemCard` for image items
-- Show images in a 3-column grid/gallery
-- Show each thumbnail at a 16:9 ratio (`aspect-video`) with `object-cover`, so it fills the card and may crop edges
-- Add a subtle hover zoom on the thumbnail (5% scale, 300ms transition)
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Spec: `context/features/image-display-spec.md`
-- Assumed scope: the `/items/images` page. The spec doesn't say whether dashboard lists (pinned/recent) should also use thumbnail cards; they keep `ItemCard` unless decided otherwise.
-- `/items/[type]` renders `ItemGrid` (`src/components/items/ItemGrid.tsx`), a 1-column / 2-column-from-`md` grid of `ItemCard` (`src/components/dashboard/ItemCard.tsx`); its loading state uses `ItemGridSkeleton`, which should match the gallery layout on the images page.
-- Thumbnails can load from the existing download proxy `/api/items/[id]/file` (owner-only, `Cache-Control: private, max-age=300`); `<img>` renders it despite the attachment header. `ItemSummary` has no file fields, but the card only needs the item ID.
-- The thumbnail card should still open the item drawer on click and prefetch on hover/focus like `ItemCard`, and show the title (and likely pin/favorite markers).
-- 3 columns on a phone is too narrow; likely 1 → 2 → 3 columns across breakpoints, with 3 on desktop.
-- Clip the zoom with `overflow-hidden` on the thumbnail wrapper so the scaled image stays inside the card.
 
 ## Completed Features
 
@@ -65,3 +50,4 @@ In Progress
 - **Code Editor:** Monaco `CodeEditor` for snippets and commands; type-specific "New X" buttons on items pages.
 - **Markdown Editor:** `MarkdownEditor` with Write/Preview tabs for notes and prompts.
 - **File & Image Upload:** UploadThing uploads with server-signed upload tokens, `FileUpload` component, download proxy `/api/items/[id]/file`; no Pro check yet.
+- **Image Gallery View:** `/items/images` shows `ImageThumbnailCard` thumbnails in a 1/2/3-column gallery; layout shared via `src/lib/item-grid.ts`.
