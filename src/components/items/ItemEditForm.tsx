@@ -9,11 +9,13 @@ import { CodeEditor } from "@/components/items/CodeEditor";
 import { ItemMetaSections } from "@/components/items/ItemDetailSections";
 import { ItemDrawerHeader } from "@/components/items/ItemDrawerHeader";
 import { ItemFormField as EditField } from "@/components/items/ItemFormField";
+import { MarkdownEditor } from "@/components/items/MarkdownEditor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   LANGUAGE_TYPE_SLUGS,
+  MARKDOWN_TYPE_SLUGS,
   parseTagInput,
   type UpdateItemInput,
 } from "@/lib/validations/items";
@@ -56,6 +58,7 @@ export function ItemEditForm({ item, onCancel, onSaved }: ItemEditFormProps) {
   const [fieldErrors, setFieldErrors] = useState<UpdateItemFieldErrors>({});
   const [isPending, startTransition] = useTransition();
   const isCode = LANGUAGE_TYPE_SLUGS.has(item.type.slug);
+  const isMarkdown = MARKDOWN_TYPE_SLUGS.has(item.type.slug);
 
   function setValue(field: keyof FormValues) {
     return (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -131,6 +134,15 @@ export function ItemEditForm({ item, onCancel, onSaved }: ItemEditFormProps) {
                   onChange={(content) => setValues((prev) => ({ ...prev, content }))}
                   ariaLabel="Content"
                   invalid={props["aria-invalid"]}
+                />
+              ) : isMarkdown ? (
+                <MarkdownEditor
+                  id={props.id}
+                  value={values.content}
+                  onChange={(content) => setValues((prev) => ({ ...prev, content }))}
+                  ariaLabel="Content"
+                  invalid={props["aria-invalid"]}
+                  aria-describedby={props["aria-describedby"]}
                 />
               ) : (
                 <Textarea

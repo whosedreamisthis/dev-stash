@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  CREATABLE_TYPE_SLUGS,
   createItemSchema,
   isCreatableTypeSlug,
+  LANGUAGE_TYPE_SLUGS,
+  MARKDOWN_TYPE_SLUGS,
   parseTagInput,
   updateItemSchema,
 } from "@/lib/validations/items";
@@ -103,6 +106,19 @@ describe("isCreatableTypeSlug", () => {
     for (const slug of ["files", "images", "recipes", "Snippets", ""]) {
       expect(isCreatableTypeSlug(slug)).toBe(false);
     }
+  });
+});
+
+describe("content editor types", () => {
+  // The New Item dialog shows the code editor or the Markdown editor for every non-link type
+  it("puts each creatable text type in exactly one of the code and Markdown sets", () => {
+    for (const slug of CREATABLE_TYPE_SLUGS.filter((slug) => slug !== "links")) {
+      expect(LANGUAGE_TYPE_SLUGS.has(slug) !== MARKDOWN_TYPE_SLUGS.has(slug)).toBe(true);
+    }
+  });
+
+  it("uses Markdown for notes and prompts only", () => {
+    expect([...MARKDOWN_TYPE_SLUGS].sort()).toEqual(["notes", "prompts"]);
   });
 });
 

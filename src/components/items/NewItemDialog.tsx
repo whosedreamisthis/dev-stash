@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { createItem, type CreateItemFieldErrors } from "@/actions/items";
 import { CodeEditor } from "@/components/items/CodeEditor";
 import { ItemFormField } from "@/components/items/ItemFormField";
+import { MarkdownEditor } from "@/components/items/MarkdownEditor";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -136,6 +137,12 @@ function NewItemForm({ defaultType, onCreated }: NewItemFormProps) {
     };
   }
 
+  // The code and Markdown editors pass the new text instead of an event
+  function setContent(content: string) {
+    setValues((prev) => ({ ...prev, content }));
+    setFieldErrors((prev) => ({ ...prev, content: undefined }));
+  }
+
   // Errors belong to the previous type's fields, so they're cleared
   function handleTypeChange(slug: CreatableTypeSlug) {
     setTypeSlug(slug);
@@ -194,19 +201,18 @@ function NewItemForm({ defaultType, onCreated }: NewItemFormProps) {
                 <CodeEditor
                   value={values.content}
                   language={values.language}
-                  onChange={(content) => {
-                    setValues((prev) => ({ ...prev, content }));
-                    setFieldErrors((prev) => ({ ...prev, content: undefined }));
-                  }}
+                  onChange={setContent}
                   ariaLabel="Content"
                   invalid={props["aria-invalid"]}
                 />
               ) : (
-                <Textarea
-                  {...props}
+                <MarkdownEditor
+                  id={props.id}
                   value={values.content}
-                  onChange={setValue("content")}
-                  className="min-h-40 font-mono"
+                  onChange={setContent}
+                  ariaLabel="Content"
+                  invalid={props["aria-invalid"]}
+                  aria-describedby={props["aria-describedby"]}
                 />
               )
             }

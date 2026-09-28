@@ -2,9 +2,7 @@
 
 import { useState } from "react";
 import Editor, { type BeforeMount, type OnMount } from "@monaco-editor/react";
-import { Check, Copy } from "lucide-react";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
+import { EditorWindowHeader } from "@/components/items/EditorWindowHeader";
 import {
   CODE_EDITOR_LINE_HEIGHT,
   CODE_EDITOR_PADDING,
@@ -37,8 +35,6 @@ const defineTheme: BeforeMount = (monaco) => {
   });
 };
 
-const WINDOW_DOTS = ["bg-[#ff5f57]", "bg-[#febc2e]", "bg-[#28c840]"];
-
 interface CodeEditorProps {
   value: string;
   language?: string | null;
@@ -59,8 +55,6 @@ export function CodeEditor({
   className,
 }: CodeEditorProps) {
   const [height, setHeight] = useState(() => estimateEditorHeight(value, readOnly));
-  const [copied, setCopied] = useState(false);
-  const label = language?.trim();
 
   // Grows with the content up to the max height, then scrolls
   const handleMount: OnMount = (editor) => {
@@ -68,17 +62,6 @@ export function CodeEditor({
     editor.onDidContentSizeChange(updateHeight);
     updateHeight();
   };
-
-  async function handleCopy() {
-    try {
-      await navigator.clipboard.writeText(value);
-      setCopied(true);
-      toast.success("Copied to clipboard");
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      toast.error("Couldn't copy to the clipboard");
-    }
-  }
 
   return (
     <div
@@ -88,29 +71,7 @@ export function CodeEditor({
         className,
       )}
     >
-      <div className="flex items-center justify-between gap-3 border-b border-neutral-800 bg-neutral-950/60 py-1.5 pr-1.5 pl-3">
-        <div className="flex items-center gap-1.5" aria-hidden="true">
-          {WINDOW_DOTS.map((color) => (
-            <span key={color} className={cn("size-3 rounded-full", color)} />
-          ))}
-        </div>
-        <div className="flex min-w-0 items-center gap-1">
-          {label && (
-            <span className="truncate font-mono text-xs text-neutral-400">{label}</span>
-          )}
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-xs"
-            onClick={handleCopy}
-            disabled={!value}
-            aria-label="Copy code"
-            className="text-neutral-400 hover:bg-neutral-800 hover:text-neutral-100"
-          >
-            {copied ? <Check /> : <Copy />}
-          </Button>
-        </div>
-      </div>
+      <EditorWindowHeader value={value} label={language} />
       <Editor
         height={height}
         value={value}

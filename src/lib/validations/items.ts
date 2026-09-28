@@ -41,6 +41,9 @@ export function isCreatableTypeSlug(slug: string): slug is CreatableTypeSlug {
 // Item types whose content is code, so a language can be set
 export const LANGUAGE_TYPE_SLUGS: ReadonlySet<string> = new Set(["snippets", "commands"]);
 
+// Item types whose content is written in Markdown
+export const MARKDOWN_TYPE_SLUGS: ReadonlySet<string> = new Set(["notes", "prompts"]);
+
 export const createItemSchema = updateItemSchema
   .extend({
     typeSlug: z.enum(CREATABLE_TYPE_SLUGS, "Choose an item type"),

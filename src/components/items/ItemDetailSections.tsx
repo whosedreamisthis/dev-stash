@@ -1,8 +1,9 @@
 import { Calendar, FolderOpen, Tag } from "lucide-react";
 import { CodeEditor } from "@/components/items/CodeEditor";
+import { MarkdownEditor } from "@/components/items/MarkdownEditor";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getSafeHttpUrl } from "@/lib/url";
-import { LANGUAGE_TYPE_SLUGS } from "@/lib/validations/items";
+import { LANGUAGE_TYPE_SLUGS, MARKDOWN_TYPE_SLUGS } from "@/lib/validations/items";
 import type { ItemDetail } from "@/types/items";
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
@@ -56,6 +57,10 @@ function ItemContent({ item }: { item: ItemDetail }) {
     return (
       <CodeEditor value={item.content} language={item.language} readOnly ariaLabel="Content" />
     );
+  }
+
+  if (MARKDOWN_TYPE_SLUGS.has(item.type.slug)) {
+    return <MarkdownEditor value={item.content} readOnly ariaLabel="Content" />;
   }
 
   return (

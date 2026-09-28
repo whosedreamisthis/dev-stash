@@ -2,19 +2,39 @@
 
 <!-- Feature name and short description -->
 
+Markdown Editor: a Markdown editor component for notes and prompts, with Write/Preview tabs, GitHub Flavored Markdown and dark theme styling.
+
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- Create a `MarkdownEditor` component with a tabbed Write/Preview interface
+- Replace the Textarea with `MarkdownEditor` for notes and prompts only
+- Keep `CodeEditor` for snippets and commands, unchanged
+- Render Markdown with `react-markdown` and `remark-gfm` (GitHub Flavored Markdown)
+- Match the dark theme styling of `CodeEditor` (neutral palette: `#171717` body, `neutral-950/60` header, `neutral-800` borders) instead of the spec's `#1e1e1e` / `#2d2d2d`, so both editors look the same
+- Add a copy button in the header, styled like the `CodeEditor` one
+- Support display (read-only) and edit modes: read-only shows only the Preview tab; edit mode defaults to Write with Preview available
+- Style the preview through a custom `.markdown-preview` CSS class: distinct h1–h6 sizes and weights, dark monospace code blocks, inline code with a subtle background, indented lists with bullets and numbers, blockquotes with a left border accent, blue links with a hover state, and tables with borders and a header background
+- Fluid height with a max of 400px, matching `CodeEditor`
+- Use it in the New Item dialog, the drawer's edit form and the drawer's view mode (read-only) for note and prompt content
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- Spec: `context/features/markdown-editor-spec.md`
+- The spec's colors (`#1e1e1e` container, `#2d2d2d` header) are VS Code's dark grays, while `CodeEditor` uses the app's neutral palette (`#171717` editor, `neutral-950/60` header, `neutral-800` borders). Decided: match `CodeEditor`.
+- Notes and prompts are the text types outside `LANGUAGE_TYPE_SLUGS`; today they use a Textarea in the edit form and New Item dialog and a plain preformatted block in the drawer's view mode.
+- `react-markdown` doesn't render raw HTML by default, so user content can't inject markup; keep it that way (no `rehype-raw`).
+- Links in the preview should open in a new tab with `rel="noopener noreferrer"`.
+- The copy button's clipboard/toast logic now exists in `CodeEditor`; it can be shared rather than duplicated.
 
 ## History
 
