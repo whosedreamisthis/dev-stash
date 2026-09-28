@@ -1,31 +1,20 @@
-# Current Feature: Replace API Routes with Server Actions
+# Current Feature
 
 <!-- Feature name and short description -->
-
-Move the three API routes that only serve the app's own client components to server actions, as the coding standards and the prefer-server-actions rule call for.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- Item drawer loads details through a `getItem` server action instead of `GET /api/items/[id]`
-- `CollectionSelector` options load through a `getCollectionOptions` server action instead of `GET /api/collections`
-- Registration goes through a `registerUser` server action instead of `POST /api/auth/register`, keeping the IP rate limit, email-taken error and verification email behavior
-- Remove the three routes, the `items-api.ts` / `collections-api.ts` fetch helpers and their tests; add action tests
-- Update the route table in `context/project-overview.md` and the auth-auditor agent's file list
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Keep `/api/auth/[...nextauth]`, `/api/uploadthing` and `/api/items/[id]/file`: they need real URLs (OAuth callback, UploadThing callback, `<img src>` and downloads with file headers)
-- Server actions serialize `Date`s, so the drawer no longer needs the JSON date conversion
 
 ## Completed Features
 
@@ -72,3 +61,4 @@ In Progress
 - **Collection Card Actions:** Edit/Delete (items kept) via `EditCollectionDialog` and `DeleteCollectionDialog` in the collection header and a `CollectionCard` 3-dot menu; Favorite shown but disabled.
 - **Global Search / Command Palette:** Cmd+K / Ctrl+K `CommandPalette` fuzzy searches items and collections in the browser, with data from the `getSearchData` action (`src/actions/search.ts`); the TopBar search box opens it.
 - **Pagination:** server-side `?page=N` pagination (21 per page) on `/items/[type]`, `/collections` and `/collections/[id]` via `src/lib/pagination.ts` and the `Pagination` component.
+- **Replace API Routes with Server Actions:** `getItem`, `getCollectionOptions` and `registerUser` actions replace `/api/items/[id]`, `/api/collections` and `/api/auth/register`; only callback/file routes remain.
