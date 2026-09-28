@@ -1,36 +1,20 @@
-# Current Feature: Collection Create
+# Current Feature
 
 <!-- Feature name and short description -->
-
-Create a new collection (name + description) from a "New Collection" button in the top bar, following the same patterns as item create.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- Zod schema for collection create in `src/lib/validations/collections.ts`: `name` required (trimmed, length-limited), `description` optional (length-limited)
-- `createCollection(userId, data)` query in `src/lib/db/collections.ts`, user-scoped, returning a `CollectionSummary`
-- `createCollection` server action in `src/actions/collections.ts`: session check via `getSessionUserId`, Zod validation with field errors, `{ success, data, error, fieldErrors }` result
-- `NewCollectionDialog` (shadcn Dialog) with name and description fields, wired to the existing "New Collection" button in `TopBar`
-- Toast on success and on failure (Sonner); close the dialog and reset the form on success
-- `router.refresh()` after save so the sidebar collections, dashboard collection cards and stats show the new collection
-- Vitest unit tests for the server action and the db query (mocked Prisma/session)
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Mirror the item create flow: `NewItemDialog` / `NewItemForm`, `createItem` action in `src/actions/items.ts`, `ItemFormField`
-- All data access is scoped by the session `userId`; never trust client-supplied ownership
-- Server components keep fetching collections through `src/lib/db` functions; any client-side reads go through API routes (none expected for create, which uses a server action like items)
-- Free-plan collection limit (3) is not enforced yet; plan gating is out of scope
-- `defaultTypeId` isn't set on create (no type picker in the spec)
 
 ## Completed Features
 
@@ -71,3 +55,4 @@ In Progress
 - **Quick Copy on Cards:** `CopyButton` on `ItemCard` copies `ItemSummary.copyText` (content or URL) without opening the drawer.
 - **Audit Fixes:** item field length limits (`ITEM_LIMITS`), `NewItemDialog` split with shared `src/lib/item-fields.ts`, no SVG uploads, no Monaco import errors in TS snippets.
 - **Extract Helpers Refactor:** `toTagLinks`, `createUser` (`src/lib/db/users.ts`), `getSessionUserId` (`src/lib/session.ts`), split `Sidebar` links, upload hooks moved to `src/hooks/`.
+- **Collection Create:** top bar `NewCollectionDialog` (name + description) with `createCollection` action (`src/actions/collections.ts`), user-scoped query and Zod schema; refreshes on save.
