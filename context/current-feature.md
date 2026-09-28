@@ -2,30 +2,19 @@
 
 <!-- Feature name and short description -->
 
-**Audit Fixes:** fixes from the code-scanner audit: input length limits on items, a smaller `NewItemDialog`, a consistent `cn` import and no SVG image uploads.
-
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- Add max lengths to item title, description, content, URL and language, and cap the number and length of tags, in `src/lib/validations/items.ts`
-- Split `NewItemDialog.tsx` into smaller pieces and share the per-type field logic with `ItemEditForm.tsx`
-- Import `cn` from `@/lib/utils` in `FileUpload.tsx`, like the rest of the codebase
-- Stop accepting `.svg` / `image/svg+xml` as image uploads
-- Stop Monaco flagging unresolvable imports (e.g. `"react"`) in TypeScript snippets by turning off semantic validation; syntax errors still show
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Images keep using `<img>`, not `next/image`: they're served by the authenticated `/api/items/[id]/file` proxy, and the Image Optimization API doesn't forward cookies.
-- Existing SVG items keep working; only new uploads are blocked.
 
 ## Completed Features
 
@@ -64,3 +53,4 @@ In Progress
 - **Image Gallery View:** `/items/images` shows `ImageThumbnailCard` thumbnails in a 1/2/3-column gallery; layout shared via `src/lib/item-grid.ts`.
 - **File List View:** `/items/files` shows `FileListRow` rows with extension icons (`src/lib/file-icons.ts`, `FileTypeIcon`) and a Download button.
 - **Quick Copy on Cards:** `CopyButton` on `ItemCard` copies `ItemSummary.copyText` (content or URL) without opening the drawer.
+- **Audit Fixes:** item field length limits (`ITEM_LIMITS`), `NewItemDialog` split with shared `src/lib/item-fields.ts`, no SVG uploads, no Monaco import errors in TS snippets.
