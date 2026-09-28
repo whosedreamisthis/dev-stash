@@ -6,6 +6,7 @@ import {
   getItemDetail,
   getItemFile,
   getItemsByCollection,
+  getSearchItems,
   toCollectionLinks,
   toTagLinks,
   updateItem,
@@ -462,6 +463,28 @@ describe("getItemsByCollection", () => {
       })
     );
     expect(items).toEqual([expect.objectContaining({ id: "item-1", tags: ["react", "auth"] })]);
+  });
+});
+
+describe("getSearchItems", () => {
+  it("returns all of the user's items, pinned first, with a preview instead of copy text", async () => {
+    const findMany = vi.mocked(prisma.item.findMany);
+    findMany.mockResolvedValue([ITEM_ROW] as never);
+    const items = await getSearchItems("user-1");
+    expect(findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { userId: "user-1" },
+        orderBy: [{ isPinned: "desc" }, { updatedAt: "desc" }],
+      })
+    );
+    expect(items).toEqual([
+      expect.objectContaining({
+        id: "item-1",
+        tags: ["react", "auth"],
+        contentPreview: "export function useAuth() {}",
+      }),
+    ]);
+    expect(items[0]).not.toHaveProperty("copyText");
   });
 });
 

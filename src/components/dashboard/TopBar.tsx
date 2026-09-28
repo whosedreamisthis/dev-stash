@@ -1,15 +1,20 @@
+"use client";
+
 import { PanelLeft, Search } from "lucide-react";
 import { NewCollectionDialog } from "@/components/collections/NewCollectionDialog";
 import { NewItemDialog } from "@/components/items/NewItemDialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useIsMac } from "@/hooks/useIsMac";
 
 interface TopBarProps {
   onToggleSidebar: () => void;
   onOpenMobileSidebar: () => void;
+  onOpenSearch: () => void;
 }
 
-export function TopBar({ onToggleSidebar, onOpenMobileSidebar }: TopBarProps) {
+export function TopBar({ onToggleSidebar, onOpenMobileSidebar, onOpenSearch }: TopBarProps) {
+  const shortcut = useIsMac() ? "⌘K" : "Ctrl+K";
+
   return (
     <header className="flex h-14 shrink-0 items-center gap-4 border-b px-4">
       <Button
@@ -30,17 +35,18 @@ export function TopBar({ onToggleSidebar, onOpenMobileSidebar }: TopBarProps) {
       >
         <PanelLeft />
       </Button>
-      <div className="relative w-full max-w-md">
-        <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          type="search"
-          placeholder="Search items..."
-          className="pr-12 pl-8"
-        />
-        <kbd className="pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 rounded border bg-muted px-1.5 font-mono text-xs text-muted-foreground">
-          ⌘K
+      {/* Styled like the search input; searching happens in the command palette */}
+      <button
+        type="button"
+        onClick={onOpenSearch}
+        className="flex h-8 w-full max-w-md min-w-0 items-center gap-2 rounded-lg border border-input bg-transparent px-2.5 text-sm text-muted-foreground transition-colors hover:bg-accent/40 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none dark:bg-input/30"
+      >
+        <Search className="size-4 shrink-0" />
+        <span className="truncate">Search items and collections...</span>
+        <kbd className="ml-auto shrink-0 rounded border bg-muted px-1.5 font-mono text-xs">
+          {shortcut}
         </kbd>
-      </div>
+      </button>
       <div className="ml-auto flex items-center gap-2">
         <NewCollectionDialog />
         <NewItemDialog />

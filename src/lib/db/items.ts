@@ -5,8 +5,10 @@ import {
   type CreateItemData,
   type UpdateItemData,
 } from "@/lib/validations/items";
+import { toContentPreview } from "@/lib/search";
 import type { UploadedFile } from "@/lib/upload-token";
 import type { CollectionItemType } from "@/types/collections";
+import type { SearchItem } from "@/types/search";
 import type {
   ItemDetail,
   ItemStats,
@@ -317,6 +319,20 @@ export async function getItemsByCollection(
   });
 
   return items.map(toItemSummary);
+}
+
+// All of the user's items for the command palette, pinned and recently changed first
+export async function getSearchItems(userId: string): Promise<SearchItem[]> {
+  const items = await prisma.item.findMany({
+    where: { userId },
+    orderBy: [{ isPinned: "desc" }, { updatedAt: "desc" }],
+    include: ITEM_SUMMARY_INCLUDE,
+  });
+
+  return items.map((item) => {
+    const { copyText, ...summary } = toItemSummary(item);
+    return { ...summary, contentPreview: toContentPreview(copyText) };
+  });
 }
 
 export async function getItemStats(userId: string): Promise<ItemStats> {

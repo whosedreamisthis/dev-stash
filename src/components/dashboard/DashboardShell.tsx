@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { TopBar } from "@/components/dashboard/TopBar";
 import { ItemDrawerProvider } from "@/components/items/ItemDrawerProvider";
+import { CommandPalette } from "@/components/search/CommandPalette";
+import { useCommandPaletteShortcut } from "@/hooks/useCommandPaletteShortcut";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import type { SidebarData } from "@/types/sidebar";
@@ -16,6 +18,8 @@ interface DashboardShellProps {
 export function DashboardShell({ sidebar, children }: DashboardShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  useCommandPaletteShortcut(() => setSearchOpen((prev) => !prev));
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -35,15 +39,18 @@ export function DashboardShell({ sidebar, children }: DashboardShellProps) {
         </SheetContent>
       </Sheet>
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <TopBar
-          onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
-          onOpenMobileSidebar={() => setMobileOpen(true)}
-        />
-        <main className="scrollbar-none flex-1 overflow-y-auto p-6">
-          <ItemDrawerProvider>{children}</ItemDrawerProvider>
-        </main>
-      </div>
+      {/* Wraps the top bar too, so the command palette can open items in the drawer */}
+      <ItemDrawerProvider>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <TopBar
+            onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
+            onOpenMobileSidebar={() => setMobileOpen(true)}
+            onOpenSearch={() => setSearchOpen(true)}
+          />
+          <main className="scrollbar-none flex-1 overflow-y-auto p-6">{children}</main>
+        </div>
+        <CommandPalette open={searchOpen} onOpenChange={setSearchOpen} />
+      </ItemDrawerProvider>
     </div>
   );
 }
