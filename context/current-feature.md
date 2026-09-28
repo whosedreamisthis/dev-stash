@@ -2,31 +2,19 @@
 
 <!-- Feature name and short description -->
 
-Quick Copy on Cards: a copy icon on item cards that copies the item's content (or a link's URL) without opening the drawer.
-
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- Add a copy icon button to `ItemCard` (dashboard pinned/recent lists and the `/items/[type]` card grid)
-- Copy the content for text items and the URL for links; show a check icon and a "Copied to clipboard" toast, or an error toast
-- Clicking the copy icon doesn't open the drawer
-- No copy icon for items with nothing to copy (files, images, empty content)
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Requested directly (no spec file).
-- `ItemSummary` has no content, so `toItemSummary` adds a `copyText` field (content for TEXT, URL for URL, null for FILE). Having it up front keeps the clipboard write inside the click, which browsers require; the trade-off is sending item content with each card.
-- `ItemDetail` extends `ItemSummary`, so the drawer's copy button can use `copyText` too instead of its own `getCopyValue`.
-- The image gallery cards and file list rows have nothing to copy, so they don't get the icon.
 
 ## Completed Features
 
@@ -64,3 +52,4 @@ In Progress
 - **File & Image Upload:** UploadThing uploads with server-signed upload tokens, `FileUpload` component, download proxy `/api/items/[id]/file`; no Pro check yet.
 - **Image Gallery View:** `/items/images` shows `ImageThumbnailCard` thumbnails in a 1/2/3-column gallery; layout shared via `src/lib/item-grid.ts`.
 - **File List View:** `/items/files` shows `FileListRow` rows with extension icons (`src/lib/file-icons.ts`, `FileTypeIcon`) and a Download button.
+- **Quick Copy on Cards:** `CopyButton` on `ItemCard` copies `ItemSummary.copyText` (content or URL) without opening the drawer.
