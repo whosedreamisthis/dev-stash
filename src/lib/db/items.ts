@@ -43,7 +43,14 @@ function toItemSummary(item: ItemWithRelations): ItemSummary {
     type: item.itemType,
     fileName: item.fileName,
     fileSize: item.fileSize,
+    copyText: getCopyText(item),
   };
+}
+
+function getCopyText(item: ItemWithRelations): string | null {
+  if (item.contentType === "URL") return item.url || null;
+  if (item.contentType === "TEXT") return item.content || null;
+  return null;
 }
 
 const ITEM_DETAIL_INCLUDE = {

@@ -19,11 +19,6 @@ interface ItemDrawerProps {
   onDeleted: (itemId: string) => void;
 }
 
-function getCopyValue(detail: ItemDetail | null) {
-  if (!detail) return null;
-  return detail.contentType === "URL" ? detail.url : detail.content;
-}
-
 export function ItemDrawer({
   item,
   detail,
@@ -78,7 +73,7 @@ export function ItemDrawer({
                 <ItemDrawerActions
                   isFavorite={current.isFavorite}
                   isPinned={current.isPinned}
-                  copyValue={getCopyValue(detail)}
+                  copyValue={detail?.copyText ?? null}
                   onEdit={detail ? () => setEditingId(detail.id) : undefined}
                   onDelete={detail ? () => setIsDeleteOpen(true) : undefined}
                 />

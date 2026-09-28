@@ -80,8 +80,27 @@ describe("getItemDetail", () => {
       fileName: null,
       fileSize: null,
       fileMimeType: null,
+      copyText: "export function useAuth() {}",
       collections: [{ id: "c1", name: "React Patterns" }],
     });
+  });
+
+  it("copies a link's URL, and nothing for files or empty content", async () => {
+    findFirst.mockResolvedValue({
+      ...ITEM_ROW,
+      contentType: "URL",
+      content: null,
+      url: "https://example.com",
+    } as never);
+    await expect(getItemDetail("user-1", "item-1")).resolves.toMatchObject({
+      copyText: "https://example.com",
+    });
+
+    findFirst.mockResolvedValue({ ...ITEM_ROW, contentType: "FILE", content: null } as never);
+    await expect(getItemDetail("user-1", "item-1")).resolves.toMatchObject({ copyText: null });
+
+    findFirst.mockResolvedValue({ ...ITEM_ROW, content: "" } as never);
+    await expect(getItemDetail("user-1", "item-1")).resolves.toMatchObject({ copyText: null });
   });
 });
 

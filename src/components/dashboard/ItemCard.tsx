@@ -1,6 +1,7 @@
 "use client";
 
 import { Pin, Star } from "lucide-react";
+import { CopyButton } from "@/components/items/CopyButton";
 import { useItemDrawer } from "@/components/items/ItemDrawerProvider";
 import type { ItemSummary } from "@/types/items";
 import {
@@ -77,12 +78,22 @@ export function ItemCard({ item }: ItemCardProps) {
           </div>
         )}
       </div>
-      <time
-        dateTime={item.createdAt.toISOString()}
-        className="shrink-0 text-xs text-muted-foreground"
-      >
-        {dateFormatter.format(item.createdAt)}
-      </time>
+      <div className="flex shrink-0 flex-col items-end gap-2">
+        <time
+          dateTime={item.createdAt.toISOString()}
+          className="text-xs text-muted-foreground"
+        >
+          {dateFormatter.format(item.createdAt)}
+        </time>
+        {item.copyText && (
+          // Above the card's button so clicking it copies instead of opening the drawer
+          <CopyButton
+            value={item.copyText}
+            label={`Copy ${item.title}`}
+            className="relative z-10"
+          />
+        )}
+      </div>
     </article>
   );
 }

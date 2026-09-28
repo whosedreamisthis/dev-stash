@@ -12,6 +12,8 @@ export interface ItemSummary {
   // Null for items without an uploaded file
   fileName: string | null;
   fileSize: number | null;
+  // What the copy buttons copy: the content, or a link's URL; null for files
+  copyText: string | null;
 }
 
 export interface ItemDetail extends ItemSummary {
