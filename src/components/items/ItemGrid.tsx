@@ -1,13 +1,20 @@
 import { ItemCard } from "@/components/dashboard/ItemCard";
+import { ImageThumbnailCard } from "@/components/items/ImageThumbnailCard";
 import { getItemsByType } from "@/lib/db/items";
+import {
+  ITEM_GALLERY_GRID_CLASS,
+  ITEM_LIST_GRID_CLASS,
+  isGalleryTypeSlug,
+} from "@/lib/item-grid";
 
 interface ItemGridProps {
   userId: string;
   itemTypeId: string;
   typeName: string;
+  typeSlug: string;
 }
 
-export async function ItemGrid({ userId, itemTypeId, typeName }: ItemGridProps) {
+export async function ItemGrid({ userId, itemTypeId, typeName, typeSlug }: ItemGridProps) {
   const items = await getItemsByType(userId, itemTypeId);
 
   if (items.length === 0) {
@@ -18,15 +25,21 @@ export async function ItemGrid({ userId, itemTypeId, typeName }: ItemGridProps) 
     );
   }
 
+  const isGallery = isGalleryTypeSlug(typeSlug);
+
   return (
     <section>
       <p className="mb-4 text-muted-foreground">
         {items.length} {items.length === 1 ? "item" : "items"}
       </p>
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-        {items.map((item) => (
-          <ItemCard key={item.id} item={item} />
-        ))}
+      <div className={isGallery ? ITEM_GALLERY_GRID_CLASS : ITEM_LIST_GRID_CLASS}>
+        {items.map((item) =>
+          isGallery ? (
+            <ImageThumbnailCard key={item.id} item={item} />
+          ) : (
+            <ItemCard key={item.id} item={item} />
+          )
+        )}
       </div>
     </section>
   );

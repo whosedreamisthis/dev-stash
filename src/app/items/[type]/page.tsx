@@ -7,6 +7,7 @@ import { ItemGridSkeleton } from "@/components/items/ItemGridSkeleton";
 import { ItemsHeader } from "@/components/items/ItemsHeader";
 import { NewItemDialog } from "@/components/items/NewItemDialog";
 import { getItemTypeBySlug } from "@/lib/db/items";
+import { isGalleryTypeSlug } from "@/lib/item-grid";
 import { isCreatableTypeSlug } from "@/lib/validations/items";
 
 export default async function ItemsByTypePage({
@@ -32,8 +33,13 @@ export default async function ItemsByTypePage({
         icon={type.icon}
         action={isCreatableTypeSlug(type.slug) && <NewItemDialog defaultType={type.slug} />}
       />
-      <Suspense fallback={<ItemGridSkeleton />}>
-        <ItemGrid userId={userId} itemTypeId={type.id} typeName={type.name} />
+      <Suspense fallback={<ItemGridSkeleton gallery={isGalleryTypeSlug(type.slug)} />}>
+        <ItemGrid
+          userId={userId}
+          itemTypeId={type.id}
+          typeName={type.name}
+          typeSlug={type.slug}
+        />
       </Suspense>
     </div>
   );

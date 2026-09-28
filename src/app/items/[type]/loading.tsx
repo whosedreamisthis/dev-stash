@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import { ItemGridSkeleton } from "@/components/items/ItemGridSkeleton";
 import { ItemsHeader } from "@/components/items/ItemsHeader";
 import { NewItemDialog } from "@/components/items/NewItemDialog";
+import { isGalleryTypeSlug } from "@/lib/item-grid";
 import { isCreatableTypeSlug } from "@/lib/validations/items";
 
 // Shown instantly on navigation, before the server has looked up the type
@@ -18,7 +19,7 @@ export default function ItemsByTypeLoading() {
         slug={slug}
         action={isCreatableTypeSlug(slug) && <NewItemDialog defaultType={slug} />}
       />
-      <ItemGridSkeleton />
+      <ItemGridSkeleton gallery={isGalleryTypeSlug(slug)} />
     </div>
   );
 }
