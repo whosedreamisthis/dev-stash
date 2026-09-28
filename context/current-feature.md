@@ -1,38 +1,20 @@
-# Current Feature: Global Search / Command Palette
+# Current Feature
 
 <!-- Feature name and short description -->
-
-A global command palette (Cmd+K / Ctrl+K) with fuzzy search across items and collections.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- Open the palette with Cmd+K (Mac) / Ctrl+K (Windows)
-- Fuzzy search across all of the user's items and collections
-- Grouped results: an Items section and a Collections section
-- Keyboard navigation (arrow keys, Enter to select)
-- Show the item type icon on items and the item count on collections
-- On select, open the item drawer or navigate to the collection page
-- Clicking the TopBar search input opens the palette
-- Search input placeholder shows the platform shortcut hint (⌘K or Ctrl+K)
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Use the shadcn `Command` component (`cmdk`)
-- Client-side fuzzy search, no server round-trips while typing
-- Pre-fetch the searchable data on app load
-- Search data: items (id, title, type, content preview), collections (id, name, itemCount)
-- Reuse existing data fetching functions (`src/lib/db/items.ts`, `src/lib/db/collections.ts`)
-- Spec: `context/features/global-search-spec.md`
 
 ## Completed Features
 
@@ -77,3 +59,4 @@ In Progress
 - **Add Items to Collections:** `CollectionSelector` multi-select in the new/edit item forms, options from `GET /api/collections`; queries link only the user's own collections.
 - **Collections Pages:** `/collections` grid of `CollectionCard`s and `/collections/[id]` with streamed `ItemCard`s; clicked collections show their name instantly (`src/lib/collection-preview.ts`).
 - **Collection Card Actions:** Edit/Delete (items kept) via `EditCollectionDialog` and `DeleteCollectionDialog` in the collection header and a `CollectionCard` 3-dot menu; Favorite shown but disabled.
+- **Global Search / Command Palette:** Cmd+K / Ctrl+K `CommandPalette` fuzzy searches items and collections in the browser, with data from the `getSearchData` action (`src/actions/search.ts`); the TopBar search box opens it.
