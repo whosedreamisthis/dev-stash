@@ -2,36 +2,19 @@
 
 <!-- Feature name and short description -->
 
-Code Editor: a Monaco Editor component for snippets and commands, with macOS window styling, the language and a copy button in its header.
-
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- Create a `CodeEditor` component using Monaco Editor with a dark theme
-- Replace the Textarea with `CodeEditor` for snippets and commands only
-- Keep the Textarea for notes, prompts and other non-code types
-- Add macOS-style window dots (red/yellow/green) at the top of the editor
-- Add a quick copy button in the editor header
-- Show the item's language in the editor header next to the copy button
-- Support both display (read-only) and edit modes
-- Make the editor height fluid with a max height of 400px, and style its scrollbar to match the theme
-- Add a type-specific add button (e.g. "New Snippet") to each `/items/[type]` page header that opens the New Item dialog with that type preselected (only for types the dialog can create)
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Spec: `context/features/code-editor-spec.md`
-- Content is currently edited with a Textarea in the item drawer's edit form and the New Item dialog, and shown as plain preformatted text in the drawer's view mode; all three places apply to snippets and commands.
-- Snippets and commands are the existing `LANGUAGE_TYPE_SLUGS` in `src/lib/validations/items.ts`, so the switch between `CodeEditor` and Textarea can reuse it.
-- Monaco loads in the browser only, so `CodeEditor` must be a client component.
 
 ## History
 
@@ -64,3 +47,4 @@ In Progress
 - **Delete Item:** The drawer's Delete (trash) button opens the new `DeleteItemDialog`, a shadcn Alert Dialog styled like the profile page's Delete account dialog (centered, capped at 28rem) that names the item and warns the delete can't be undone; while deleting it shows "Deleting..." and disables both buttons and dismissal. The trash button is disabled until the item's detail has loaded, like Edit. The `deleteItem` query in `src/lib/db/items.ts` uses `deleteMany` scoped to the item and user IDs and returns false for missing or other users' items; tag and collection links go through the existing cascades and orphaned tags are left in place. The `deleteItem` server action in `src/actions/items.ts` checks the session, validates the ID with Zod and returns `{ success, data: { id }, error }`. On success the dialog and drawer close, an "Item deleted" toast shows, the item is dropped from the detail cache through the new `removeDetail` in `useItemDetailCache` and `router.refresh()` updates card lists, stats and sidebar counts; on failure the dialog stays open with an error toast. `removeDetail` keeps the deleted ID marked as requested, because the card regains focus as the drawer closes and stays mounted until the refresh finishes, and its hover/focus prefetch otherwise requested the deleted item and got a 404. The detail skeleton now only shows while the drawer is open so it doesn't flash during the close animation. Added 7 Vitest tests (63 in total) for the query and action. No migration was needed.
 - **Item Create:** The top bar's "New Item" button opens the new `NewItemDialog`, a shadcn Dialog (capped at 32rem) for creating snippets, prompts, commands, notes and links; File and Image are left out until R2 uploads exist. A type selector of `aria-pressed` toggle buttons highlights the selected type with a border and tint in its color. Title (required), description and comma-separated tags show for every type, content for text types, language for snippets and commands, and a required URL for links; only the selected type's fields are sent. Editing a field clears its error and switching types clears all errors, and Create is disabled until the title (and a link's URL) is filled. On success a "Snippet created" style toast shows, the dialog closes and `router.refresh()` updates card lists, stats and sidebar counts; the form resets each time the dialog opens. `createItemSchema` in `src/lib/validations/items.ts` extends `updateItemSchema` with a `typeSlug` limited to `CREATABLE_TYPE_SLUGS` and requires a URL for links; `LANGUAGE_TYPE_SLUGS` moved there so the query, edit form and dialog share it. The `createItem` server action in `src/actions/items.ts` checks the session, validates with Zod and returns `{ success, data, error, fieldErrors }`, sharing a `toFieldErrors` helper with `updateItem`. The `createItem` query in `src/lib/db/items.ts` looks up the system type by slug on the server (never a client-supplied type ID), saves only the fields that belong to its content type, connects or creates the user's tags and returns the `ItemDetail`, or null when the type is missing. The edit form's field wrapper was extracted into a shared `ItemFormField` component. Added 21 Vitest tests (84 in total) for the schema, query and action. No migration was needed.
 - **Item Type Dropdown:** The New Item dialog's row of toggle buttons was replaced with a shadcn Select dropdown (new `src/components/ui/select.tsx`, built on Base UI). The full-width "Type" field is labelled through the shared `ItemFormField`; each option shows the type's colored icon and name with a check mark on the selected one, and the closed dropdown shows the chosen type's icon and name through a `Select.Value` render function. Snippet stays the default, and changing the type still shows the matching fields and clears field errors. The toggle buttons' type-colored highlight classes were removed. UI-only change: no server, schema or test changes.
+- **Code Editor:** Snippets and commands now use a Monaco code editor (`@monaco-editor/react`, which loads Monaco from the jsDelivr CDN) in the item drawer's view mode, the drawer's edit form and the New Item dialog; notes and prompts keep the Textarea and plain preformatted block. The client `CodeEditor` component in `src/components/items/` has a custom `devstash-dark` theme matched to the app's neutral palette with a thin theme-colored scrollbar, and a header with macOS-style red/yellow/green window dots, the item's language and a copy button (disabled when empty; shows a check and a toast). It supports read-only mode (no context menu or line highlight) and edit mode, grows with its content up to 400px before scrolling (at least 160px when editing), and lets mouse-wheel scrolling pass to the page when it has nothing left to scroll. `src/lib/code-editor.ts` maps free-text languages to Monaco IDs (`ts` → `typescript`, `bash` → `shell`, empty → `plaintext`) and computes the capped height; while editing, the header language follows the Language field. Each `/items/[type]` page header also has a type-specific add button (e.g. "New Snippet") through a new `action` slot on `ItemsHeader`, shown on the page and its loading state; `NewItemDialog` takes an optional `defaultType` that preselects the type and names the button, while the top bar button still says "New Item". `isCreatableTypeSlug` in `src/lib/validations/items.ts` limits the button to creatable types, so Files, Images and unknown slugs get none. Clicking the Content label doesn't focus the editor, which has its own accessible label. Added 10 Vitest tests (94 in total). No migration was needed.
