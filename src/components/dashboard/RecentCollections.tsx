@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CollectionCard } from "@/components/dashboard/CollectionCard";
+import { COLLECTION_GRID_CLASS } from "@/lib/item-grid";
 import type { CollectionSummary } from "@/types/collections";
 
 interface RecentCollectionsProps {
@@ -21,7 +22,7 @@ export function RecentCollections({ collections }: RecentCollectionsProps) {
       {collections.length === 0 ? (
         <p className="text-sm text-muted-foreground">No collections yet.</p>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className={COLLECTION_GRID_CLASS}>
           {collections.map((collection) => (
             <CollectionCard key={collection.id} collection={collection} />
           ))}

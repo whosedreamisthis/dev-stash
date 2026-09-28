@@ -2,6 +2,7 @@ import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import type { CreateCollectionData } from "@/lib/validations/collections";
 import type {
+  CollectionDetail,
   CollectionItemType,
   CollectionOption,
   CollectionStats,
@@ -70,6 +71,27 @@ export async function getRecentCollections(
   });
 
   return collections.map(toCollectionSummary);
+}
+
+export async function getCollections(userId: string): Promise<CollectionSummary[]> {
+  const collections = await prisma.collection.findMany({
+    where: { userId },
+    orderBy: [{ isFavorite: "desc" }, { updatedAt: "desc" }],
+    include: COLLECTION_SUMMARY_INCLUDE,
+  });
+
+  return collections.map(toCollectionSummary);
+}
+
+// Returns null for collections that don't exist or belong to another user
+export async function getCollectionById(
+  userId: string,
+  collectionId: string
+): Promise<CollectionDetail | null> {
+  return prisma.collection.findFirst({
+    where: { id: collectionId, userId },
+    select: { id: true, name: true, description: true, isFavorite: true },
+  });
 }
 
 export async function getSidebarCollections(

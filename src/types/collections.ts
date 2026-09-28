@@ -23,6 +23,14 @@ export interface SidebarCollections {
   recent: CollectionSummary[];
 }
 
+// The header of a collection's page; its items are loaded separately
+export interface CollectionDetail {
+  id: string;
+  name: string;
+  description: string | null;
+  isFavorite: boolean;
+}
+
 // A collection an item can be added to, for the item forms' picker
 export interface CollectionOption {
   id: string;

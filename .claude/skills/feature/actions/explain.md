@@ -1,6 +1,6 @@
 # Explain Action
 
-Before anything else, show the full todo list for this action (the steps below) then work one step per turn, pausing after each with a Continue button that shows the updated list, as described in the **Todo List** section of `context/ai-interaction.md`.
+Before anything else, show the full todo list for this action (the steps below) and update the list in the Progress section of current-feature.md as the first edit of each step, as described in the **Todo List** section of `context/ai-interaction.md`.
 
 1. Read current-feature.md to understand what was implemented
 2. Run `git diff main --name-only` to get list of files changed

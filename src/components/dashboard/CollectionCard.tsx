@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { Star } from "lucide-react";
+import { rememberCollection } from "@/lib/collection-preview";
 import type { CollectionSummary } from "@/types/collections";
 import {
   ITEM_TYPE_BORDER_COLORS,
@@ -18,6 +21,8 @@ export function CollectionCard({ collection }: CollectionCardProps) {
   return (
     <Link
       href={`/collections/${collection.id}`}
+      // Lets the collection page's loading state show the name and description
+      onClick={() => rememberCollection(collection)}
       className={cn(
         "flex flex-col gap-3 rounded-xl border bg-card p-5 transition-colors hover:bg-accent/40",
         mainType && ITEM_TYPE_BORDER_COLORS[mainType.slug]

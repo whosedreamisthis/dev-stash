@@ -18,3 +18,6 @@ export const ITEM_LAYOUT_CLASSES: Record<ItemLayout, string> = {
   gallery: "grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3",
   list: "divide-y overflow-hidden rounded-xl border bg-card",
 };
+
+// Collection cards on the dashboard, the /collections page and its skeleton
+export const COLLECTION_GRID_CLASS = "grid gap-4 sm:grid-cols-2 lg:grid-cols-3";

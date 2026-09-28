@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Folder, Star } from "lucide-react";
 import { SIDEBAR_LINK_CLASS } from "@/components/dashboard/SidebarSection";
+import { rememberCollection } from "@/lib/collection-preview";
 import { ITEM_TYPE_BG_COLORS } from "@/lib/item-type-icons";
 import { cn } from "@/lib/utils";
 import type { CollectionSummary } from "@/types/collections";
@@ -22,7 +23,10 @@ export function SidebarCollectionLink({
   return (
     <Link
       href={`/collections/${collection.id}`}
-      onClick={onNavigate}
+      onClick={() => {
+        rememberCollection(collection);
+        onNavigate?.();
+      }}
       className={SIDEBAR_LINK_CLASS}
     >
       {isFavorite ? (

@@ -13,8 +13,8 @@
 
 Every piece of work on a feature or fix is tracked with a visible todo list. This applies to **every** action, not just implementation: loading a spec (`/feature load`), starting (status update, branch creation, reading code), implementing, testing, reviewing, and completing (commit, merge, branch delete, context reset, push).
 
-1. **Plan first.** At the very start of an action, break it into numbered steps and end the turn with the full list, before doing anything, including before reading files or running commands.
-2. **One step per turn, with a Continue button.** Before the first step and after each step, pause with the AskUserQuestion tool: the question names the next step (e.g. "Step 8 of 9: Push main to origin. Continue?"), the first option is **Continue** with the **full**, updated list in its preview, and the second is **Stop here**. On Continue, do only that step, then pause again. Text written between tool calls in the middle of a turn doesn't show up in my editor, so never rely on it for the list, and don't make me type "continue".
+1. **Plan first.** At the very start of an action, break it into numbered steps and write the full list into the `## Progress` section of `context/current-feature.md` before doing anything else, including reading files or running commands.
+2. **Update it before every step.** The first edit of every step updates the Progress section: tick off the finished step and mark the next one current. That edit shows up as a diff in the approval prompt right before the step's changes, and I can keep the file open to watch it. Also post the list as text. Text written between tool calls doesn't stay visible in my editor, so the Progress section is the list I rely on. Don't pause between steps: no Continue buttons and no asking me to type "continue".
 3. **Use this exact format:**
 
    ```
@@ -28,7 +28,7 @@ Every piece of work on a feature or fix is tracked with a visible todo list. Thi
    - Pending steps: unchecked, plain text
 4. **Say what the current step does.** Under the list, add one line saying what the current step will do and why.
 5. **Never merge, drop or renumber steps.** Don't collapse steps into ranges like "1–5", and don't leave completed steps out. If a new step turns out to be needed, add it to the list and say so.
-6. **Finish with the list.** When the action is done, show the final list with every step checked and struck through, followed by the summary.
+6. **Finish with the list.** When the action is done, show the final list with every step checked and struck through, followed by the summary. When the feature is completed, clear the Progress section (keeping its comment).
 
 ## Workflow
 

@@ -5,6 +5,7 @@ import {
   deleteItem,
   getItemDetail,
   getItemFile,
+  getItemsByCollection,
   toCollectionLinks,
   toTagLinks,
   updateItem,
@@ -12,7 +13,13 @@ import {
 
 vi.mock("@/lib/db", () => ({
   prisma: {
-    item: { findFirst: vi.fn(), create: vi.fn(), update: vi.fn(), deleteMany: vi.fn() },
+    item: {
+      findFirst: vi.fn(),
+      findMany: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+      deleteMany: vi.fn(),
+    },
     itemType: { findFirst: vi.fn() },
     itemTag: { deleteMany: vi.fn() },
     itemCollection: { deleteMany: vi.fn() },
@@ -437,6 +444,24 @@ describe("deleteItem", () => {
     findFirst.mockResolvedValue({ fileUrl: null } as never);
     deleteMany.mockResolvedValue({ count: 0 });
     await expect(deleteItem("user-1", "item-1")).resolves.toBeNull();
+  });
+});
+
+describe("getItemsByCollection", () => {
+  it("returns the user's items in the user's collection, pinned first, as summaries", async () => {
+    const findMany = vi.mocked(prisma.item.findMany);
+    findMany.mockResolvedValue([ITEM_ROW] as never);
+    const items = await getItemsByCollection("user-1", "c1");
+    expect(findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          userId: "user-1",
+          collections: { some: { collectionId: "c1", collection: { userId: "user-1" } } },
+        },
+        orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
+      })
+    );
+    expect(items).toEqual([expect.objectContaining({ id: "item-1", tags: ["react", "auth"] })]);
   });
 });
 

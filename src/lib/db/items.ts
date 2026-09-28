@@ -305,6 +305,20 @@ export async function getItemsByType(
   return items.map(toItemSummary);
 }
 
+export async function getItemsByCollection(
+  userId: string,
+  collectionId: string
+): Promise<ItemSummary[]> {
+  const items = await prisma.item.findMany({
+    // Both the item and the collection must belong to the user
+    where: { userId, collections: { some: { collectionId, collection: { userId } } } },
+    orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }],
+    include: ITEM_SUMMARY_INCLUDE,
+  });
+
+  return items.map(toItemSummary);
+}
+
 export async function getItemStats(userId: string): Promise<ItemStats> {
   const [total, favorites] = await Promise.all([
     prisma.item.count({ where: { userId } }),
