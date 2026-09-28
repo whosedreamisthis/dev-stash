@@ -28,6 +28,8 @@ export const registerSchema = z
   })
   .refine(passwordsMatch.check, passwordsMatch.params);
 
+export type RegisterInput = z.input<typeof registerSchema>;
+
 export const changePasswordSchema = z
   .object({
     currentPassword: z.string().min(1, "Current password is required"),

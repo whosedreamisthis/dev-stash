@@ -4,6 +4,7 @@ import { z } from "zod";
 import {
   createCollection as createCollectionQuery,
   deleteCollection as deleteCollectionQuery,
+  getCollectionOptions as getCollectionOptionsQuery,
   updateCollection as updateCollectionQuery,
 } from "@/lib/db/collections";
 import { getSessionUserId, NOT_SIGNED_IN_ERROR } from "@/lib/session";
@@ -13,7 +14,7 @@ import {
   type CreateCollectionInput,
   type UpdateCollectionInput,
 } from "@/lib/validations/collections";
-import type { CollectionSummary } from "@/types/collections";
+import type { CollectionOption, CollectionSummary } from "@/types/collections";
 
 export type CreateCollectionFieldErrors = Partial<Record<keyof CreateCollectionInput, string>>;
 export type UpdateCollectionFieldErrors = Partial<Record<keyof UpdateCollectionInput, string>>;
@@ -91,6 +92,25 @@ export async function updateCollection(
     return { success: true, data: collection };
   } catch (error) {
     console.error("Updating collection failed:", error);
+    return { success: false, error: "Something went wrong. Please try again." };
+  }
+}
+
+export interface GetCollectionOptionsResult {
+  success: boolean;
+  data?: CollectionOption[];
+  error?: string;
+}
+
+// The user's collections for the item forms' collection picker
+export async function getCollectionOptions(): Promise<GetCollectionOptionsResult> {
+  const userId = await getSessionUserId();
+  if (!userId) return { success: false, error: NOT_SIGNED_IN_ERROR };
+
+  try {
+    return { success: true, data: await getCollectionOptionsQuery(userId) };
+  } catch (error) {
+    console.error("Loading collection options failed:", error);
     return { success: false, error: "Something went wrong. Please try again." };
   }
 }

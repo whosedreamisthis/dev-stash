@@ -594,12 +594,12 @@ const systemTypes = [
 | `/settings` | Theme, export |
 | `/settings/billing` | Plan & Stripe customer portal |
 | `/api/auth/[...nextauth]` | Auth.js handlers |
-| `/api/auth/register` | Email/password registration |
-| `/api/items/[id]` | Item details for the drawer |
 | `/api/items/[id]/file` | File download proxy (signed UploadThing URL) |
 | `/api/uploadthing` | UploadThing file router (auth and limit checks) |
 | `/api/ai/*` | Tag suggestions, summaries, explain, prompt optimizer |
 | `/api/webhooks/stripe` | Stripe webhooks |
+
+API routes are only for endpoints that need a real URL (OAuth and UploadThing callbacks, webhooks, file responses). The app's own client components load and change data through server actions in `src/actions/`, e.g. registration (`registerUser`), item drawer details (`getItem`) and collection picker options (`getCollectionOptions`).
 
 Individual items open in a **drawer** over the current page (optionally reflected in the URL, e.g. `?item=<id>`, so they're shareable and survive refresh).
 

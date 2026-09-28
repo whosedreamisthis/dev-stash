@@ -1,8 +1,10 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { fetchItemDetail, ITEM_LOAD_ERROR } from "@/lib/items-api";
+import { getItem } from "@/actions/items";
 import type { ItemDetail } from "@/types/items";
+
+const ITEM_LOAD_ERROR = "Couldn't load this item. Please try again.";
 
 function without(record: Record<string, string>, key: string) {
   const copy = { ...record };
@@ -22,13 +24,19 @@ export function useItemDetailCache() {
     requests.current.add(itemId);
     setErrors((prev) => without(prev, itemId));
 
-    fetchItemDetail(itemId)
-      .then((detail) => setDetails((prev) => ({ ...prev, [itemId]: detail })))
-      .catch((error: unknown) => {
-        requests.current.delete(itemId);
-        const message = error instanceof Error ? error.message : ITEM_LOAD_ERROR;
-        setErrors((prev) => ({ ...prev, [itemId]: message }));
-      });
+    function fail(message: string) {
+      requests.current.delete(itemId);
+      setErrors((prev) => ({ ...prev, [itemId]: message }));
+    }
+
+    getItem(itemId)
+      .then((result) => {
+        const detail = result.data;
+        if (detail) setDetails((prev) => ({ ...prev, [itemId]: detail }));
+        else fail(result.error ?? ITEM_LOAD_ERROR);
+      })
+      // The action call itself failed, e.g. the network dropped
+      .catch(() => fail(ITEM_LOAD_ERROR));
   }, []);
 
   // Replaces a cached item with a fresh copy, such as the result of a save

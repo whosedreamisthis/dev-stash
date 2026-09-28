@@ -1,20 +1,31 @@
-# Current Feature
+# Current Feature: Replace API Routes with Server Actions
 
 <!-- Feature name and short description -->
+
+Move the three API routes that only serve the app's own client components to server actions, as the coding standards and the prefer-server-actions rule call for.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- Item drawer loads details through a `getItem` server action instead of `GET /api/items/[id]`
+- `CollectionSelector` options load through a `getCollectionOptions` server action instead of `GET /api/collections`
+- Registration goes through a `registerUser` server action instead of `POST /api/auth/register`, keeping the IP rate limit, email-taken error and verification email behavior
+- Remove the three routes, the `items-api.ts` / `collections-api.ts` fetch helpers and their tests; add action tests
+- Update the route table in `context/project-overview.md` and the auth-auditor agent's file list
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- Keep `/api/auth/[...nextauth]`, `/api/uploadthing` and `/api/items/[id]/file`: they need real URLs (OAuth callback, UploadThing callback, `<img src>` and downloads with file headers)
+- Server actions serialize `Date`s, so the drawer no longer needs the JSON date conversion
 
 ## Completed Features
 

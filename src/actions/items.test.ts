@@ -4,11 +4,12 @@ import { auth } from "@/auth";
 import {
   createItem as createItemQuery,
   deleteItem as deleteItemQuery,
+  getItemDetail,
   updateItem as updateItemQuery,
 } from "@/lib/db/items";
 import { createUploadToken } from "@/lib/upload-token";
 import { deleteUploadedFile } from "@/lib/uploadthing";
-import { createItem, deleteItem, updateItem } from "@/actions/items";
+import { createItem, deleteItem, getItem, updateItem } from "@/actions/items";
 import type { ItemDetail } from "@/types/items";
 
 vi.mock("@/auth", () => ({ auth: vi.fn() }));
@@ -16,6 +17,7 @@ vi.mock("@/lib/db/items", () => ({
   createItem: vi.fn(),
   updateItem: vi.fn(),
   deleteItem: vi.fn(),
+  getItemDetail: vi.fn(),
 }));
 vi.mock("@/lib/uploadthing", () => ({ deleteUploadedFile: vi.fn() }));
 
@@ -294,6 +296,50 @@ describe("deleteItem", () => {
     signIn();
     vi.mocked(deleteItemQuery).mockRejectedValue(new Error("db down"));
     await expect(deleteItem("item-1")).resolves.toEqual({
+      success: false,
+      error: "Something went wrong. Please try again.",
+    });
+  });
+});
+
+describe("getItem", () => {
+  beforeEach(() => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  it("requires a session", async () => {
+    mockAuth.mockResolvedValue(null);
+    await expect(getItem("item-1")).resolves.toEqual({
+      success: false,
+      error: "You must be signed in.",
+    });
+    expect(getItemDetail).not.toHaveBeenCalled();
+  });
+
+  it("returns the session user's item detail", async () => {
+    signIn("user-42");
+    const detail = { id: "item-1", title: "useAuth Hook" } as ItemDetail;
+    vi.mocked(getItemDetail).mockResolvedValue(detail);
+    await expect(getItem("item-1")).resolves.toEqual({ success: true, data: detail });
+    expect(getItemDetail).toHaveBeenCalledWith("user-42", "item-1");
+  });
+
+  it("reports a missing or another user's item as not found", async () => {
+    signIn();
+    vi.mocked(getItemDetail).mockResolvedValue(null);
+    await expect(getItem("item-1")).resolves.toEqual({
+      success: false,
+      error: "Item not found.",
+    });
+
+    await expect(getItem("  ")).resolves.toEqual({ success: false, error: "Item not found." });
+    expect(getItemDetail).toHaveBeenCalledOnce();
+  });
+
+  it("returns an error when the lookup fails", async () => {
+    signIn();
+    vi.mocked(getItemDetail).mockRejectedValue(new Error("db down"));
+    await expect(getItem("item-1")).resolves.toEqual({
       success: false,
       error: "Something went wrong. Please try again.",
     });

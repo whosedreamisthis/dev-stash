@@ -4,21 +4,16 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { z } from "zod";
+import { registerUser, type RegisterResult } from "@/actions/auth";
 import { FormField } from "@/components/auth/FormField";
 import { Button } from "@/components/ui/button";
-import { registerSchema } from "@/lib/validations/auth";
+import { registerSchema, type RegisterInput } from "@/lib/validations/auth";
 
-type RegisterValues = z.input<typeof registerSchema>;
+type RegisterValues = RegisterInput;
 type FieldErrors = Partial<Record<keyof RegisterValues, string>>;
 
-interface RegisterResponse {
-  success: boolean;
-  data?: { verificationRequired: boolean; emailSent: boolean };
-  error?: string;
-}
-
 // Tells the sign-in page which banner to show after registering
-function getRegisteredStatus(data: RegisterResponse["data"]) {
+function getRegisteredStatus(data: RegisterResult["data"]) {
   if (!data?.verificationRequired) return "ready";
   return data.emailSent ? "1" : "email-failed";
 }
@@ -60,14 +55,9 @@ export function RegisterForm() {
     setIsPending(true);
 
     try {
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(parsed.data),
-      });
-      const result: RegisterResponse = await response.json();
+      const result = await registerUser(values);
 
-      if (response.status === 429) {
+      if (result.rateLimited) {
         toast.error(result.error ?? "Too many attempts. Please try again later.");
         return;
       }

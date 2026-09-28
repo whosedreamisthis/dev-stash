@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { AuthError, CredentialsSignin } from "next-auth";
 import { z } from "zod";
 import { EMAIL_NOT_VERIFIED, RATE_LIMITED, signIn, signOut } from "@/auth";
+import { createUser } from "@/lib/db/users";
 import { resetPassword, sendPasswordResetLink } from "@/lib/password-reset";
 import {
   checkRateLimit,
@@ -14,11 +15,17 @@ import {
 } from "@/lib/rate-limit";
 import {
   forgotPasswordSchema,
+  registerSchema,
   resendVerificationSchema,
   resetPasswordSchema,
   signInSchema,
+  type RegisterInput,
 } from "@/lib/validations/auth";
-import { resendVerificationLink } from "@/lib/verification";
+import {
+  isEmailVerificationEnabled,
+  resendVerificationLink,
+  sendVerificationLink,
+} from "@/lib/verification";
 
 interface AuthActionResult {
   success: boolean;
@@ -33,6 +40,10 @@ export interface SignInResult extends AuthActionResult {
 export type ResendVerificationResult = AuthActionResult;
 
 export type ForgotPasswordResult = AuthActionResult;
+
+export interface RegisterResult extends AuthActionResult {
+  data?: { verificationRequired: boolean; emailSent: boolean };
+}
 
 export interface ResetPasswordActionResult extends AuthActionResult {
   fieldErrors?: { password?: string; confirmPassword?: string };
@@ -119,6 +130,39 @@ export async function signInWithCredentials(
     const result = getSignInError(error);
     if (result) return result;
     throw error;
+  }
+}
+
+export async function registerUser(values: RegisterInput): Promise<RegisterResult> {
+  const parsed = registerSchema.safeParse(values);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  const { name, email, password } = parsed.data;
+
+  try {
+    // Limits scripted email enumeration and mass sign-ups from one address
+    const limited = await checkActionRateLimit("register");
+    if (limited) return limited;
+
+    const user = await createUser(name, email, password);
+    if (!user) return { success: false, error: "A user with this email already exists" };
+
+    const verificationRequired = isEmailVerificationEnabled();
+
+    // The account stays created if the email fails; the user can request a new link
+    const emailSent = verificationRequired
+      ? await sendVerificationLink(email).catch((error: unknown) => {
+          console.error("Sending verification email failed:", error);
+          return false;
+        })
+      : false;
+
+    return { success: true, data: { verificationRequired, emailSent } };
+  } catch (error) {
+    console.error("Registration failed:", error);
+    return { success: false, error: "Something went wrong. Please try again." };
   }
 }
 

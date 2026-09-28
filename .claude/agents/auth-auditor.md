@@ -46,7 +46,7 @@ Start by mapping the auth code with Glob and Grep. Key locations (verify they st
 
 - `src/auth.ts`, `src/auth.config.ts`, `src/proxy.ts`, `src/types/next-auth.d.ts`
 - `src/actions/auth.ts`, `src/actions/profile.ts`
-- `src/app/api/auth/register/route.ts`, `src/app/(auth)/**` (sign-in, register, verify-email, forgot-password, reset-password)
+- `src/app/(auth)/**` (sign-in, register, verify-email, forgot-password, reset-password)
 - `src/app/profile/**`, `src/components/profile/**`, `src/components/auth/**`
 - `src/lib/tokens.ts`, `src/lib/verification.ts`, `src/lib/password-reset.ts`, `src/lib/account.ts`, `src/lib/email.ts`, `src/lib/validations/auth.ts`, `src/lib/db/users.ts`
 - `prisma/schema.prisma` (User, VerificationToken, cascade rules)

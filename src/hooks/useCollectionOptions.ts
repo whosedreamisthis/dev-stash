@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { COLLECTIONS_LOAD_ERROR, fetchCollectionOptions } from "@/lib/collections-api";
+import { getCollectionOptions } from "@/actions/collections";
 import type { CollectionOption } from "@/types/collections";
+
+const COLLECTIONS_LOAD_ERROR = "Couldn't load your collections. Please try again.";
 
 // Loads the user's collections once when the form using it mounts
 export function useCollectionOptions() {
@@ -11,12 +13,15 @@ export function useCollectionOptions() {
 
   useEffect(() => {
     let ignore = false;
-    fetchCollectionOptions()
-      .then((options) => {
-        if (!ignore) setCollections(options);
+    getCollectionOptions()
+      .then((result) => {
+        if (ignore) return;
+        if (result.data) setCollections(result.data);
+        else setError(result.error ?? COLLECTIONS_LOAD_ERROR);
       })
-      .catch((err: unknown) => {
-        if (!ignore) setError(err instanceof Error ? err.message : COLLECTIONS_LOAD_ERROR);
+      // The action call itself failed, e.g. the network dropped
+      .catch(() => {
+        if (!ignore) setError(COLLECTIONS_LOAD_ERROR);
       });
     return () => {
       ignore = true;

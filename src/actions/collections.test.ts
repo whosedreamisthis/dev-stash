@@ -4,13 +4,20 @@ import { auth } from "@/auth";
 import {
   createCollection as createCollectionQuery,
   deleteCollection as deleteCollectionQuery,
+  getCollectionOptions as getCollectionOptionsQuery,
   updateCollection as updateCollectionQuery,
 } from "@/lib/db/collections";
-import { createCollection, deleteCollection, updateCollection } from "@/actions/collections";
+import {
+  createCollection,
+  deleteCollection,
+  getCollectionOptions,
+  updateCollection,
+} from "@/actions/collections";
 import type { CollectionSummary } from "@/types/collections";
 
 vi.mock("@/auth", () => ({ auth: vi.fn() }));
 vi.mock("@/lib/db/collections", () => ({
+  getCollectionOptions: vi.fn(),
   createCollection: vi.fn(),
   updateCollection: vi.fn(),
   deleteCollection: vi.fn(),
@@ -165,6 +172,38 @@ describe("deleteCollection", () => {
     signIn();
     vi.mocked(deleteCollectionQuery).mockRejectedValue(new Error("db down"));
     await expect(deleteCollection("c1")).resolves.toEqual({
+      success: false,
+      error: "Something went wrong. Please try again.",
+    });
+  });
+});
+
+describe("getCollectionOptions", () => {
+  beforeEach(() => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  it("requires a session", async () => {
+    mockAuth.mockResolvedValue(null);
+    await expect(getCollectionOptions()).resolves.toEqual({
+      success: false,
+      error: "You must be signed in.",
+    });
+    expect(getCollectionOptionsQuery).not.toHaveBeenCalled();
+  });
+
+  it("returns the session user's collection options", async () => {
+    signIn("user-42");
+    const options = [{ id: "c1", name: "React Patterns" }];
+    vi.mocked(getCollectionOptionsQuery).mockResolvedValue(options);
+    await expect(getCollectionOptions()).resolves.toEqual({ success: true, data: options });
+    expect(getCollectionOptionsQuery).toHaveBeenCalledWith("user-42");
+  });
+
+  it("returns an error when the lookup fails", async () => {
+    signIn();
+    vi.mocked(getCollectionOptionsQuery).mockRejectedValue(new Error("db down"));
+    await expect(getCollectionOptions()).resolves.toEqual({
       success: false,
       error: "Something went wrong. Please try again.",
     });
