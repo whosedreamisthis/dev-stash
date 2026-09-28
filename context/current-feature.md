@@ -1,4 +1,4 @@
-# Current Feature: Collection Card Actions (Edit, Delete, Favorite)
+# Current Feature
 
 <!-- Feature name and short description -->
 
@@ -6,27 +6,15 @@
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- On `/collections/[id]`, add edit, delete and favorite buttons/icons for the collection.
-  - Favorite is icon/button only for now — no working favorite behavior yet.
-  - Edit opens a modal to edit the collection's metadata (name, description).
-  - Delete shows a confirmation dialog before deleting.
-  - Deleting a collection must NOT delete its items — items just stop belonging to that collection (remove the `ItemCollection` join rows, keep the `Item` rows).
-- On `CollectionCard` (used on `/collections` and the dashboard), the existing 3-dot icon opens a dropdown menu with Edit, Delete and Favorite options.
-  - Clicking anywhere else on the card still navigates to the collection's page.
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- `Collection` already has an `isFavorite` field in the schema; only the button/icon is needed now, not the toggle logic.
-- Reuse the existing delete-confirmation pattern from item delete (`Delete Item` feature) where possible.
-- Check whether `CollectionCard` already renders a 3-dot icon (per Completed Features, dashboard/collections cards exist) — confirm during implementation whether it's currently non-functional or absent.
 
 ## Completed Features
 
@@ -70,3 +58,4 @@ In Progress
 - **Collection Create:** top bar `NewCollectionDialog` (name + description) with `createCollection` action (`src/actions/collections.ts`), user-scoped query and Zod schema; refreshes on save.
 - **Add Items to Collections:** `CollectionSelector` multi-select in the new/edit item forms, options from `GET /api/collections`; queries link only the user's own collections.
 - **Collections Pages:** `/collections` grid of `CollectionCard`s and `/collections/[id]` with streamed `ItemCard`s; clicked collections show their name instantly (`src/lib/collection-preview.ts`).
+- **Collection Card Actions:** Edit/Delete (items kept) via `EditCollectionDialog` and `DeleteCollectionDialog` in the collection header and a `CollectionCard` 3-dot menu; Favorite shown but disabled.
