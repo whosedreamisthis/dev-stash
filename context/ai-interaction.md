@@ -23,7 +23,7 @@ This is the common workflow that we will use for every single feature/fix:
 7. **Merge** - Merge to main
 8. **Delete Branch** - Delete branch after merge
 9. **Review** - Review AI-generated code periodically and on demand.
-10. Mark as completed in @context/current-feature.md and add to history
+10. Mark as completed in @context/current-feature.md (with a one-line entry in its Completed Features list) and add the full summary to `context/feature-history.md`
 
 Do NOT commit without permission and until the tests and build pass. If either fails, fix the issues first.
 
@@ -50,7 +50,7 @@ We will create a new branch for every feature/fix. Name branch **feature/[featur
 - Don't refactor unrelated code unless asked
 - Don't add "nice to have" features
 - Preserve existing patterns in the codebase
-- When updating current-feature.md status to completed, clear all the sections except for history and add the feature to history section in same file
+- When updating current-feature.md status to completed, clear its feature description, Goals and Notes, add a one-line entry to the end of its Completed Features list, and append the full summary to the end of `context/feature-history.md`
 
 ## Code Review
 

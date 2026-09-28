@@ -20,7 +20,11 @@ current-feature.md has these sections:
 - `## Status` - Not Started | In Progress | Complete
 - `## Goals` - Bullet points of what success looks like
 - `## Notes` - Additional context, constraints, or details from spec
-- `## History` - Completed features (append only)
+- `## Completed Features` - One short line per completed feature (append only, earliest to latest), so every session knows what exists
+
+### History File
+
+Full summaries of completed features are recorded in `context/feature-history.md` (append only, earliest to latest). It isn't imported here or in `CLAUDE.md`, so it stays out of every session's context; read it only when the one-line entry isn't enough.
 
 ## Task
 
