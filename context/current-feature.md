@@ -2,37 +2,19 @@
 
 <!-- Feature name and short description -->
 
-File List View: show `/items/files` as a single-column file list (like Google Drive or Dropbox) instead of grid cards.
-
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- Single-column list of rows on `/items/files` instead of the card grid
-- Each row shows a file icon chosen by extension, the file name, the file size, the upload date and a download button
-- Rows highlight on hover
-- Clicking a row opens the item drawer
-- The download button downloads the file directly and doesn't open the drawer (stops propagation)
-- Responsive: the row's details stack vertically on mobile
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Spec: `context/features/file-display-spec.md`
-- `/items/[type]` renders `ItemGrid`, which already switches layouts by type through `src/lib/item-grid.ts` (the images gallery); files become a second special layout there, with a matching `ItemGridSkeleton` variant for the page's Suspense fallback and `loading.tsx`.
-- `ItemSummary` has no file fields. `getItemsByType` already loads full item rows, so `toItemSummary` (or a file-row mapping) only needs to pass `fileName` and `fileSize` through; no schema change.
-- Open question: the spec says the row shows the file name, but items also have a title. Likely the title as the main text with the file name beside or below it, or the file name alone.
-- Download goes through the existing proxy `/api/items/[id]/file`, reusing the `<a download>` pattern from `ItemFileContent`. With `ItemCard`'s full-card overlay button, the download link needs to sit above the overlay (z-index) as well as stop propagation.
-- Upload date = the item's `createdAt`. File size uses `formatFileSize` from `src/lib/upload-constraints.ts`.
-- Extension-to-icon mapping (e.g. pdf/txt/md → `FileText`, json → `FileJson`, csv → `FileSpreadsheet`, xml/yaml/yml/toml/ini → `FileCode`, fallback `File`) is a pure utility worth a unit test.
-- Dashboard pinned and recent lists keep `ItemCard` for files, as with images.
 
 ## Completed Features
 
@@ -69,3 +51,4 @@ In Progress
 - **Markdown Editor:** `MarkdownEditor` with Write/Preview tabs for notes and prompts.
 - **File & Image Upload:** UploadThing uploads with server-signed upload tokens, `FileUpload` component, download proxy `/api/items/[id]/file`; no Pro check yet.
 - **Image Gallery View:** `/items/images` shows `ImageThumbnailCard` thumbnails in a 1/2/3-column gallery; layout shared via `src/lib/item-grid.ts`.
+- **File List View:** `/items/files` shows `FileListRow` rows with extension icons (`src/lib/file-icons.ts`, `FileTypeIcon`) and a Download button.
