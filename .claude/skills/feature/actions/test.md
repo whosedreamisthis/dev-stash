@@ -1,6 +1,6 @@
 # Test Action
 
-Before anything else, show the full todo list for this action (the steps below, with the functions to test listed once they're identified) and repost it before every step, as described in the **Todo List** section of `context/ai-interaction.md`.
+Before anything else, show the full todo list for this action (the steps below, with the functions to test listed once they're identified) then work one step per turn, ending each turn with the updated list and waiting for "continue", as described in the **Todo List** section of `context/ai-interaction.md`.
 
 1. Read current-feature.md to understand what was implemented
 2. Identify server actions and utility functions added/modified for this feature

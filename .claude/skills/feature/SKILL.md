@@ -47,8 +47,8 @@ If no action provided, explain the available options.
 
 Every action, not just implementation, follows the **Todo List** section of `context/ai-interaction.md`:
 
-- Break the action into numbered steps and show the full list before doing anything, including reading files or running commands.
-- Repost the full list before every step, in the message immediately before that step's tool calls.
-- Format: completed steps `- [x] ~~N. step~~`, the current step `- [ ] **N. step ← current**` with one line saying what it does, and pending steps `- [ ] N. step`.
+- Break the action into numbered steps and end the turn with the full list before doing anything, including reading files or running commands.
+- One step per turn: do one step, then end the turn with the full, updated list as the final message and wait for "continue". Text between tool calls mid-turn isn't visible to the user, so never rely on it for the list.
+- Format: completed steps `- [x] ~~N. step~~`, the current step `- [ ] **N. step ← current**` with one line saying what it will do, and pending steps `- [ ] N. step`.
 - Never merge steps into ranges, drop completed ones or renumber them. If a step is added mid-way, say so.
 - End with the final list, all steps checked, followed by the summary.

@@ -13,8 +13,8 @@
 
 Every piece of work on a feature or fix is tracked with a visible todo list. This applies to **every** action, not just implementation: loading a spec (`/feature load`), starting (status update, branch creation, reading code), implementing, testing, reviewing, and completing (commit, merge, branch delete, context reset, push).
 
-1. **Plan first.** At the very start of an action, break it into numbered steps and show the full list before doing anything, including before reading files or running commands.
-2. **Show it before every step.** Before each step, repost the **full** list in the message immediately before that step's tool calls (edits, commands, file creation), so I see it before approving anything. Don't just show it once at the start or only at the end.
+1. **Plan first.** At the very start of an action, break it into numbered steps and end the turn with the full list, before doing anything, including before reading files or running commands.
+2. **One step per turn.** Do one step, then end the turn with the **full**, updated list as the final message (the next step marked current) and wait for me to say "continue". Text written between tool calls in the middle of a turn doesn't show up in my editor, so the list must be the final message of the turn, never only a message between tool calls. Don't run several steps in one turn.
 3. **Use this exact format:**
 
    ```
@@ -26,7 +26,7 @@ Every piece of work on a feature or fix is tracked with a visible todo list. Thi
    - Completed steps: checked **and** struck through
    - Current step: unchecked, bold, marked `← current`
    - Pending steps: unchecked, plain text
-4. **Say what the current step does.** Under the list, add one line saying what the current step does and why.
+4. **Say what the current step does.** Under the list, add one line saying what the current step will do and why.
 5. **Never merge, drop or renumber steps.** Don't collapse steps into ranges like "1–5", and don't leave completed steps out. If a new step turns out to be needed, add it to the list and say so.
 6. **Finish with the list.** When the action is done, show the final list with every step checked and struck through, followed by the summary.
 
