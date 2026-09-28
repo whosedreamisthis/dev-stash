@@ -1,5 +1,6 @@
 import { Calendar, FolderOpen, Tag } from "lucide-react";
 import { CodeEditor } from "@/components/items/CodeEditor";
+import { ItemFileContent } from "@/components/items/ItemFileContent";
 import { MarkdownEditor } from "@/components/items/MarkdownEditor";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getSafeHttpUrl } from "@/lib/url";
@@ -47,9 +48,7 @@ function ItemContent({ item }: { item: ItemDetail }) {
     );
   }
 
-  if (item.contentType === "FILE") {
-    return <p className="break-all">{item.fileName ?? "Untitled file"}</p>;
-  }
+  if (item.contentType === "FILE") return <ItemFileContent item={item} />;
 
   if (!item.content) return <p className="text-muted-foreground">No content</p>;
 
@@ -70,6 +69,12 @@ function ItemContent({ item }: { item: ItemDetail }) {
   );
 }
 
+function getContentTitle(item: ItemDetail) {
+  if (item.contentType === "URL") return "URL";
+  if (item.contentType === "FILE") return item.type.slug === "images" ? "Image" : "File";
+  return "Content";
+}
+
 export function ItemDetailSections({ item }: { item: ItemDetail }) {
   return (
     <div className="flex flex-col gap-8">
@@ -78,7 +83,7 @@ export function ItemDetailSections({ item }: { item: ItemDetail }) {
           <p>{item.description}</p>
         </Section>
       )}
-      <Section title={item.contentType === "URL" ? "URL" : "Content"}>
+      <Section title={getContentTitle(item)}>
         <ItemContent item={item} />
       </Section>
       {item.tags.length > 0 && (

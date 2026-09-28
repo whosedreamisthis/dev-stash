@@ -2,7 +2,7 @@
 
 <!-- Feature name and short description -->
 
-Markdown Editor: a Markdown editor component for notes and prompts, with Write/Preview tabs, GitHub Flavored Markdown and dark theme styling.
+File & Image Upload: upload files and images through UploadThing, with drag-and-drop, progress, previews, downloads and deletes.
 
 ## Status
 
@@ -14,27 +14,33 @@ In Progress
 
 <!-- Goals and requirements -->
 
-- Create a `MarkdownEditor` component with a tabbed Write/Preview interface
-- Replace the Textarea with `MarkdownEditor` for notes and prompts only
-- Keep `CodeEditor` for snippets and commands, unchanged
-- Render Markdown with `react-markdown` and `remark-gfm` (GitHub Flavored Markdown)
-- Match the dark theme styling of `CodeEditor` (neutral palette: `#171717` body, `neutral-950/60` header, `neutral-800` borders) instead of the spec's `#1e1e1e` / `#2d2d2d`, so both editors look the same
-- Add a copy button in the header, styled like the `CodeEditor` one
-- Support display (read-only) and edit modes: read-only shows only the Preview tab; edit mode defaults to Write with Preview available
-- Style the preview through a custom `.markdown-preview` CSS class: distinct h1–h6 sizes and weights, dark monospace code blocks, inline code with a subtle background, indented lists with bullets and numbers, blockquotes with a left border accent, blue links with a hover state, and tables with borders and a header background
-- Fluid height with a max of 400px, matching `CodeEditor`
-- Use it in the New Item dialog, the drawer's edit form and the drawer's view mode (read-only) for note and prompt content
+- Add the UploadThing upload API route (file router with separate image and file endpoints)
+- Keep Prisma/database functions in `src/lib/db/items.ts`
+- Create a `FileUpload` component with drag-and-drop and an upload progress indicator
+- Add the File and Image types to the New Item dialog, using `FileUpload` for them
+- Enforce the file constraints: images up to 5 MB (`.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.svg`), files up to 10 MB (`.pdf`, `.txt`, `.md`, `.json`, `.yaml`, `.yml`, `.xml`, `.csv`, `.toml`, `.ini`), with the spec's MIME types
+- Save the uploaded file's URL/key, name, size and MIME type on the item (`fileUrl`, `fileName`, `fileSize`, `fileMimeType`)
+- Delete the file from UploadThing when its item is deleted
+- Add a download proxy API route (avoids CORS issues), scoped to the signed-in user's items
+- Add a download button in the item drawer for file and image items
+- Show an image preview for images and file info (name, size, type) for files
 
 ## Notes
 
 <!-- Any extra notes -->
 
-- Spec: `context/features/markdown-editor-spec.md`
-- The spec's colors (`#1e1e1e` container, `#2d2d2d` header) are VS Code's dark grays, while `CodeEditor` uses the app's neutral palette (`#171717` editor, `neutral-950/60` header, `neutral-800` borders). Decided: match `CodeEditor`.
-- Notes and prompts are the text types outside `LANGUAGE_TYPE_SLUGS`; today they use a Textarea in the edit form and New Item dialog and a plain preformatted block in the drawer's view mode.
-- `react-markdown` doesn't render raw HTML by default, so user content can't inject markup; keep it that way (no `rehype-raw`).
-- Links in the preview should open in a new tab with `rel="noopener noreferrer"`.
-- The copy button's clipboard/toast logic now exists in `CodeEditor`; it can be shared rather than duplicated.
+- Spec: `context/features/file-image-spec.md`
+- The spec's title says Cloudflare R2 (as does the project overview), but its requirements say UploadThing. The `.env` has UploadThing keys, so UploadThing is assumed; confirm before starting.
+- Env keys in `.env`: `UPLOADTHING_TOKEN` and `UPLOAD_THING_SECRET_KEY`. Current UploadThing versions only need `UPLOADTHING_TOKEN`; check the docs (Context7) before wiring it up.
+- File and Image are Pro-only types (`isProOnly`). Uploads should go through `hasProAccess` in `src/lib/plan.ts` (everyone has access during development), and the server must check auth in the upload route's middleware.
+- `createItemSchema` limits `typeSlug` to `CREATABLE_TYPE_SLUGS`, which excludes files and images today; `isCreatableTypeSlug` also controls the `/items/[type]` add button, so adding them makes "New File" / "New Image" buttons appear.
+- The server should only trust file metadata that comes from UploadThing (e.g. the upload callback), not client-supplied URLs.
+- SVGs can carry scripts; serve them from UploadThing's domain or with `Content-Disposition: attachment` / a safe content type through the proxy, never inline from the app's origin.
+- The drawer's view mode currently shows only the file name for FILE items.
+- No schema change should be needed: `Item` already has the file columns.
+- Implemented: files upload on drop; UploadThing's server callback returns an HMAC-signed upload token (`src/lib/upload-token.ts`, keyed from `AUTH_SECRET`, 1-hour expiry, bound to the user and type), and `createItem` only accepts a file whose token checks out. `fileUrl` stores the UploadThing key.
+- UploadThing route limits must be powers of two (8 MB images, 16 MB blob for files); the middleware enforces the exact 5/10 MB limits and extensions. Files are checked by extension only because browsers report inconsistent MIME types for text files.
+- Known gaps: files uploaded and then abandoned (dialog cancelled, type switched, file replaced) stay in UploadThing; deleting an account cascades items but doesn't delete their files. `UPLOAD_THING_SECRET_KEY` is unused.
 
 ## History
 
@@ -68,3 +74,4 @@ In Progress
 - **Item Create:** The top bar's "New Item" button opens the new `NewItemDialog`, a shadcn Dialog (capped at 32rem) for creating snippets, prompts, commands, notes and links; File and Image are left out until R2 uploads exist. A type selector of `aria-pressed` toggle buttons highlights the selected type with a border and tint in its color. Title (required), description and comma-separated tags show for every type, content for text types, language for snippets and commands, and a required URL for links; only the selected type's fields are sent. Editing a field clears its error and switching types clears all errors, and Create is disabled until the title (and a link's URL) is filled. On success a "Snippet created" style toast shows, the dialog closes and `router.refresh()` updates card lists, stats and sidebar counts; the form resets each time the dialog opens. `createItemSchema` in `src/lib/validations/items.ts` extends `updateItemSchema` with a `typeSlug` limited to `CREATABLE_TYPE_SLUGS` and requires a URL for links; `LANGUAGE_TYPE_SLUGS` moved there so the query, edit form and dialog share it. The `createItem` server action in `src/actions/items.ts` checks the session, validates with Zod and returns `{ success, data, error, fieldErrors }`, sharing a `toFieldErrors` helper with `updateItem`. The `createItem` query in `src/lib/db/items.ts` looks up the system type by slug on the server (never a client-supplied type ID), saves only the fields that belong to its content type, connects or creates the user's tags and returns the `ItemDetail`, or null when the type is missing. The edit form's field wrapper was extracted into a shared `ItemFormField` component. Added 21 Vitest tests (84 in total) for the schema, query and action. No migration was needed.
 - **Item Type Dropdown:** The New Item dialog's row of toggle buttons was replaced with a shadcn Select dropdown (new `src/components/ui/select.tsx`, built on Base UI). The full-width "Type" field is labelled through the shared `ItemFormField`; each option shows the type's colored icon and name with a check mark on the selected one, and the closed dropdown shows the chosen type's icon and name through a `Select.Value` render function. Snippet stays the default, and changing the type still shows the matching fields and clears field errors. The toggle buttons' type-colored highlight classes were removed. UI-only change: no server, schema or test changes.
 - **Code Editor:** Snippets and commands now use a Monaco code editor (`@monaco-editor/react`, which loads Monaco from the jsDelivr CDN) in the item drawer's view mode, the drawer's edit form and the New Item dialog; notes and prompts keep the Textarea and plain preformatted block. The client `CodeEditor` component in `src/components/items/` has a custom `devstash-dark` theme matched to the app's neutral palette with a thin theme-colored scrollbar, and a header with macOS-style red/yellow/green window dots, the item's language and a copy button (disabled when empty; shows a check and a toast). It supports read-only mode (no context menu or line highlight) and edit mode, grows with its content up to 400px before scrolling (at least 160px when editing), and lets mouse-wheel scrolling pass to the page when it has nothing left to scroll. `src/lib/code-editor.ts` maps free-text languages to Monaco IDs (`ts` → `typescript`, `bash` → `shell`, empty → `plaintext`) and computes the capped height; while editing, the header language follows the Language field. Each `/items/[type]` page header also has a type-specific add button (e.g. "New Snippet") through a new `action` slot on `ItemsHeader`, shown on the page and its loading state; `NewItemDialog` takes an optional `defaultType` that preselects the type and names the button, while the top bar button still says "New Item". `isCreatableTypeSlug` in `src/lib/validations/items.ts` limits the button to creatable types, so Files, Images and unknown slugs get none. Clicking the Content label doesn't focus the editor, which has its own accessible label. Added 10 Vitest tests (94 in total). No migration was needed.
+- **Markdown Editor:** Notes and prompts use a new `MarkdownEditor` component with Write/Preview tabs in the New Item dialog, the drawer's edit form and the drawer's read-only view (Preview only), rendering GitHub Flavored Markdown with `react-markdown` and `remark-gfm` (no raw HTML; links open in a new tab with `rel="noopener noreferrer"`). It matches `CodeEditor`'s neutral dark styling, has a header copy button, grows up to 400px, and styles the preview through a `.markdown-preview` CSS class (headings, code blocks, inline code, lists, blockquotes, links and tables). Snippets and commands keep `CodeEditor`.

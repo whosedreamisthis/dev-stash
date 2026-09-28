@@ -17,6 +17,8 @@ export interface ItemDetail extends ItemSummary {
   language: string | null;
   url: string | null;
   fileName: string | null;
+  fileSize: number | null;
+  fileMimeType: string | null;
   updatedAt: Date;
   collections: { id: string; name: string }[];
 }

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { isUploadTypeSlug } from "@/lib/upload-constraints";
 import {
   CREATABLE_TYPE_SLUGS,
   createItemSchema,
@@ -64,10 +65,21 @@ describe("createItemSchema", () => {
     }
   });
 
-  it.each(["files", "images", "unknown", ""])("rejects the type %s", (typeSlug) => {
+  it.each(["unknown", ""])("rejects the type %s", (typeSlug) => {
     const result = createItemSchema.safeParse({ ...VALID, typeSlug });
     expect(result.success).toBe(false);
     expect(result.error?.issues[0].message).toBe("Choose an item type");
+  });
+
+  it.each(["files", "images"])("requires an upload token for %s", (typeSlug) => {
+    const result = createItemSchema.safeParse({ ...VALID, typeSlug });
+    expect(result.error?.issues[0]).toMatchObject({
+      message: "Upload a file",
+      path: ["uploadToken"],
+    });
+    expect(
+      createItemSchema.safeParse({ ...VALID, typeSlug, uploadToken: "token" }).success
+    ).toBe(true);
   });
 
   it.each([undefined, "", "   "])("requires a URL for links (%s)", (url) => {
@@ -97,22 +109,25 @@ describe("createItemSchema", () => {
 
 describe("isCreatableTypeSlug", () => {
   it("accepts the types the New Item dialog can create", () => {
-    for (const slug of ["snippets", "prompts", "commands", "notes", "links"]) {
+    for (const slug of ["snippets", "prompts", "commands", "notes", "links", "files", "images"]) {
       expect(isCreatableTypeSlug(slug)).toBe(true);
     }
   });
 
-  it("rejects upload types and unknown slugs", () => {
-    for (const slug of ["files", "images", "recipes", "Snippets", ""]) {
+  it("rejects unknown slugs", () => {
+    for (const slug of ["recipes", "Snippets", ""]) {
       expect(isCreatableTypeSlug(slug)).toBe(false);
     }
   });
 });
 
 describe("content editor types", () => {
-  // The New Item dialog shows the code editor or the Markdown editor for every non-link type
+  // The New Item dialog shows the code editor or the Markdown editor for every text type
   it("puts each creatable text type in exactly one of the code and Markdown sets", () => {
-    for (const slug of CREATABLE_TYPE_SLUGS.filter((slug) => slug !== "links")) {
+    const textSlugs = CREATABLE_TYPE_SLUGS.filter(
+      (slug) => slug !== "links" && !isUploadTypeSlug(slug)
+    );
+    for (const slug of textSlugs) {
       expect(LANGUAGE_TYPE_SLUGS.has(slug) !== MARKDOWN_TYPE_SLUGS.has(slug)).toBe(true);
     }
   });

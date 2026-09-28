@@ -6,6 +6,8 @@ import {
   deleteItem as deleteItemQuery,
   updateItem as updateItemQuery,
 } from "@/lib/db/items";
+import { createUploadToken } from "@/lib/upload-token";
+import { deleteUploadedFile } from "@/lib/uploadthing";
 import { createItem, deleteItem, updateItem } from "@/actions/items";
 import type { ItemDetail } from "@/types/items";
 
@@ -15,6 +17,15 @@ vi.mock("@/lib/db/items", () => ({
   updateItem: vi.fn(),
   deleteItem: vi.fn(),
 }));
+vi.mock("@/lib/uploadthing", () => ({ deleteUploadedFile: vi.fn() }));
+
+const UPLOADED_FILE = {
+  typeSlug: "images" as const,
+  key: "abc_photo.png",
+  name: "photo.png",
+  size: 2048,
+  mimeType: "image/png",
+};
 
 // auth() is overloaded (it also wraps middleware), so narrow it to the session getter
 const mockAuth = auth as unknown as Mock<() => Promise<Session | null>>;
@@ -53,9 +64,69 @@ describe("createItem", () => {
 
   it("rejects types that can't be created", async () => {
     signIn();
-    const result = await createItem({ ...CREATE_INPUT, typeSlug: "files" as never });
+    const result = await createItem({ ...CREATE_INPUT, typeSlug: "videos" as never });
     expect(result.fieldErrors?.typeSlug).toBe("Choose an item type");
     expect(createItemQuery).not.toHaveBeenCalled();
+  });
+
+  describe("with an upload", () => {
+    const IMAGE_INPUT = { ...INPUT, typeSlug: "images" as const };
+
+    beforeEach(() => {
+      vi.stubEnv("AUTH_SECRET", "test-secret");
+    });
+
+    it("requires an upload for file types", async () => {
+      signIn();
+      const result = await createItem(IMAGE_INPUT);
+      expect(result.fieldErrors?.uploadToken).toBe("Upload a file");
+      expect(createItemQuery).not.toHaveBeenCalled();
+    });
+
+    it("creates the item with the file from the signed upload token", async () => {
+      signIn("user-42");
+      const created = { id: "item-1", title: "useAuth Hook" } as ItemDetail;
+      vi.mocked(createItemQuery).mockResolvedValue(created);
+      const uploadToken = createUploadToken("user-42", UPLOADED_FILE);
+      await expect(createItem({ ...IMAGE_INPUT, uploadToken })).resolves.toEqual({
+        success: true,
+        data: created,
+      });
+      expect(createItemQuery).toHaveBeenCalledWith(
+        "user-42",
+        expect.objectContaining({ typeSlug: "images" }),
+        UPLOADED_FILE
+      );
+    });
+
+    it("rejects another user's, tampered or mismatched upload tokens", async () => {
+      signIn("user-42");
+      const tokens = [
+        createUploadToken("user-1", UPLOADED_FILE),
+        `${createUploadToken("user-42", UPLOADED_FILE)}x`,
+        createUploadToken("user-42", { ...UPLOADED_FILE, typeSlug: "files" }),
+      ];
+      for (const uploadToken of tokens) {
+        const result = await createItem({ ...IMAGE_INPUT, uploadToken });
+        expect(result.success).toBe(false);
+        expect(result.fieldErrors?.uploadToken).toBe(
+          "The upload has expired. Please upload the file again."
+        );
+      }
+      expect(createItemQuery).not.toHaveBeenCalled();
+    });
+
+    it("ignores upload tokens for types without files", async () => {
+      signIn("user-42");
+      vi.mocked(createItemQuery).mockResolvedValue({ id: "item-1" } as ItemDetail);
+      const uploadToken = createUploadToken("user-42", UPLOADED_FILE);
+      await createItem({ ...CREATE_INPUT, uploadToken });
+      expect(createItemQuery).toHaveBeenCalledWith(
+        "user-42",
+        expect.objectContaining({ typeSlug: "snippets" }),
+        undefined
+      );
+    });
   });
 
   it("creates the parsed input for the session user and returns the item", async () => {
@@ -63,13 +134,17 @@ describe("createItem", () => {
     const created = { id: "item-1", title: "useAuth Hook" } as ItemDetail;
     vi.mocked(createItemQuery).mockResolvedValue(created);
     await expect(createItem(CREATE_INPUT)).resolves.toEqual({ success: true, data: created });
-    expect(createItemQuery).toHaveBeenCalledWith("user-42", {
-      typeSlug: "snippets",
-      title: "useAuth Hook",
-      description: null,
-      content: "  code",
-      tags: ["react"],
-    });
+    expect(createItemQuery).toHaveBeenCalledWith(
+      "user-42",
+      {
+        typeSlug: "snippets",
+        title: "useAuth Hook",
+        description: null,
+        content: "  code",
+        tags: ["react"],
+      },
+      undefined
+    );
   });
 
   it("reports a missing item type", async () => {
@@ -171,17 +246,25 @@ describe("deleteItem", () => {
 
   it("deletes the item for the session user and returns its ID", async () => {
     signIn("user-42");
-    vi.mocked(deleteItemQuery).mockResolvedValue(true);
+    vi.mocked(deleteItemQuery).mockResolvedValue({ fileKey: null });
     await expect(deleteItem("item-1")).resolves.toEqual({
       success: true,
       data: { id: "item-1" },
     });
     expect(deleteItemQuery).toHaveBeenCalledWith("user-42", "item-1");
+    expect(deleteUploadedFile).not.toHaveBeenCalled();
+  });
+
+  it("deletes the item's file from UploadThing", async () => {
+    signIn();
+    vi.mocked(deleteItemQuery).mockResolvedValue({ fileKey: "abc_photo.png" });
+    await expect(deleteItem("item-1")).resolves.toMatchObject({ success: true });
+    expect(deleteUploadedFile).toHaveBeenCalledWith("abc_photo.png");
   });
 
   it("reports a missing or another user's item as not found", async () => {
     signIn();
-    vi.mocked(deleteItemQuery).mockResolvedValue(false);
+    vi.mocked(deleteItemQuery).mockResolvedValue(null);
     await expect(deleteItem("item-1")).resolves.toEqual({
       success: false,
       error: "Item not found.",

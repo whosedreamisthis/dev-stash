@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isUploadTypeSlug } from "@/lib/upload-constraints";
 
 // Empty inputs clear the field; undefined leaves it unchanged
 function emptyToNull(value: string | null | undefined) {
@@ -23,13 +24,14 @@ export const updateItemSchema = z.object({
 export type UpdateItemInput = z.input<typeof updateItemSchema>;
 export type UpdateItemData = z.output<typeof updateItemSchema>;
 
-// File and Image need uploads, so they can't be created from the form yet
 export const CREATABLE_TYPE_SLUGS = [
   "snippets",
   "prompts",
   "commands",
   "notes",
   "links",
+  "files",
+  "images",
 ] as const;
 
 export type CreatableTypeSlug = (typeof CREATABLE_TYPE_SLUGS)[number];
@@ -47,10 +49,16 @@ export const MARKDOWN_TYPE_SLUGS: ReadonlySet<string> = new Set(["notes", "promp
 export const createItemSchema = updateItemSchema
   .extend({
     typeSlug: z.enum(CREATABLE_TYPE_SLUGS, "Choose an item type"),
+    // Signed by the server after the upload; checked in the createItem action
+    uploadToken: z.string().trim().min(1).optional(),
   })
   .refine((data) => data.typeSlug !== "links" || data.url, {
     message: "URL is required",
     path: ["url"],
+  })
+  .refine((data) => !isUploadTypeSlug(data.typeSlug) || data.uploadToken, {
+    message: "Upload a file",
+    path: ["uploadToken"],
   });
 
 export type CreateItemInput = z.input<typeof createItemSchema>;

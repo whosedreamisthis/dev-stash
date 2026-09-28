@@ -6,6 +6,7 @@ import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { createItem, type CreateItemFieldErrors } from "@/actions/items";
 import { CodeEditor } from "@/components/items/CodeEditor";
+import { FileUpload } from "@/components/items/FileUpload";
 import { ItemFormField } from "@/components/items/ItemFormField";
 import { MarkdownEditor } from "@/components/items/MarkdownEditor";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { ITEM_TYPE_SLUG_ICONS, ITEM_TYPE_TEXT_COLORS } from "@/lib/item-type-icons";
+import { isUploadTypeSlug } from "@/lib/upload-constraints";
 import {
   CREATABLE_TYPE_SLUGS,
   LANGUAGE_TYPE_SLUGS,
@@ -43,6 +45,8 @@ const TYPE_LABELS: Record<CreatableTypeSlug, string> = {
   commands: "Command",
   notes: "Note",
   links: "Link",
+  files: "File",
+  images: "Image",
 };
 
 const EMPTY_VALUES = {
@@ -57,16 +61,22 @@ const EMPTY_VALUES = {
 type FormValues = typeof EMPTY_VALUES;
 
 // Sends only the fields that belong to the selected type
-function toPayload(typeSlug: CreatableTypeSlug, values: FormValues): CreateItemInput {
+function toPayload(
+  typeSlug: CreatableTypeSlug,
+  values: FormValues,
+  uploadToken: string | null
+): CreateItemInput {
   const isLink = typeSlug === "links";
+  const isUpload = isUploadTypeSlug(typeSlug);
   return {
     typeSlug,
     title: values.title,
     description: values.description,
     tags: parseTagInput(values.tags),
-    ...(!isLink && { content: values.content }),
+    ...(!isLink && !isUpload && { content: values.content }),
     ...(LANGUAGE_TYPE_SLUGS.has(typeSlug) && { language: values.language }),
     ...(isLink && { url: values.url }),
+    ...(isUpload && uploadToken && { uploadToken }),
   };
 }
 
@@ -123,11 +133,19 @@ function NewItemForm({ defaultType, onCreated }: NewItemFormProps) {
   const [typeSlug, setTypeSlug] = useState<CreatableTypeSlug>(defaultType);
   const [values, setValues] = useState(EMPTY_VALUES);
   const [fieldErrors, setFieldErrors] = useState<CreateItemFieldErrors>({});
+  const [uploadToken, setUploadToken] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const isLink = typeSlug === "links";
+  const uploadType = isUploadTypeSlug(typeSlug) ? typeSlug : null;
+  const isUpload = uploadType !== null;
   const isCode = LANGUAGE_TYPE_SLUGS.has(typeSlug);
-  const canSubmit = values.title.trim() && (!isLink || values.url.trim());
+  const canSubmit =
+    values.title.trim() &&
+    (!isLink || values.url.trim()) &&
+    (!isUpload || uploadToken) &&
+    !isUploading;
 
   // Editing a field clears its error so fixed fields stop showing one
   function setValue(field: keyof FormValues) {
@@ -143,16 +161,23 @@ function NewItemForm({ defaultType, onCreated }: NewItemFormProps) {
     setFieldErrors((prev) => ({ ...prev, content: undefined }));
   }
 
-  // Errors belong to the previous type's fields, so they're cleared
+  function handleUploaded(token: string | null) {
+    setUploadToken(token);
+    setFieldErrors((prev) => ({ ...prev, uploadToken: undefined }));
+  }
+
+  // Errors and uploads belong to the previous type, so they're cleared
   function handleTypeChange(slug: CreatableTypeSlug) {
     setTypeSlug(slug);
     setFieldErrors({});
+    setUploadToken(null);
+    setIsUploading(false);
   }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     startTransition(async () => {
-      const result = await createItem(toPayload(typeSlug, values));
+      const result = await createItem(toPayload(typeSlug, values, uploadToken));
       if (!result.success) {
         setFieldErrors(result.fieldErrors ?? {});
         toast.error(result.error ?? "Couldn't create the item");
@@ -194,7 +219,28 @@ function NewItemForm({ defaultType, onCreated }: NewItemFormProps) {
             <Textarea {...props} value={values.description} onChange={setValue("description")} />
           )}
         </ItemFormField>
-        {!isLink && (
+        {uploadType && (
+          <ItemFormField
+            id="new-item-file"
+            label={TYPE_LABELS[uploadType]}
+            error={fieldErrors.uploadToken}
+          >
+            {(props) => (
+              <FileUpload
+                // Remounts for each type so a previous upload isn't shown
+                key={uploadType}
+                id={props.id}
+                typeSlug={uploadType}
+                onUploaded={handleUploaded}
+                onUploadingChange={setIsUploading}
+                disabled={isPending}
+                invalid={props["aria-invalid"]}
+                aria-describedby={props["aria-describedby"]}
+              />
+            )}
+          </ItemFormField>
+        )}
+        {!isLink && !isUpload && (
           <ItemFormField id="new-item-content" label="Content" error={fieldErrors.content}>
             {(props) =>
               isCode ? (

@@ -1,6 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { prisma } from "@/lib/db";
-import { createItem, deleteItem, getItemDetail, updateItem } from "@/lib/db/items";
+import {
+  createItem,
+  deleteItem,
+  getItemDetail,
+  getItemFile,
+  updateItem,
+} from "@/lib/db/items";
 
 vi.mock("@/lib/db", () => ({
   prisma: {
@@ -27,6 +33,8 @@ const ITEM_ROW = {
   language: "typescript",
   url: null,
   fileName: null,
+  fileSize: null,
+  fileMimeType: null,
   isPinned: true,
   isFavorite: false,
   createdAt: CREATED_AT,
@@ -70,6 +78,8 @@ describe("getItemDetail", () => {
       language: "typescript",
       url: null,
       fileName: null,
+      fileSize: null,
+      fileMimeType: null,
       collections: [{ id: "c1", name: "React Patterns" }],
     });
   });
@@ -221,6 +231,46 @@ describe("createItem", () => {
     });
   });
 
+  it("saves the uploaded file's key, name, size and type for file types", async () => {
+    findType.mockResolvedValue({ id: "t6", contentType: "FILE" } as never);
+    create.mockResolvedValue(ITEM_ROW as never);
+    await createItem("user-1", { ...DATA, typeSlug: "files" }, {
+      typeSlug: "files",
+      key: "abc_notes.md",
+      name: "notes.md",
+      size: 1200,
+      mimeType: "text/markdown",
+    });
+    expect(createData()).toMatchObject({
+      contentType: "FILE",
+      content: null,
+      url: null,
+      fileUrl: "abc_notes.md",
+      fileName: "notes.md",
+      fileSize: 1200,
+      fileMimeType: "text/markdown",
+    });
+  });
+
+  it("returns null without creating a file type that has no upload", async () => {
+    findType.mockResolvedValue({ id: "t6", contentType: "FILE" } as never);
+    await expect(createItem("user-1", { ...DATA, typeSlug: "files" })).resolves.toBeNull();
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("doesn't save file fields for other types", async () => {
+    findType.mockResolvedValue({ id: "t1", contentType: "TEXT" } as never);
+    create.mockResolvedValue(ITEM_ROW as never);
+    await createItem("user-1", DATA, {
+      typeSlug: "files",
+      key: "abc_notes.md",
+      name: "notes.md",
+      size: 1200,
+      mimeType: "text/markdown",
+    });
+    expect(createData()).toMatchObject({ fileUrl: null, fileName: null, fileSize: null });
+  });
+
   it("connects or creates each tag for the user", async () => {
     findType.mockResolvedValue({ id: "t1", contentType: "TEXT" } as never);
     create.mockResolvedValue(ITEM_ROW as never);
@@ -241,14 +291,70 @@ describe("createItem", () => {
 describe("deleteItem", () => {
   const deleteMany = vi.mocked(prisma.item.deleteMany);
 
-  it("scopes the delete to the user and reports success", async () => {
+  it("scopes the delete to the user and returns the item's file key", async () => {
+    findFirst.mockResolvedValue({ fileUrl: "abc_photo.png" } as never);
     deleteMany.mockResolvedValue({ count: 1 });
-    await expect(deleteItem("user-1", "item-1")).resolves.toBe(true);
+    await expect(deleteItem("user-1", "item-1")).resolves.toEqual({ fileKey: "abc_photo.png" });
+    expect(findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: "item-1", userId: "user-1" } })
+    );
     expect(deleteMany).toHaveBeenCalledWith({ where: { id: "item-1", userId: "user-1" } });
   });
 
-  it("returns false when the item is missing or not the user's", async () => {
+  it("returns a null file key for items without a file", async () => {
+    findFirst.mockResolvedValue({ fileUrl: null } as never);
+    deleteMany.mockResolvedValue({ count: 1 });
+    await expect(deleteItem("user-1", "item-1")).resolves.toEqual({ fileKey: null });
+  });
+
+  it("returns null without deleting when the item is missing or not the user's", async () => {
+    findFirst.mockResolvedValue(null);
+    await expect(deleteItem("user-1", "item-1")).resolves.toBeNull();
+    expect(deleteMany).not.toHaveBeenCalled();
+  });
+
+  it("returns null when the item was deleted in the meantime", async () => {
+    findFirst.mockResolvedValue({ fileUrl: null } as never);
     deleteMany.mockResolvedValue({ count: 0 });
-    await expect(deleteItem("user-1", "item-1")).resolves.toBe(false);
+    await expect(deleteItem("user-1", "item-1")).resolves.toBeNull();
+  });
+});
+
+describe("getItemFile", () => {
+  it("scopes the lookup to the user's file items", async () => {
+    findFirst.mockResolvedValue(null);
+    await getItemFile("user-1", "item-1");
+    expect(findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: "item-1", userId: "user-1", contentType: "FILE" },
+      })
+    );
+  });
+
+  it("returns null when the item is missing, not the user's or has no file", async () => {
+    findFirst.mockResolvedValue(null);
+    await expect(getItemFile("user-1", "item-1")).resolves.toBeNull();
+    findFirst.mockResolvedValue({ fileUrl: null, fileName: null, fileMimeType: null } as never);
+    await expect(getItemFile("user-1", "item-1")).resolves.toBeNull();
+  });
+
+  it("returns the file's key, name and type with fallbacks", async () => {
+    findFirst.mockResolvedValue({
+      fileUrl: "abc_photo.png",
+      fileName: "photo.png",
+      fileMimeType: "image/png",
+    } as never);
+    await expect(getItemFile("user-1", "item-1")).resolves.toEqual({
+      key: "abc_photo.png",
+      name: "photo.png",
+      mimeType: "image/png",
+    });
+
+    findFirst.mockResolvedValue({ fileUrl: "abc", fileName: null, fileMimeType: null } as never);
+    await expect(getItemFile("user-1", "item-1")).resolves.toEqual({
+      key: "abc",
+      name: "download",
+      mimeType: "application/octet-stream",
+    });
   });
 });

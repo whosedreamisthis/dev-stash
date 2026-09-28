@@ -7,9 +7,13 @@ import {
   deleteItem as deleteItemQuery,
   updateItem as updateItemQuery,
 } from "@/lib/db/items";
+import { isUploadTypeSlug } from "@/lib/upload-constraints";
+import { verifyUploadToken, type UploadedFile } from "@/lib/upload-token";
+import { deleteUploadedFile } from "@/lib/uploadthing";
 import {
   createItemSchema,
   updateItemSchema,
+  type CreateItemData,
   type CreateItemInput,
   type UpdateItemInput,
 } from "@/lib/validations/items";
@@ -33,6 +37,7 @@ export interface CreateItemResult {
 }
 
 const INVALID_FIELDS_ERROR = "Please fix the highlighted fields.";
+const UPLOAD_EXPIRED_ERROR = "The upload has expired. Please upload the file again.";
 
 // Keeps the first error message for each field
 function toFieldErrors(error: z.ZodError): CreateItemFieldErrors {
@@ -47,7 +52,19 @@ function toFieldErrors(error: z.ZodError): CreateItemFieldErrors {
     url: fieldErrors.url?.[0],
     language: fieldErrors.language?.[0],
     tags: fieldErrors.tags?.[0],
+    uploadToken: fieldErrors.uploadToken?.[0],
   };
+}
+
+// The file comes from the server-signed upload token, never from client fields
+function getUploadedFile(
+  userId: string,
+  data: CreateItemData
+): { file?: UploadedFile; error?: string } {
+  if (!isUploadTypeSlug(data.typeSlug)) return { file: undefined };
+  const file = data.uploadToken ? verifyUploadToken(userId, data.uploadToken) : null;
+  if (!file || file.typeSlug !== data.typeSlug) return { error: UPLOAD_EXPIRED_ERROR };
+  return { file };
 }
 
 export async function createItem(data: CreateItemInput): Promise<CreateItemResult> {
@@ -64,8 +81,17 @@ export async function createItem(data: CreateItemInput): Promise<CreateItemResul
     };
   }
 
+  const upload = getUploadedFile(userId, parsed.data);
+  if (upload.error) {
+    return {
+      success: false,
+      error: upload.error,
+      fieldErrors: { uploadToken: upload.error },
+    };
+  }
+
   try {
-    const item = await createItemQuery(userId, parsed.data);
+    const item = await createItemQuery(userId, parsed.data, upload.file);
     if (!item) return { success: false, error: "That item type isn't available." };
     return { success: true, data: item };
   } catch (error) {
@@ -120,6 +146,7 @@ export async function deleteItem(itemId: string): Promise<DeleteItemResult> {
   try {
     const deleted = await deleteItemQuery(userId, parsed.data);
     if (!deleted) return { success: false, error: "Item not found." };
+    if (deleted.fileKey) await deleteUploadedFile(deleted.fileKey);
     return { success: true, data: { id: parsed.data } };
   } catch (error) {
     console.error("Deleting item failed:", error);

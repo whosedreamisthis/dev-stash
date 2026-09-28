@@ -5,6 +5,7 @@ import {
   type CreateItemData,
   type UpdateItemData,
 } from "@/lib/validations/items";
+import type { UploadedFile } from "@/lib/upload-token";
 import type { CollectionItemType } from "@/types/collections";
 import type {
   ItemDetail,
@@ -63,6 +64,8 @@ function toItemDetail(item: ItemWithDetailRelations): ItemDetail {
     language: item.language,
     url: item.url,
     fileName: item.fileName,
+    fileSize: item.fileSize,
+    fileMimeType: item.fileMimeType,
     updatedAt: item.updatedAt,
     collections: item.collections.map(({ collection }) => collection),
   };
@@ -129,10 +132,12 @@ export async function updateItem(
   return toItemDetail(item);
 }
 
-// Returns null when the system type for the slug doesn't exist
+// Returns null when the system type for the slug doesn't exist, or when a file
+// type is created without an uploaded file
 export async function createItem(
   userId: string,
-  data: CreateItemData
+  data: CreateItemData,
+  file?: UploadedFile
 ): Promise<ItemDetail | null> {
   const itemType = await prisma.itemType.findFirst({
     where: { slug: data.typeSlug, isSystem: true, userId: null },
@@ -143,6 +148,8 @@ export async function createItem(
   // Only the fields that belong to the type's content type are saved
   const isText = itemType.contentType === "TEXT";
   const isUrl = itemType.contentType === "URL";
+  const isFile = itemType.contentType === "FILE";
+  if (isFile && !file) return null;
 
   const item = await prisma.item.create({
     data: {
@@ -152,6 +159,11 @@ export async function createItem(
       content: isText ? data.content : null,
       language: LANGUAGE_TYPE_SLUGS.has(data.typeSlug) ? data.language : null,
       url: isUrl ? data.url : null,
+      // fileUrl holds the UploadThing key; files are served through /api/items/[id]/file
+      fileUrl: isFile ? file?.key : null,
+      fileName: isFile ? file?.name : null,
+      fileSize: isFile ? file?.size : null,
+      fileMimeType: isFile ? file?.mimeType : null,
       userId,
       itemTypeId: itemType.id,
       tags: {
@@ -171,11 +183,39 @@ export async function createItem(
   return toItemDetail(item);
 }
 
-// Returns false for items that don't exist or belong to another user.
+// Returns null for items that don't exist, belong to another user or have no file
+export async function getItemFile(
+  userId: string,
+  itemId: string
+): Promise<{ key: string; name: string; mimeType: string } | null> {
+  const item = await prisma.item.findFirst({
+    where: { id: itemId, userId, contentType: "FILE" },
+    select: { fileUrl: true, fileName: true, fileMimeType: true },
+  });
+  if (!item?.fileUrl) return null;
+
+  return {
+    key: item.fileUrl,
+    name: item.fileName ?? "download",
+    mimeType: item.fileMimeType ?? "application/octet-stream",
+  };
+}
+
+// Returns null for items that don't exist or belong to another user, otherwise
+// the deleted item's UploadThing key so its file can be removed too.
 // Tag and collection links are removed by the cascades on the join tables.
-export async function deleteItem(userId: string, itemId: string): Promise<boolean> {
+export async function deleteItem(
+  userId: string,
+  itemId: string
+): Promise<{ fileKey: string | null } | null> {
+  const item = await prisma.item.findFirst({
+    where: { id: itemId, userId },
+    select: { fileUrl: true },
+  });
+  if (!item) return null;
+
   const { count } = await prisma.item.deleteMany({ where: { id: itemId, userId } });
-  return count > 0;
+  return count > 0 ? { fileKey: item.fileUrl } : null;
 }
 
 export async function getPinnedItems(userId: string): Promise<ItemSummary[]> {
