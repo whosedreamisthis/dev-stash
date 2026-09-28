@@ -1,5 +1,6 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
+import type { CreateCollectionData } from "@/lib/validations/collections";
 import type {
   CollectionItemType,
   CollectionStats,
@@ -101,4 +102,16 @@ export async function getCollectionStats(userId: string): Promise<CollectionStat
   ]);
 
   return { total, favorites };
+}
+
+export async function createCollection(
+  userId: string,
+  data: CreateCollectionData
+): Promise<CollectionSummary> {
+  const collection = await prisma.collection.create({
+    data: { name: data.name, description: data.description, userId },
+    include: COLLECTION_SUMMARY_INCLUDE,
+  });
+
+  return toCollectionSummary(collection);
 }

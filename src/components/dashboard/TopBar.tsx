@@ -1,4 +1,5 @@
-import { FolderPlus, PanelLeft, Search } from "lucide-react";
+import { PanelLeft, Search } from "lucide-react";
+import { NewCollectionDialog } from "@/components/collections/NewCollectionDialog";
 import { NewItemDialog } from "@/components/items/NewItemDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,10 +42,7 @@ export function TopBar({ onToggleSidebar, onOpenMobileSidebar }: TopBarProps) {
         </kbd>
       </div>
       <div className="ml-auto flex items-center gap-2">
-        <Button variant="outline">
-          <FolderPlus />
-          New Collection
-        </Button>
+        <NewCollectionDialog />
         <NewItemDialog />
       </div>
     </header>
