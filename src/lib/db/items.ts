@@ -78,6 +78,20 @@ function toItemDetail(item: ItemWithDetailRelations): ItemDetail {
   };
 }
 
+// Links each tag name to the item, creating the user's tag if it doesn't exist yet
+export function toTagLinks(userId: string, tags: string[]) {
+  return {
+    create: tags.map((name) => ({
+      tag: {
+        connectOrCreate: {
+          where: { userId_name: { userId, name } },
+          create: { name, userId },
+        },
+      },
+    })),
+  } satisfies Prisma.ItemTagCreateNestedManyWithoutItemInput;
+}
+
 // Returns null for items that don't exist or belong to another user
 export async function getItemDetail(
   userId: string,
@@ -121,16 +135,7 @@ export async function updateItem(
         content: isText ? data.content : undefined,
         language: isText ? data.language : undefined,
         url: isUrl ? data.url : undefined,
-        tags: {
-          create: data.tags.map((name) => ({
-            tag: {
-              connectOrCreate: {
-                where: { userId_name: { userId, name } },
-                create: { name, userId },
-              },
-            },
-          })),
-        },
+        tags: toTagLinks(userId, data.tags),
       },
       include: ITEM_DETAIL_INCLUDE,
     }),
@@ -173,16 +178,7 @@ export async function createItem(
       fileMimeType: isFile ? file?.mimeType : null,
       userId,
       itemTypeId: itemType.id,
-      tags: {
-        create: data.tags.map((name) => ({
-          tag: {
-            connectOrCreate: {
-              where: { userId_name: { userId, name } },
-              create: { name, userId },
-            },
-          },
-        })),
-      },
+      tags: toTagLinks(userId, data.tags),
     },
     include: ITEM_DETAIL_INCLUDE,
   });

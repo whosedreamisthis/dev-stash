@@ -5,6 +5,7 @@ import {
   deleteItem,
   getItemDetail,
   getItemFile,
+  toTagLinks,
   updateItem,
 } from "@/lib/db/items";
 
@@ -20,6 +21,35 @@ vi.mock("@/lib/db", () => ({
 const findFirst = vi.mocked(prisma.item.findFirst);
 const update = vi.mocked(prisma.item.update);
 const deleteTagLinks = vi.mocked(prisma.itemTag.deleteMany);
+
+describe("toTagLinks", () => {
+  it("connects or creates each of the user's tags by name", () => {
+    expect(toTagLinks("user-1", ["react", "auth"])).toEqual({
+      create: [
+        {
+          tag: {
+            connectOrCreate: {
+              where: { userId_name: { userId: "user-1", name: "react" } },
+              create: { name: "react", userId: "user-1" },
+            },
+          },
+        },
+        {
+          tag: {
+            connectOrCreate: {
+              where: { userId_name: { userId: "user-1", name: "auth" } },
+              create: { name: "auth", userId: "user-1" },
+            },
+          },
+        },
+      ],
+    });
+  });
+
+  it("creates no links for no tags", () => {
+    expect(toTagLinks("user-1", [])).toEqual({ create: [] });
+  });
+});
 
 const CREATED_AT = new Date("2026-01-15T10:00:00Z");
 const UPDATED_AT = new Date("2026-01-16T10:00:00Z");

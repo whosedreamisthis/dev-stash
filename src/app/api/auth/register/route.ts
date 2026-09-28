@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
-import { Prisma } from "@/generated/prisma/client";
-import { prisma } from "@/lib/db";
+import { createUser } from "@/lib/db/users";
 import {
   checkRateLimit,
   getClientIp,
@@ -52,17 +50,8 @@ export async function POST(request: Request) {
       }
     }
 
-    const existing = await prisma.user.findUnique({
-      where: { email },
-      select: { id: true },
-    });
-    if (existing) return emailTakenResponse();
-
-    const hashedPassword = await bcrypt.hash(password, 12);
-    const user = await prisma.user.create({
-      data: { name, email, password: hashedPassword },
-      select: { id: true, name: true, email: true },
-    });
+    const user = await createUser(name, email, password);
+    if (!user) return emailTakenResponse();
 
     const verificationRequired = isEmailVerificationEnabled();
 
@@ -79,14 +68,6 @@ export async function POST(request: Request) {
       { status: 201 },
     );
   } catch (error) {
-    // A concurrent request can create the same email between the check and the insert
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2002"
-    ) {
-      return emailTakenResponse();
-    }
-
     console.error("Registration failed:", error);
     return NextResponse.json(
       { success: false, error: "Something went wrong. Please try again." },

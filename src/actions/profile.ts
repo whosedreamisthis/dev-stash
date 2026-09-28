@@ -1,8 +1,9 @@
 "use server";
 
 import { z } from "zod";
-import { auth, signOut } from "@/auth";
+import { signOut } from "@/auth";
 import { changePassword, deleteAccount } from "@/lib/account";
+import { getSessionUserId, NOT_SIGNED_IN_ERROR } from "@/lib/session";
 import { changePasswordSchema } from "@/lib/validations/auth";
 
 export interface ChangePasswordActionResult {
@@ -30,9 +31,8 @@ export async function changeUserPassword(
   _prevState: ChangePasswordActionResult,
   formData: FormData,
 ): Promise<ChangePasswordActionResult> {
-  const session = await auth();
-  const userId = session?.user?.id;
-  if (!userId) return { success: false, error: "You must be signed in." };
+  const userId = await getSessionUserId();
+  if (!userId) return { success: false, error: NOT_SIGNED_IN_ERROR };
 
   const parsed = changePasswordSchema.safeParse({
     currentPassword: formData.get("currentPassword"),
@@ -66,9 +66,8 @@ export async function changeUserPassword(
 }
 
 export async function deleteUserAccount(): Promise<DeleteAccountResult> {
-  const session = await auth();
-  const userId = session?.user?.id;
-  if (!userId) return { success: false, error: "You must be signed in." };
+  const userId = await getSessionUserId();
+  if (!userId) return { success: false, error: NOT_SIGNED_IN_ERROR };
 
   try {
     await deleteAccount(userId);

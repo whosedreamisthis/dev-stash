@@ -20,29 +20,21 @@ import {
 } from "@/lib/validations/auth";
 import { resendVerificationLink } from "@/lib/verification";
 
-export interface SignInResult {
+interface AuthActionResult {
   success: boolean;
   error?: string;
+  rateLimited?: boolean;
+}
+
+export interface SignInResult extends AuthActionResult {
   emailNotVerified?: boolean;
-  rateLimited?: boolean;
 }
 
-export interface ResendVerificationResult {
-  success: boolean;
-  error?: string;
-  rateLimited?: boolean;
-}
+export type ResendVerificationResult = AuthActionResult;
 
-export interface ForgotPasswordResult {
-  success: boolean;
-  error?: string;
-  rateLimited?: boolean;
-}
+export type ForgotPasswordResult = AuthActionResult;
 
-export interface ResetPasswordActionResult {
-  success: boolean;
-  error?: string;
-  rateLimited?: boolean;
+export interface ResetPasswordActionResult extends AuthActionResult {
   fieldErrors?: { password?: string; confirmPassword?: string };
 }
 
@@ -75,6 +67,35 @@ async function checkActionRateLimit(name: RateLimitName, identifier?: string) {
     : { success: false, error: getRateLimitMessage(reset), rateLimited: true };
 }
 
+// Turns a failed sign-in into a message; null for errors that aren't AuthErrors,
+// such as the redirect signIn throws on success
+function getSignInError(error: unknown): SignInResult | null {
+  if (error instanceof CredentialsSignin && error.code === RATE_LIMITED) {
+    return {
+      success: false,
+      error: "Too many attempts. Please try again in 15 minutes.",
+      rateLimited: true,
+    };
+  }
+  if (error instanceof CredentialsSignin && error.code === EMAIL_NOT_VERIFIED) {
+    return {
+      success: false,
+      error: "Please verify your email before signing in. Check your inbox for the link.",
+      emailNotVerified: true,
+    };
+  }
+  if (error instanceof AuthError) {
+    return {
+      success: false,
+      error:
+        error.type === "CredentialsSignin"
+          ? "Invalid email or password"
+          : "Something went wrong. Please try again.",
+    };
+  }
+  return null;
+}
+
 export async function signInWithCredentials(
   _prevState: SignInResult,
   formData: FormData,
@@ -94,30 +115,9 @@ export async function signInWithCredentials(
     });
     return { success: true };
   } catch (error) {
-    // signIn redirects by throwing, so only AuthErrors are handled here
-    if (error instanceof CredentialsSignin && error.code === RATE_LIMITED) {
-      return {
-        success: false,
-        error: "Too many attempts. Please try again in 15 minutes.",
-        rateLimited: true,
-      };
-    }
-    if (error instanceof CredentialsSignin && error.code === EMAIL_NOT_VERIFIED) {
-      return {
-        success: false,
-        error: "Please verify your email before signing in. Check your inbox for the link.",
-        emailNotVerified: true,
-      };
-    }
-    if (error instanceof AuthError) {
-      return {
-        success: false,
-        error:
-          error.type === "CredentialsSignin"
-            ? "Invalid email or password"
-            : "Something went wrong. Please try again.",
-      };
-    }
+    // signIn redirects by throwing, so anything that isn't an AuthError is rethrown
+    const result = getSignInError(error);
+    if (result) return result;
     throw error;
   }
 }

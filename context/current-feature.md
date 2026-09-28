@@ -2,19 +2,31 @@
 
 <!-- Feature name and short description -->
 
+**Extract Helpers Refactor:** break up duplicated or oversized code into shared functions, components and hooks, with no change in behavior.
+
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- Share the tag `connectOrCreate` block in `src/lib/db/items.ts` through a `toTagLinks` helper
+- Move password hashing and user creation out of `POST /api/auth/register` into `createUser` in `src/lib/db/users.ts`
+- Add `getSessionUserId` in `src/lib/session.ts` and use it in the item and profile server actions
+- Split `Sidebar` into `SidebarTypeLink` and `SidebarCollectionLink` components
+- Move `useIsMountedRef` and `usePreviewUrl` from `FileUpload.tsx` into `src/hooks/`
+- Extract `getSignInError` and a shared base result type in `src/actions/auth.ts`
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- Pure refactor: responses, messages and UI stay the same.
+- The shared content-editor field for the create and edit forms was left out on purpose.
 
 ## Completed Features
 

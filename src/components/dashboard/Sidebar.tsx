@@ -2,16 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Folder, Layers, Settings, Star } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Layers, Settings } from "lucide-react";
+import { SidebarCollectionLink } from "@/components/dashboard/SidebarCollectionLink";
 import { SidebarSection } from "@/components/dashboard/SidebarSection";
+import { SidebarTypeLink } from "@/components/dashboard/SidebarTypeLink";
 import { UserMenu } from "@/components/dashboard/UserMenu";
-import {
-  ITEM_TYPE_BG_COLORS,
-  ITEM_TYPE_ICONS,
-  ITEM_TYPE_TEXT_COLORS,
-} from "@/lib/item-type-icons";
 import { cn } from "@/lib/utils";
+import type { CollectionSummary } from "@/types/collections";
 import type { SidebarData } from "@/types/sidebar";
 
 interface SidebarProps {
@@ -19,11 +16,39 @@ interface SidebarProps {
   onNavigate?: () => void;
 }
 
-const linkClass =
-  "flex items-center gap-3 rounded-md px-2 py-1.5 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground";
+interface CollectionGroupProps {
+  label: string;
+  collections: CollectionSummary[];
+  variant: "favorite" | "recent";
+  className?: string;
+  onNavigate?: () => void;
+}
 
-const groupLabelClass =
-  "px-2 pb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase";
+// A labelled list of collection links, hidden when it's empty
+function CollectionGroup({ label, collections, variant, className, onNavigate }: CollectionGroupProps) {
+  if (collections.length === 0) return null;
+
+  return (
+    <>
+      <p
+        className={cn(
+          "px-2 pb-1 text-xs font-medium tracking-wide text-muted-foreground uppercase",
+          className
+        )}
+      >
+        {label}
+      </p>
+      {collections.map((collection) => (
+        <SidebarCollectionLink
+          key={collection.id}
+          collection={collection}
+          variant={variant}
+          onNavigate={onNavigate}
+        />
+      ))}
+    </>
+  );
+}
 
 export function Sidebar({ data, onNavigate }: SidebarProps) {
   const pathname = usePathname();
@@ -40,90 +65,33 @@ export function Sidebar({ data, onNavigate }: SidebarProps) {
 
       <nav className="scrollbar-none flex-1 overflow-y-auto">
         <SidebarSection title="Types">
-          {itemTypes.map((type) => {
-            const Icon = ITEM_TYPE_ICONS[type.icon];
-            const href = `/items/${type.slug}`;
-            return (
-              <Link
-                key={type.id}
-                href={href}
-                onClick={onNavigate}
-                className={cn(
-                  linkClass,
-                  pathname === href && "bg-sidebar-accent"
-                )}
-              >
-                {Icon && (
-                  <Icon className={cn("size-4", ITEM_TYPE_TEXT_COLORS[type.slug])} />
-                )}
-                <span className="flex-1 capitalize">{type.slug}</span>
-                {type.isProOnly && (
-                  <Badge
-                    variant="outline"
-                    className="h-4 px-1.5 text-[10px] font-semibold tracking-wider text-muted-foreground"
-                  >
-                    PRO
-                  </Badge>
-                )}
-                <span className="text-xs text-muted-foreground">
-                  {type.count}
-                </span>
-              </Link>
-            );
-          })}
+          {itemTypes.map((type) => (
+            <SidebarTypeLink
+              key={type.id}
+              type={type}
+              isActive={pathname === `/items/${type.slug}`}
+              onNavigate={onNavigate}
+            />
+          ))}
         </SidebarSection>
 
         <div className="mx-4 border-t" />
 
         <SidebarSection title="Collections">
-          {collections.favorites.length > 0 && (
-            <>
-              <p className={cn(groupLabelClass, "pt-2")}>Favorites</p>
-              {collections.favorites.map((collection) => (
-                <Link
-                  key={collection.id}
-                  href={`/collections/${collection.id}`}
-                  onClick={onNavigate}
-                  className={linkClass}
-                >
-                  <Folder className="size-4 text-muted-foreground" />
-                  <span className="flex-1 truncate">{collection.name}</span>
-                  <Star className="size-4 fill-yellow-400 text-yellow-400" />
-                </Link>
-              ))}
-            </>
-          )}
-
-          {collections.recent.length > 0 && (
-            <>
-              <p className={cn(groupLabelClass, "pt-4")}>Recent</p>
-              {collections.recent.map((collection) => (
-                <Link
-                  key={collection.id}
-                  href={`/collections/${collection.id}`}
-                  onClick={onNavigate}
-                  className={linkClass}
-                >
-                  <span className="flex size-4 items-center justify-center">
-                    <span
-                      aria-label={collection.mainType?.name}
-                      className={cn(
-                        "size-2.5 rounded-full",
-                        collection.mainType
-                          ? ITEM_TYPE_BG_COLORS[collection.mainType.slug]
-                          : "bg-muted-foreground"
-                      )}
-                    />
-                  </span>
-                  <span className="flex-1 truncate">{collection.name}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {collection.itemCount}
-                  </span>
-                </Link>
-              ))}
-            </>
-          )}
-
+          <CollectionGroup
+            label="Favorites"
+            collections={collections.favorites}
+            variant="favorite"
+            className="pt-2"
+            onNavigate={onNavigate}
+          />
+          <CollectionGroup
+            label="Recent"
+            collections={collections.recent}
+            variant="recent"
+            className="pt-4"
+            onNavigate={onNavigate}
+          />
           <Link
             href="/collections"
             onClick={onNavigate}
@@ -135,11 +103,7 @@ export function Sidebar({ data, onNavigate }: SidebarProps) {
       </nav>
 
       <div className="flex shrink-0 items-center gap-2 border-t p-3">
-        {user ? (
-          <UserMenu user={user} onNavigate={onNavigate} />
-        ) : (
-          <div className="flex-1" />
-        )}
+        {user ? <UserMenu user={user} onNavigate={onNavigate} /> : <div className="flex-1" />}
         <Link
           href="/settings"
           onClick={onNavigate}

@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { File as FileIcon, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useIsMountedRef } from "@/hooks/useIsMountedRef";
+import { usePreviewUrl } from "@/hooks/usePreviewUrl";
 import { cn } from "@/lib/utils";
 import {
   UPLOAD_CONSTRAINTS,
@@ -209,37 +211,4 @@ export function FileUpload({
       {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
   );
-}
-
-// Set again on remount, so Strict Mode's simulated unmount doesn't stick
-function useIsMountedRef() {
-  const isMountedRef = useRef(false);
-
-  useEffect(() => {
-    isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
-
-  return isMountedRef;
-}
-
-// Holds a local preview URL for an image, revoking the previous one when it
-// changes and the last one when the component unmounts
-function usePreviewUrl() {
-  const [url, setUrl] = useState<string | null>(null);
-  const urlRef = useRef<string | null>(null);
-
-  useEffect(() => () => {
-    if (urlRef.current) URL.revokeObjectURL(urlRef.current);
-  }, []);
-
-  function setPreviewFile(file: File | null) {
-    if (urlRef.current) URL.revokeObjectURL(urlRef.current);
-    urlRef.current = file ? URL.createObjectURL(file) : null;
-    setUrl(urlRef.current);
-  }
-
-  return [url, setPreviewFile] as const;
 }

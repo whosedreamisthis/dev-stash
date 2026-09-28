@@ -1,12 +1,12 @@
 "use server";
 
 import { z } from "zod";
-import { auth } from "@/auth";
 import {
   createItem as createItemQuery,
   deleteItem as deleteItemQuery,
   updateItem as updateItemQuery,
 } from "@/lib/db/items";
+import { getSessionUserId, NOT_SIGNED_IN_ERROR } from "@/lib/session";
 import { isUploadTypeSlug } from "@/lib/upload-constraints";
 import { verifyUploadToken, type UploadedFile } from "@/lib/upload-token";
 import { deleteUploadedFile } from "@/lib/uploadthing";
@@ -68,9 +68,8 @@ function getUploadedFile(
 }
 
 export async function createItem(data: CreateItemInput): Promise<CreateItemResult> {
-  const session = await auth();
-  const userId = session?.user?.id;
-  if (!userId) return { success: false, error: "You must be signed in." };
+  const userId = await getSessionUserId();
+  if (!userId) return { success: false, error: NOT_SIGNED_IN_ERROR };
 
   const parsed = createItemSchema.safeParse(data);
   if (!parsed.success) {
@@ -104,9 +103,8 @@ export async function updateItem(
   itemId: string,
   data: UpdateItemInput,
 ): Promise<UpdateItemResult> {
-  const session = await auth();
-  const userId = session?.user?.id;
-  if (!userId) return { success: false, error: "You must be signed in." };
+  const userId = await getSessionUserId();
+  if (!userId) return { success: false, error: NOT_SIGNED_IN_ERROR };
 
   const parsed = updateItemSchema.safeParse(data);
   if (!parsed.success) {
@@ -136,9 +134,8 @@ export interface DeleteItemResult {
 }
 
 export async function deleteItem(itemId: string): Promise<DeleteItemResult> {
-  const session = await auth();
-  const userId = session?.user?.id;
-  if (!userId) return { success: false, error: "You must be signed in." };
+  const userId = await getSessionUserId();
+  if (!userId) return { success: false, error: NOT_SIGNED_IN_ERROR };
 
   const parsed = itemIdSchema.safeParse(itemId);
   if (!parsed.success) return { success: false, error: "Item not found." };
