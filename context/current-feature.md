@@ -2,45 +2,19 @@
 
 <!-- Feature name and short description -->
 
-File & Image Upload: upload files and images through UploadThing, with drag-and-drop, progress, previews, downloads and deletes.
-
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- Add the UploadThing upload API route (file router with separate image and file endpoints)
-- Keep Prisma/database functions in `src/lib/db/items.ts`
-- Create a `FileUpload` component with drag-and-drop and an upload progress indicator
-- Add the File and Image types to the New Item dialog, using `FileUpload` for them
-- Enforce the file constraints: images up to 5 MB (`.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.svg`), files up to 10 MB (`.pdf`, `.txt`, `.md`, `.json`, `.yaml`, `.yml`, `.xml`, `.csv`, `.toml`, `.ini`), with the spec's MIME types
-- Save the uploaded file's URL/key, name, size and MIME type on the item (`fileUrl`, `fileName`, `fileSize`, `fileMimeType`)
-- Delete the file from UploadThing when its item is deleted
-- Add a download proxy API route (avoids CORS issues), scoped to the signed-in user's items
-- Add a download button in the item drawer for file and image items
-- Show an image preview for images and file info (name, size, type) for files
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Spec: `context/features/file-image-spec.md`
-- The spec's title says Cloudflare R2 (as does the project overview), but its requirements say UploadThing. The `.env` has UploadThing keys, so UploadThing is assumed; confirm before starting.
-- Env keys in `.env`: `UPLOADTHING_TOKEN` and `UPLOAD_THING_SECRET_KEY`. Current UploadThing versions only need `UPLOADTHING_TOKEN`; check the docs (Context7) before wiring it up.
-- File and Image are Pro-only types (`isProOnly`). Uploads should go through `hasProAccess` in `src/lib/plan.ts` (everyone has access during development), and the server must check auth in the upload route's middleware.
-- `createItemSchema` limits `typeSlug` to `CREATABLE_TYPE_SLUGS`, which excludes files and images today; `isCreatableTypeSlug` also controls the `/items/[type]` add button, so adding them makes "New File" / "New Image" buttons appear.
-- The server should only trust file metadata that comes from UploadThing (e.g. the upload callback), not client-supplied URLs.
-- SVGs can carry scripts; serve them from UploadThing's domain or with `Content-Disposition: attachment` / a safe content type through the proxy, never inline from the app's origin.
-- The drawer's view mode currently shows only the file name for FILE items.
-- No schema change should be needed: `Item` already has the file columns.
-- Implemented: files upload on drop; UploadThing's server callback returns an HMAC-signed upload token (`src/lib/upload-token.ts`, keyed from `AUTH_SECRET`, 1-hour expiry, bound to the user and type), and `createItem` only accepts a file whose token checks out. `fileUrl` stores the UploadThing key.
-- UploadThing route limits must be powers of two (8 MB images, 16 MB blob for files); the middleware enforces the exact 5/10 MB limits and extensions. Files are checked by extension only because browsers report inconsistent MIME types for text files.
-- Known gaps: files uploaded and then abandoned (dialog cancelled, type switched, file replaced) stay in UploadThing; deleting an account cascades items but doesn't delete their files. `UPLOAD_THING_SECRET_KEY` is unused.
 
 ## History
 
@@ -75,3 +49,4 @@ In Progress
 - **Item Type Dropdown:** The New Item dialog's row of toggle buttons was replaced with a shadcn Select dropdown (new `src/components/ui/select.tsx`, built on Base UI). The full-width "Type" field is labelled through the shared `ItemFormField`; each option shows the type's colored icon and name with a check mark on the selected one, and the closed dropdown shows the chosen type's icon and name through a `Select.Value` render function. Snippet stays the default, and changing the type still shows the matching fields and clears field errors. The toggle buttons' type-colored highlight classes were removed. UI-only change: no server, schema or test changes.
 - **Code Editor:** Snippets and commands now use a Monaco code editor (`@monaco-editor/react`, which loads Monaco from the jsDelivr CDN) in the item drawer's view mode, the drawer's edit form and the New Item dialog; notes and prompts keep the Textarea and plain preformatted block. The client `CodeEditor` component in `src/components/items/` has a custom `devstash-dark` theme matched to the app's neutral palette with a thin theme-colored scrollbar, and a header with macOS-style red/yellow/green window dots, the item's language and a copy button (disabled when empty; shows a check and a toast). It supports read-only mode (no context menu or line highlight) and edit mode, grows with its content up to 400px before scrolling (at least 160px when editing), and lets mouse-wheel scrolling pass to the page when it has nothing left to scroll. `src/lib/code-editor.ts` maps free-text languages to Monaco IDs (`ts` → `typescript`, `bash` → `shell`, empty → `plaintext`) and computes the capped height; while editing, the header language follows the Language field. Each `/items/[type]` page header also has a type-specific add button (e.g. "New Snippet") through a new `action` slot on `ItemsHeader`, shown on the page and its loading state; `NewItemDialog` takes an optional `defaultType` that preselects the type and names the button, while the top bar button still says "New Item". `isCreatableTypeSlug` in `src/lib/validations/items.ts` limits the button to creatable types, so Files, Images and unknown slugs get none. Clicking the Content label doesn't focus the editor, which has its own accessible label. Added 10 Vitest tests (94 in total). No migration was needed.
 - **Markdown Editor:** Notes and prompts use a new `MarkdownEditor` component with Write/Preview tabs in the New Item dialog, the drawer's edit form and the drawer's read-only view (Preview only), rendering GitHub Flavored Markdown with `react-markdown` and `remark-gfm` (no raw HTML; links open in a new tab with `rel="noopener noreferrer"`). It matches `CodeEditor`'s neutral dark styling, has a header copy button, grows up to 400px, and styles the preview through a `.markdown-preview` CSS class (headings, code blocks, inline code, lists, blockquotes, links and tables). Snippets and commands keep `CodeEditor`.
+- **File & Image Upload:** Files and images can be created from the New Item dialog through UploadThing (`uploadthing`, `@uploadthing/react`); the spec's title mentioned Cloudflare R2, but its requirements and the `.env` keys use UploadThing. `src/lib/uploadthing.ts` defines `imageUploader` and `fileUploader` routes (served by `/api/uploadthing`) whose middleware requires a session and enforces the limits in `src/lib/upload-constraints.ts`: images up to 5 MB (png, jpg, jpeg, gif, webp, svg, MIME type checked too) and files up to 10 MB (pdf, txt, md, json, yaml, yml, xml, csv, toml, ini, checked by extension only because browsers report inconsistent MIME types for text files). UploadThing only accepts power-of-two route limits, so the routes allow 8 MB and 16 MB. After an upload the server re-checks the stored file (deleting it if it breaks the limits) and returns an HMAC-signed upload token (`src/lib/upload-token.ts`, keyed from `AUTH_SECRET`, 1-hour expiry, bound to the user and type); the `createItem` action only saves a file whose token verifies, so the key, name, size and MIME type never come from the browser. Files and images joined `CREATABLE_TYPE_SLUGS` (which also adds New File / New Image buttons to their items pages) and `createItemSchema` requires an upload token for them. The `createItem` query stores the UploadThing key in `fileUrl` plus `fileName`, `fileSize` and `fileMimeType`, and `ItemDetail` gained `fileSize` and `fileMimeType`. The new `FileUpload` component uploads on drop or click with client-side validation, a progress bar, an image preview or the file's name and size, and a remove button; failed uploads clear the selection, and results arriving after the field unmounts (e.g. the type was switched) are ignored. `GET /api/items/[id]/file` (with `getItemFile` in `src/lib/db/items.ts`) is a download proxy scoped to the owner's file items that streams the file from a 60-second signed URL and always serves it as an attachment with a sandbox CSP and `nosniff`, so SVGs can't run scripts on the app's origin. The drawer's new `ItemFileContent` shows an image preview for images, the file's name, size and type, and a Download button. The `deleteItem` query now returns the item's file key and the action deletes the file from UploadThing, logging failures rather than failing the delete. No migration was needed. Added Vitest tests for the constraints, upload tokens, UploadThing middleware and callbacks, the download route, and the updated schema, queries and actions (136 tests in total). Known gaps: abandoned uploads and the files of deleted accounts stay in UploadThing, there's no Pro-plan check yet (`src/lib/plan.ts` doesn't exist), the download fetch has no timeout, and `UPLOAD_THING_SECRET_KEY` is unused.
