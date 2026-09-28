@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { updateItem, type UpdateItemFieldErrors } from "@/actions/items";
+import { CodeEditor } from "@/components/items/CodeEditor";
 import { ItemMetaSections } from "@/components/items/ItemDetailSections";
 import { ItemDrawerHeader } from "@/components/items/ItemDrawerHeader";
 import { ItemFormField as EditField } from "@/components/items/ItemFormField";
@@ -54,6 +55,7 @@ export function ItemEditForm({ item, onCancel, onSaved }: ItemEditFormProps) {
   const [values, setValues] = useState(() => toFormValues(item));
   const [fieldErrors, setFieldErrors] = useState<UpdateItemFieldErrors>({});
   const [isPending, startTransition] = useTransition();
+  const isCode = LANGUAGE_TYPE_SLUGS.has(item.type.slug);
 
   function setValue(field: keyof FormValues) {
     return (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -121,17 +123,27 @@ export function ItemEditForm({ item, onCancel, onSaved }: ItemEditFormProps) {
         </EditField>
         {item.contentType === "TEXT" && (
           <EditField id="item-content" label="Content" error={fieldErrors.content}>
-            {(props) => (
-              <Textarea
-                {...props}
-                value={values.content}
-                onChange={setValue("content")}
-                className="min-h-48 font-mono"
-              />
-            )}
+            {(props) =>
+              isCode ? (
+                <CodeEditor
+                  value={values.content}
+                  language={values.language}
+                  onChange={(content) => setValues((prev) => ({ ...prev, content }))}
+                  ariaLabel="Content"
+                  invalid={props["aria-invalid"]}
+                />
+              ) : (
+                <Textarea
+                  {...props}
+                  value={values.content}
+                  onChange={setValue("content")}
+                  className="min-h-48 font-mono"
+                />
+              )
+            }
           </EditField>
         )}
-        {LANGUAGE_TYPE_SLUGS.has(item.type.slug) && (
+        {isCode && (
           <EditField id="item-language" label="Language" error={fieldErrors.language}>
             {(props) => (
               <Input {...props} value={values.language} onChange={setValue("language")} />

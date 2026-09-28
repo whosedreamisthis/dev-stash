@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { createItemSchema, parseTagInput, updateItemSchema } from "@/lib/validations/items";
+import {
+  createItemSchema,
+  isCreatableTypeSlug,
+  parseTagInput,
+  updateItemSchema,
+} from "@/lib/validations/items";
 
 const VALID = { title: "useAuth Hook", tags: [] };
 
@@ -84,6 +89,20 @@ describe("createItemSchema", () => {
       tags: ["a", "a"],
     });
     expect(data).toMatchObject({ typeSlug: "notes", title: "Note", tags: ["a"] });
+  });
+});
+
+describe("isCreatableTypeSlug", () => {
+  it("accepts the types the New Item dialog can create", () => {
+    for (const slug of ["snippets", "prompts", "commands", "notes", "links"]) {
+      expect(isCreatableTypeSlug(slug)).toBe(true);
+    }
+  });
+
+  it("rejects upload types and unknown slugs", () => {
+    for (const slug of ["files", "images", "recipes", "Snippets", ""]) {
+      expect(isCreatableTypeSlug(slug)).toBe(false);
+    }
   });
 });
 

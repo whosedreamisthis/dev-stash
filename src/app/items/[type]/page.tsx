@@ -5,7 +5,9 @@ import { auth } from "@/auth";
 import { ItemGrid } from "@/components/items/ItemGrid";
 import { ItemGridSkeleton } from "@/components/items/ItemGridSkeleton";
 import { ItemsHeader } from "@/components/items/ItemsHeader";
+import { NewItemDialog } from "@/components/items/NewItemDialog";
 import { getItemTypeBySlug } from "@/lib/db/items";
+import { isCreatableTypeSlug } from "@/lib/validations/items";
 
 export default async function ItemsByTypePage({
   params,
@@ -24,7 +26,12 @@ export default async function ItemsByTypePage({
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-8">
-      <ItemsHeader title={`${type.name}s`} slug={type.slug} icon={type.icon} />
+      <ItemsHeader
+        title={`${type.name}s`}
+        slug={type.slug}
+        icon={type.icon}
+        action={isCreatableTypeSlug(type.slug) && <NewItemDialog defaultType={type.slug} />}
+      />
       <Suspense fallback={<ItemGridSkeleton />}>
         <ItemGrid userId={userId} itemTypeId={type.id} typeName={type.name} />
       </Suspense>

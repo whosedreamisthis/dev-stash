@@ -1,6 +1,8 @@
 import { Calendar, FolderOpen, Tag } from "lucide-react";
+import { CodeEditor } from "@/components/items/CodeEditor";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getSafeHttpUrl } from "@/lib/url";
+import { LANGUAGE_TYPE_SLUGS } from "@/lib/validations/items";
 import type { ItemDetail } from "@/types/items";
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
@@ -49,6 +51,12 @@ function ItemContent({ item }: { item: ItemDetail }) {
   }
 
   if (!item.content) return <p className="text-muted-foreground">No content</p>;
+
+  if (LANGUAGE_TYPE_SLUGS.has(item.type.slug)) {
+    return (
+      <CodeEditor value={item.content} language={item.language} readOnly ariaLabel="Content" />
+    );
+  }
 
   return (
     <pre className="overflow-x-auto rounded-lg border bg-muted/40 p-4 font-mono text-sm leading-relaxed">

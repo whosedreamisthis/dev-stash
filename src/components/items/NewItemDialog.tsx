@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { createItem, type CreateItemFieldErrors } from "@/actions/items";
+import { CodeEditor } from "@/components/items/CodeEditor";
 import { ItemFormField } from "@/components/items/ItemFormField";
 import { Button } from "@/components/ui/button";
 import {
@@ -111,18 +112,20 @@ function TypeSelector({ value, onChange }: TypeSelectorProps) {
 }
 
 interface NewItemFormProps {
+  defaultType: CreatableTypeSlug;
   onCreated: () => void;
 }
 
 // Rendered inside the dialog so its state resets each time the dialog opens
-function NewItemForm({ onCreated }: NewItemFormProps) {
+function NewItemForm({ defaultType, onCreated }: NewItemFormProps) {
   const router = useRouter();
-  const [typeSlug, setTypeSlug] = useState<CreatableTypeSlug>("snippets");
+  const [typeSlug, setTypeSlug] = useState<CreatableTypeSlug>(defaultType);
   const [values, setValues] = useState(EMPTY_VALUES);
   const [fieldErrors, setFieldErrors] = useState<CreateItemFieldErrors>({});
   const [isPending, startTransition] = useTransition();
 
   const isLink = typeSlug === "links";
+  const isCode = LANGUAGE_TYPE_SLUGS.has(typeSlug);
   const canSubmit = values.title.trim() && (!isLink || values.url.trim());
 
   // Editing a field clears its error so fixed fields stop showing one
@@ -186,17 +189,30 @@ function NewItemForm({ onCreated }: NewItemFormProps) {
         </ItemFormField>
         {!isLink && (
           <ItemFormField id="new-item-content" label="Content" error={fieldErrors.content}>
-            {(props) => (
-              <Textarea
-                {...props}
-                value={values.content}
-                onChange={setValue("content")}
-                className="min-h-40 font-mono"
-              />
-            )}
+            {(props) =>
+              isCode ? (
+                <CodeEditor
+                  value={values.content}
+                  language={values.language}
+                  onChange={(content) => {
+                    setValues((prev) => ({ ...prev, content }));
+                    setFieldErrors((prev) => ({ ...prev, content: undefined }));
+                  }}
+                  ariaLabel="Content"
+                  invalid={props["aria-invalid"]}
+                />
+              ) : (
+                <Textarea
+                  {...props}
+                  value={values.content}
+                  onChange={setValue("content")}
+                  className="min-h-40 font-mono"
+                />
+              )
+            }
           </ItemFormField>
         )}
-        {LANGUAGE_TYPE_SLUGS.has(typeSlug) && (
+        {isCode && (
           <ItemFormField id="new-item-language" label="Language" error={fieldErrors.language}>
             {(props) => (
               <Input
@@ -230,21 +246,26 @@ function NewItemForm({ onCreated }: NewItemFormProps) {
   );
 }
 
-export function NewItemDialog() {
+interface NewItemDialogProps {
+  // Preselects this type and names it on the button, e.g. "New Snippet"
+  defaultType?: CreatableTypeSlug;
+}
+
+export function NewItemDialog({ defaultType }: NewItemDialogProps) {
   const [open, setOpen] = useState(false);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button />}>
         <Plus />
-        New Item
+        New {defaultType ? TYPE_LABELS[defaultType] : "Item"}
       </DialogTrigger>
       <DialogContent className="w-[calc(100%-2rem)] max-w-lg sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>New item</DialogTitle>
           <DialogDescription>Choose a type and fill in the details.</DialogDescription>
         </DialogHeader>
-        <NewItemForm onCreated={() => setOpen(false)} />
+        <NewItemForm defaultType={defaultType ?? "snippets"} onCreated={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
   );
