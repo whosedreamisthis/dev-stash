@@ -34,16 +34,19 @@ function EditorMockup() {
 
       <pre className="editor-scrollbar overflow-x-auto p-4 font-mono text-xs leading-6 text-neutral-300 sm:text-[13px] sm:leading-7">
         <code>
+          {/* Lines wrap under their own start on mobile, where a hidden scrollbar looks like clipping */}
           {AI_CODE_LINES.map((line, i) => (
-            <div key={i}>
-              <span className="mr-3 inline-block w-6 text-right text-muted-foreground/60 select-none">
+            <div key={i} className="flex">
+              <span className="mr-3 w-6 shrink-0 text-right text-muted-foreground/60 select-none">
                 {i + 1}
               </span>
-              {line.map(([kind, text], j) => (
-                <span key={j} className={TOKEN_CLASSES[kind]}>
-                  {text}
-                </span>
-              ))}
+              <span className="min-w-0 wrap-break-word whitespace-pre-wrap sm:whitespace-pre">
+                {line.map(([kind, text], j) => (
+                  <span key={j} className={TOKEN_CLASSES[kind]}>
+                    {text}
+                  </span>
+                ))}
+              </span>
             </div>
           ))}
         </code>

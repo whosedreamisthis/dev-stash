@@ -22,6 +22,9 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
   timeZone: "UTC",
 });
 
+// Bigger touch targets on mobile, compact on larger screens
+const TOUCH_ICON_BUTTON = "size-8 sm:size-6";
+
 export function ItemCard({ item }: ItemCardProps) {
   const { type } = item;
   const Icon = ITEM_TYPE_ICONS[type.icon];
@@ -30,7 +33,7 @@ export function ItemCard({ item }: ItemCardProps) {
   return (
     <article
       className={cn(
-        "relative flex gap-4 rounded-xl border bg-card p-5 transition-colors hover:bg-accent/40",
+        "relative flex flex-wrap gap-x-4 gap-y-3 rounded-xl sm:flex-nowrap border bg-card p-5 transition-colors hover:bg-accent/40",
         ITEM_TYPE_BORDER_COLORS[type.slug]
       )}
     >
@@ -41,7 +44,7 @@ export function ItemCard({ item }: ItemCardProps) {
         onClick={() => openItem(item)}
         onPointerEnter={() => prefetchItem(item.id)}
         onFocus={() => prefetchItem(item.id)}
-        className="absolute inset-0 cursor-pointer rounded-xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+        className="absolute inset-0 cursor-pointer rounded-xl focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
       />
       <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted">
         {Icon && (
@@ -76,7 +79,8 @@ export function ItemCard({ item }: ItemCardProps) {
           </div>
         )}
       </div>
-      <div className="flex shrink-0 flex-col items-end gap-2">
+      {/* Its own row on mobile so the title and description keep the full width */}
+      <div className="flex shrink-0 basis-full items-center justify-between gap-2 sm:basis-auto sm:flex-col sm:items-end sm:justify-start">
         <time
           dateTime={item.createdAt.toISOString()}
           className="text-xs text-muted-foreground"
@@ -85,8 +89,14 @@ export function ItemCard({ item }: ItemCardProps) {
         </time>
         {/* Above the card's button so clicking them doesn't open the drawer */}
         <div className="relative z-10 flex items-center gap-1">
-          <ItemFavoriteButton item={item} />
-          {item.copyText && <CopyButton value={item.copyText} label={`Copy ${item.title}`} />}
+          <ItemFavoriteButton item={item} className={TOUCH_ICON_BUTTON} />
+          {item.copyText && (
+            <CopyButton
+              value={item.copyText}
+              label={`Copy ${item.title}`}
+              className={TOUCH_ICON_BUTTON}
+            />
+          )}
         </div>
       </div>
     </article>

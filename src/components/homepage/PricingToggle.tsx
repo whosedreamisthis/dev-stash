@@ -30,7 +30,7 @@ export function BillingToggle() {
   const { period, setPeriod } = useBilling();
   const yearly = period === "yearly";
   const optionClass = (active: boolean) =>
-    cn("cursor-pointer transition-colors", active ? "text-foreground" : "text-muted-foreground");
+    cn("cursor-pointer py-2 transition-colors", active ? "text-foreground" : "text-muted-foreground");
 
   return (
     <div className="flex items-center justify-center gap-3 text-sm font-medium">
@@ -41,6 +41,8 @@ export function BillingToggle() {
         checked={yearly}
         onCheckedChange={(checked) => setPeriod(checked ? "yearly" : "monthly")}
         aria-label="Bill yearly"
+        // Taller invisible hit area for touch; the switch itself stays small
+        className="after:-inset-y-3"
       />
       <button type="button" onClick={() => setPeriod("yearly")} className={optionClass(yearly)}>
         Yearly

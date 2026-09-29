@@ -13,7 +13,7 @@ export function SectionHeading({ eyebrow, title, description }: SectionHeadingPr
       <Badge variant="outline" className="mb-4 h-auto px-3 py-1 text-xs text-muted-foreground">
         {eyebrow}
       </Badge>
-      <h2 className="mb-3.5 text-3xl font-bold tracking-tight md:text-4xl">{title}</h2>
+      <h2 className="mb-3.5 text-3xl font-bold tracking-tight text-balance md:text-4xl">{title}</h2>
       <p className="text-lg text-muted-foreground">{description}</p>
     </Reveal>
   );

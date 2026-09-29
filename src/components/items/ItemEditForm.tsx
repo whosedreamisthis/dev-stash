@@ -79,6 +79,7 @@ export function ItemEditForm({ item, onCancel, onSaved }: ItemEditFormProps) {
           <div className="flex flex-col gap-1">
             <Input
               aria-label="Title"
+              autoComplete="off"
               aria-invalid={fieldErrors.title ? true : undefined}
               aria-describedby={fieldErrors.title ? "item-title-error" : undefined}
               value={values.title}

@@ -8,12 +8,18 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { useIsMac } from "@/hooks/useIsMac";
 
 interface TopBarProps {
+  sidebarOpen: boolean;
   onToggleSidebar: () => void;
   onOpenMobileSidebar: () => void;
   onOpenSearch: () => void;
 }
 
-export function TopBar({ onToggleSidebar, onOpenMobileSidebar, onOpenSearch }: TopBarProps) {
+export function TopBar({
+  sidebarOpen,
+  onToggleSidebar,
+  onOpenMobileSidebar,
+  onOpenSearch,
+}: TopBarProps) {
   const shortcut = useIsMac() ? "⌘K" : "Ctrl+K";
 
   return (
@@ -23,13 +29,14 @@ export function TopBar({ onToggleSidebar, onOpenMobileSidebar, onOpenSearch }: T
         size="icon"
         onClick={onToggleSidebar}
         aria-label="Toggle sidebar"
+        aria-expanded={sidebarOpen}
         className="hidden md:inline-flex"
       >
         <PanelLeft />
       </Button>
       <Button
         variant="ghost"
-        size="icon"
+        size="icon-lg"
         onClick={onOpenMobileSidebar}
         aria-label="Open sidebar"
         className="md:hidden"
@@ -43,7 +50,8 @@ export function TopBar({ onToggleSidebar, onOpenMobileSidebar, onOpenSearch }: T
         className="flex h-8 w-full max-w-md min-w-0 items-center gap-2 rounded-lg border border-input bg-transparent px-2.5 text-sm text-muted-foreground transition-colors hover:bg-accent/40 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none dark:bg-input/30"
       >
         <Search className="size-4 shrink-0" />
-        <span className="truncate">Search items and collections...</span>
+        <span className="truncate lg:hidden">Search...</span>
+        <span className="hidden truncate lg:inline">Search items and collections...</span>
         <kbd className="ml-auto hidden shrink-0 rounded border bg-muted px-1.5 font-mono text-xs md:inline">
           {shortcut}
         </kbd>

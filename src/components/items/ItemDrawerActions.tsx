@@ -60,7 +60,7 @@ export function ItemDrawerActions({
   });
 
   return (
-    <div className="flex items-center gap-1 border-b px-6 py-3">
+    <div className="flex flex-wrap items-center gap-1 border-b px-4 py-3 sm:px-6">
       <Button
         variant="ghost"
         size="sm"

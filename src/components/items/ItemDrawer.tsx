@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { DeleteItemDialog } from "@/components/items/DeleteItemDialog";
 import { ItemDrawerActions } from "@/components/items/ItemDrawerActions";
@@ -35,6 +35,7 @@ export function ItemDrawer({
   // Tracks the edited item's ID so opening another item starts in view mode
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const popupRef = useRef<HTMLDivElement>(null);
   // A deleted item leaves the cache as the drawer closes, so no skeleton flashes
   const isLoading = open && !detail && !error;
   const isEditing = detail !== null && editingId === detail.id;
@@ -61,7 +62,12 @@ export function ItemDrawer({
 
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
-      <SheetContent className="w-full gap-0 p-0 data-[side=right]:sm:max-w-xl">
+      <SheetContent
+        ref={popupRef}
+        // Focuses the panel, not the first button, so Enter doesn't toggle Favorite
+        initialFocus={popupRef}
+        className="gap-0 p-0 data-[side=right]:w-full data-[side=right]:sm:max-w-xl"
+      >
         {current && (
           <>
             {/* The edit form renders its own header with the title input */}

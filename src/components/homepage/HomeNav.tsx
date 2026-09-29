@@ -1,5 +1,6 @@
 import { ButtonLink } from "@/components/homepage/ButtonLink";
 import { Container } from "@/components/homepage/Container";
+import { HomeMobileMenu } from "@/components/homepage/HomeMobileMenu";
 import { NavShell } from "@/components/homepage/NavShell";
 import { Logo } from "@/components/shared/Logo";
 import { SECTION_LINKS } from "@/lib/homepage-content";
@@ -21,6 +22,7 @@ export function HomeNav({ isSignedIn }: HomeNavProps) {
           ))}
         </nav>
         <div className="ml-auto flex shrink-0 items-center gap-2">
+          <HomeMobileMenu isSignedIn={isSignedIn} />
           {isSignedIn ? (
             <ButtonLink href="/dashboard">Go to Dashboard</ButtonLink>
           ) : (

@@ -4,7 +4,12 @@ interface ItemFormFieldProps {
   id: string;
   label: string;
   error?: string;
-  children: (props: { id: string; "aria-invalid"?: boolean; "aria-describedby"?: string }) => React.ReactNode;
+  children: (props: {
+    id: string;
+    autoComplete: "off";
+    "aria-invalid"?: boolean;
+    "aria-describedby"?: string;
+  }) => React.ReactNode;
 }
 
 export function ItemFormField({ id, label, error, children }: ItemFormFieldProps) {
@@ -15,6 +20,8 @@ export function ItemFormField({ id, label, error, children }: ItemFormFieldProps
       <Label htmlFor={id}>{label}</Label>
       {children({
         id,
+        // No browser autofill list of past titles and names popping over the dialog
+        autoComplete: "off",
         "aria-invalid": error ? true : undefined,
         "aria-describedby": error ? errorId : undefined,
       })}

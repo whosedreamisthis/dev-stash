@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import { ItemCard } from "@/components/dashboard/ItemCard";
+import { ITEM_LAYOUT_CLASSES } from "@/lib/item-grid";
 import type { ItemSummary } from "@/types/items";
 
 interface ItemListProps {
@@ -13,11 +14,11 @@ export function ItemList({ title, icon: Icon, items }: ItemListProps) {
 
   return (
     <section>
-      <h2 className="mb-4 flex items-center gap-2 text-muted-foreground">
-        <Icon className="size-4" />
+      <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold">
+        <Icon className="size-5 text-muted-foreground" />
         {title}
       </h2>
-      <div className="flex flex-col gap-3">
+      <div className={ITEM_LAYOUT_CLASSES.cards}>
         {items.map((item) => (
           <ItemCard key={item.id} item={item} />
         ))}

@@ -28,10 +28,11 @@ export function StatsCards({ itemStats, collectionStats }: StatsCardsProps) {
   return (
     <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
       {stats.map(({ label, value, icon: Icon }) => (
-        <div key={label} className="rounded-xl border bg-card p-5">
-          <div className="flex items-center justify-between text-sm text-muted-foreground">
+        // Numbers sit at the bottom so they line up when a label wraps
+        <div key={label} className="flex flex-col justify-between rounded-xl border bg-card p-5">
+          <div className="flex items-start justify-between gap-2 text-sm text-muted-foreground">
             {label}
-            <Icon className="size-4" />
+            <Icon className="mt-0.5 size-4 shrink-0" />
           </div>
           <p className="mt-2 text-3xl font-semibold">{value}</p>
         </div>

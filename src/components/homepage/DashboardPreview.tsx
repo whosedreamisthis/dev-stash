@@ -2,14 +2,16 @@ import { PREVIEW_ITEMS, PREVIEW_TYPES } from "@/lib/homepage-content";
 import { ITEM_TYPE_BG_COLORS, ITEM_TYPE_BORDER_COLORS } from "@/lib/item-type-icons";
 import { cn } from "@/lib/utils";
 
-// Decorative mini dashboard: type sidebar and a grid of type-colored item cards
+// Decorative mini dashboard: type sidebar and a grid of type-colored item cards.
+// Stacked on mobile it fits its content; side by side from md it matches the chaos panel's
+// height. The mini sidebar hides at md, where the panel is too narrow for it and the cards.
 export function DashboardPreview() {
   return (
     <div
       aria-hidden
-      className="grid h-80 overflow-hidden rounded-xl border bg-background min-[420px]:grid-cols-[7.5rem_1fr]"
+      className="grid overflow-hidden rounded-xl border bg-background min-[420px]:grid-cols-[7.5rem_1fr] md:h-80 md:grid-cols-1 lg:grid-cols-[7.5rem_1fr]"
     >
-      <aside className="hidden border-r bg-sidebar p-3 min-[420px]:block">
+      <aside className="hidden border-r bg-sidebar p-3 min-[420px]:block md:hidden lg:block">
         <div className="mb-3.5 flex items-center gap-1.5 text-xs font-bold">
           <span className="size-3 rounded bg-violet-600" />
           DevStash

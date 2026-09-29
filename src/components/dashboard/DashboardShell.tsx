@@ -36,7 +36,7 @@ export function DashboardShell({ sidebar, children }: DashboardShellProps) {
         </aside>
 
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-          <SheetContent side="left" className="w-64 gap-0 p-0 md:hidden">
+          <SheetContent side="left" className="gap-0 p-0 data-[side=left]:w-64 md:hidden">
             <SheetTitle className="sr-only">Navigation</SheetTitle>
             <Sidebar data={sidebar} onNavigate={() => setMobileOpen(false)} />
           </SheetContent>
@@ -46,11 +46,12 @@ export function DashboardShell({ sidebar, children }: DashboardShellProps) {
         <ItemDrawerProvider>
           <div className="flex min-w-0 flex-1 flex-col">
             <TopBar
+              sidebarOpen={sidebarOpen}
               onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
               onOpenMobileSidebar={() => setMobileOpen(true)}
               onOpenSearch={() => setSearchOpen(true)}
             />
-            <main className="scrollbar-none flex-1 overflow-y-auto p-6">{children}</main>
+            <main className="scrollbar-thin flex-1 overflow-y-auto p-6">{children}</main>
           </div>
           <CommandPalette open={searchOpen} onOpenChange={setSearchOpen} />
         </ItemDrawerProvider>
