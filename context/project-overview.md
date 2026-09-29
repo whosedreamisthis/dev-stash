@@ -595,8 +595,7 @@ const systemTypes = [
 | `/collections/[id]` | Items in a collection |
 | `/search?q=` | Search results |
 | `/profile` | User info, usage stats, change password, delete account |
-| `/settings` | Theme, export |
-| `/settings/billing` | Plan & Stripe customer portal |
+| `/settings` | Editor preferences, plan & billing (Stripe Checkout / customer portal), account |
 | `/api/auth/[...nextauth]` | Auth.js handlers |
 | `/api/items/[id]/file` | File download proxy (signed UploadThing URL) |
 | `/api/uploadthing` | UploadThing file router (auth and limit checks) |

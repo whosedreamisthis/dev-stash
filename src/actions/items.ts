@@ -11,8 +11,9 @@ import {
 } from "@/lib/db/items";
 import { setFavoriteSchema } from "@/lib/validations/favorites";
 import { setPinSchema } from "@/lib/validations/pins";
-import { getSessionUserId, NOT_SIGNED_IN_ERROR } from "@/lib/session";
+import { getSessionUser, getSessionUserId, NOT_SIGNED_IN_ERROR } from "@/lib/session";
 import { isUploadTypeSlug } from "@/lib/upload-constraints";
+import { checkItemLimit, hasProAccess, PRO_REQUIRED_ERROR } from "@/lib/usage-limits";
 import { verifyUploadToken, type UploadedFile } from "@/lib/upload-token";
 import { deleteUploadedFile } from "@/lib/uploadthing";
 import {
@@ -74,8 +75,8 @@ function getUploadedFile(
 }
 
 export async function createItem(data: CreateItemInput): Promise<CreateItemResult> {
-  const userId = await getSessionUserId();
-  if (!userId) return { success: false, error: NOT_SIGNED_IN_ERROR };
+  const user = await getSessionUser();
+  if (!user) return { success: false, error: NOT_SIGNED_IN_ERROR };
 
   const parsed = createItemSchema.safeParse(data);
   if (!parsed.success) {
@@ -86,7 +87,12 @@ export async function createItem(data: CreateItemInput): Promise<CreateItemResul
     };
   }
 
-  const upload = getUploadedFile(userId, parsed.data);
+  // The upload types (File, Image) are the Pro-only types
+  if (isUploadTypeSlug(parsed.data.typeSlug) && !hasProAccess(user)) {
+    return { success: false, error: PRO_REQUIRED_ERROR };
+  }
+
+  const upload = getUploadedFile(user.id, parsed.data);
   if (upload.error) {
     return {
       success: false,
@@ -96,7 +102,10 @@ export async function createItem(data: CreateItemInput): Promise<CreateItemResul
   }
 
   try {
-    const item = await createItemQuery(userId, parsed.data, upload.file);
+    const limitError = await checkItemLimit(user);
+    if (limitError) return { success: false, error: limitError };
+
+    const item = await createItemQuery(user.id, parsed.data, upload.file);
     if (!item) return { success: false, error: "That item type isn't available." };
     return { success: true, data: item };
   } catch (error) {

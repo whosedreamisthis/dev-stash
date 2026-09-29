@@ -9,7 +9,8 @@ import {
   updateCollection as updateCollectionQuery,
 } from "@/lib/db/collections";
 import { setFavoriteSchema } from "@/lib/validations/favorites";
-import { getSessionUserId, NOT_SIGNED_IN_ERROR } from "@/lib/session";
+import { getSessionUser, getSessionUserId, NOT_SIGNED_IN_ERROR } from "@/lib/session";
+import { checkCollectionLimit } from "@/lib/usage-limits";
 import {
   createCollectionSchema,
   updateCollectionSchema,
@@ -51,8 +52,8 @@ function toFieldErrors(
 export async function createCollection(
   data: CreateCollectionInput
 ): Promise<CreateCollectionResult> {
-  const userId = await getSessionUserId();
-  if (!userId) return { success: false, error: NOT_SIGNED_IN_ERROR };
+  const user = await getSessionUser();
+  if (!user) return { success: false, error: NOT_SIGNED_IN_ERROR };
 
   const parsed = createCollectionSchema.safeParse(data);
   if (!parsed.success) {
@@ -64,7 +65,10 @@ export async function createCollection(
   }
 
   try {
-    const collection = await createCollectionQuery(userId, parsed.data);
+    const limitError = await checkCollectionLimit(user);
+    if (limitError) return { success: false, error: limitError };
+
+    const collection = await createCollectionQuery(user.id, parsed.data);
     return { success: true, data: collection };
   } catch (error) {
     console.error("Creating collection failed:", error);

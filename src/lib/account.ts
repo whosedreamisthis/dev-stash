@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { PASSWORD_RESET_PREFIX } from "@/lib/password-reset";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { getStripe } from "@/lib/stripe";
 
 const BCRYPT_ROUNDS = 12;
 
@@ -35,9 +36,15 @@ export async function changePassword(
 export async function deleteAccount(userId: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { email: true },
+    select: { email: true, stripeSubscriptionId: true },
   });
   if (!user) return;
+
+  // Cancelled first so a deleted account is never billed again. If this throws, the
+  // account is kept and the action shows its generic error.
+  if (user.stripeSubscriptionId) {
+    await getStripe().subscriptions.cancel(user.stripeSubscriptionId);
+  }
 
   // Verification and reset tokens are keyed by email, so they don't cascade
   const tokenIdentifiers = user.email

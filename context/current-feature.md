@@ -1,20 +1,37 @@
-# Current Feature
+# Current Feature: Stripe Integration Phase 2 - Integration & UI
 
 <!-- Feature name and short description -->
+
+Wire the Phase 1 Stripe infrastructure into the app: the webhook route, Checkout and Customer Portal actions, a billing section on `/settings`, free-tier gating on items, collections and uploads, and cancelling subscriptions on account deletion.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- **Webhook route `src/app/api/webhooks/stripe/route.ts`:** raw body via `request.text()`, verified with `constructEvent` and `STRIPE_WEBHOOK_SECRET`; missing signature/secret or bad signature → 400; passes the event to `handleStripeEvent`, which throwing → 500 so Stripe retries; success → `{ received: true }`.
+- **Billing actions `src/actions/billing.ts`:** `createCheckoutSession(interval)` (session check, Zod `"monthly" | "yearly"`, refuse when already subscribed, get or create the customer, hosted Checkout with `client_reference_id: userId`, returns `{ success, data: { url } }`); `createPortalSession()` (portal URL, or an error without a Stripe customer). Success URL `/settings?session_id={CHECKOUT_SESSION_ID}`, cancel URL `/settings?checkout=canceled`, portal return URL `/settings`, all from `getAppUrl()`.
+- **Billing on `/settings` (`src/app/settings/page.tsx`):** on `?session_id=` runs `syncCheckoutSession` (best effort) and redirects to `?checkout=success`; loads the billing user, item count and collection count and shows `BillingPlanCard` between the Editor and Account sections. There is no separate `/settings/billing` page (changed at the user's request to avoid two ways to reach billing).
+- **Billing components `src/components/billing/`:** `BillingPlanCard` (server: Free / Pro, renewal date, usage bars `n / 50` and `n / 3` hidden for Pro, upgrade or manage buttons), `UpgradeButtons` (client: "$8 / month" and "$72 / year — save 25%", pending state, error toast, `window.location.assign`), `ManageBillingButton` (client: opens the portal), `CheckoutToast` (client: one-time toast for `?checkout=success|canceled`). Styled like the `AccountActions` rows (`rounded-xl border bg-card p-5`) with shadcn `Button`.
+- **Gating (via `getSessionUser()` and `usage-limits`):** `createItem` requires Pro for File/Image types (`isUploadTypeSlug` → `PRO_REQUIRED_ERROR`) and calls `checkItemLimit`; `createCollection` calls `checkCollectionLimit`; `uploadMiddleware` in `src/lib/uploadthing.ts` throws an `UploadThingError` without Pro access. Updates, deletes, favorites, pins and downloads stay ungated. Nothing is limited while `ENFORCE_PLANS` is unset.
+- **Account deletion `src/lib/account.ts`:** cancel the Stripe subscription before deleting the user; if cancelling fails, keep the account and return the generic error.
+- **Tests:** `src/app/api/webhooks/stripe/route.test.ts`, `src/actions/billing.test.ts`, updates to `src/actions/items.test.ts`, `src/actions/collections.test.ts`, `src/lib/uploadthing.test.ts` and the account deletion tests; `npm test`, `npm run lint` and `npm run build` pass.
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- Spec: `context/features/stripe-phase-2-spec.md`; plan `docs/stripe-integration-plan.md` §5.5–§5.9, §6.5–§6.11, §7, §8 (implementation steps 5–11).
+- The spec's docs task (`ENFORCE_PLANS` in the env block, publishable key marked unused in `context/project-overview.md`) was already done in Phase 1.
+- Stripe setup is done: test-mode product and prices, Customer Portal, Stripe CLI logged in, `STRIPE_WEBHOOK_SECRET` set. Stripe CLI 1.52 requires listing events: `stripe listen --events checkout.session.completed,customer.subscription.created,customer.subscription.updated,customer.subscription.deleted --forward-to localhost:3000/api/webhooks/stripe`.
+- Webhook tests follow `src/app/api/items/[id]/file/route.test.ts`. Billing action tests cover: no session, invalid interval, already subscribed, happy path (URL, price, `client_reference_id`), Stripe failure → generic error, portal with and without a customer. Gating tests use `vi.stubEnv("ENFORCE_PLANS", "true")` and also check nothing is limited when it's unset. Deletion tests: cancel runs before the delete, and a Stripe failure keeps the account.
+- Manual checks (user, `stripe listen` running, `ENFORCE_PLANS=true`, test card `4242 4242 4242 4242`): see the spec's list of 11; DB checks use Neon MCP on the development branch only.
+- Out of scope: live-mode setup and the production webhook endpoint, trials, promotion codes, Stripe Tax.
 
 ## Completed Features
 

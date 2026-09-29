@@ -3,6 +3,9 @@ import { UploadThingError, UTApi } from "uploadthing/server";
 import { auth } from "@/auth";
 import { getUploadError, type UploadTypeSlug } from "@/lib/upload-constraints";
 import { createUploadToken } from "@/lib/upload-token";
+import { hasProAccess } from "@/lib/usage-limits";
+
+export const UPLOAD_PRO_REQUIRED_ERROR = "File and image uploads require DevStash Pro.";
 
 const f = createUploadthing();
 
@@ -33,6 +36,10 @@ export function uploadMiddleware(typeSlug: UploadTypeSlug) {
     const session = await auth();
     const userId = session?.user?.id;
     if (!userId) throw new UploadThingError("You must be signed in to upload files.");
+    // Checked before anything is stored, so free users' files never reach UploadThing
+    if (!hasProAccess({ isPro: session.user.isPro ?? false })) {
+      throw new UploadThingError(UPLOAD_PRO_REQUIRED_ERROR);
+    }
 
     for (const file of files) {
       const error = getUploadError(typeSlug, file);

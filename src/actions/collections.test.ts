@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import type { Session } from "next-auth";
 import { auth } from "@/auth";
 import {
+  countCollections,
   createCollection as createCollectionQuery,
   deleteCollection as deleteCollectionQuery,
   getCollectionOptions as getCollectionOptionsQuery,
@@ -15,10 +16,13 @@ import {
   setCollectionFavorite,
   updateCollection,
 } from "@/actions/collections";
+import { COLLECTION_LIMIT_ERROR, FREE_LIMITS } from "@/lib/usage-limits";
 import type { CollectionSummary } from "@/types/collections";
 
 vi.mock("@/auth", () => ({ auth: vi.fn() }));
+vi.mock("@/lib/db/items", () => ({ getItemStats: vi.fn() }));
 vi.mock("@/lib/db/collections", () => ({
+  countCollections: vi.fn(),
   getCollectionOptions: vi.fn(),
   createCollection: vi.fn(),
   updateCollection: vi.fn(),
@@ -29,8 +33,8 @@ vi.mock("@/lib/db/collections", () => ({
 // auth() is overloaded (it also wraps middleware), so narrow it to the session getter
 const mockAuth = auth as unknown as Mock<() => Promise<Session | null>>;
 
-function signIn(userId = "user-1") {
-  mockAuth.mockResolvedValue({ user: { id: userId }, expires: "" } as Session);
+function signIn(userId = "user-1", isPro = false) {
+  mockAuth.mockResolvedValue({ user: { id: userId, isPro }, expires: "" } as Session);
 }
 
 const INPUT = { name: " React Patterns ", description: "" };
@@ -76,6 +80,44 @@ describe("createCollection", () => {
     await expect(createCollection(INPUT)).resolves.toEqual({
       success: false,
       error: "Something went wrong. Please try again.",
+    });
+  });
+
+  it("doesn't limit free users when plans aren't enforced", async () => {
+    signIn();
+    vi.mocked(createCollectionQuery).mockResolvedValue({ id: "col-1" } as CollectionSummary);
+    await expect(createCollection(INPUT)).resolves.toMatchObject({ success: true });
+    expect(countCollections).not.toHaveBeenCalled();
+  });
+
+  describe("with plans enforced", () => {
+    beforeEach(() => {
+      vi.stubEnv("ENFORCE_PLANS", "true");
+    });
+
+    it("rejects free users at the collection limit", async () => {
+      signIn("user-42");
+      vi.mocked(countCollections).mockResolvedValue(FREE_LIMITS.collections);
+      await expect(createCollection(INPUT)).resolves.toEqual({
+        success: false,
+        error: COLLECTION_LIMIT_ERROR,
+      });
+      expect(countCollections).toHaveBeenCalledWith("user-42");
+      expect(createCollectionQuery).not.toHaveBeenCalled();
+    });
+
+    it("lets free users under the limit create collections", async () => {
+      signIn();
+      vi.mocked(countCollections).mockResolvedValue(FREE_LIMITS.collections - 1);
+      vi.mocked(createCollectionQuery).mockResolvedValue({ id: "col-1" } as CollectionSummary);
+      await expect(createCollection(INPUT)).resolves.toMatchObject({ success: true });
+    });
+
+    it("lets Pro users create collections without counting", async () => {
+      signIn("user-42", true);
+      vi.mocked(createCollectionQuery).mockResolvedValue({ id: "col-1" } as CollectionSummary);
+      await expect(createCollection(INPUT)).resolves.toMatchObject({ success: true });
+      expect(countCollections).not.toHaveBeenCalled();
     });
   });
 });

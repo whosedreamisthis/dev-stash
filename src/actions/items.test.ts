@@ -5,12 +5,14 @@ import {
   createItem as createItemQuery,
   deleteItem as deleteItemQuery,
   getItemDetail,
+  getItemStats,
   setItemFavorite as setItemFavoriteQuery,
   setItemPinned as setItemPinnedQuery,
   updateItem as updateItemQuery,
 } from "@/lib/db/items";
 import { createUploadToken } from "@/lib/upload-token";
 import { deleteUploadedFile } from "@/lib/uploadthing";
+import { FREE_LIMITS, ITEM_LIMIT_ERROR, PRO_REQUIRED_ERROR } from "@/lib/usage-limits";
 import {
   createItem,
   deleteItem,
@@ -27,9 +29,11 @@ vi.mock("@/lib/db/items", () => ({
   updateItem: vi.fn(),
   deleteItem: vi.fn(),
   getItemDetail: vi.fn(),
+  getItemStats: vi.fn(),
   setItemFavorite: vi.fn(),
   setItemPinned: vi.fn(),
 }));
+vi.mock("@/lib/db/collections", () => ({ countCollections: vi.fn() }));
 vi.mock("@/lib/uploadthing", () => ({ deleteUploadedFile: vi.fn() }));
 
 const UPLOADED_FILE = {
@@ -43,8 +47,8 @@ const UPLOADED_FILE = {
 // auth() is overloaded (it also wraps middleware), so narrow it to the session getter
 const mockAuth = auth as unknown as Mock<() => Promise<Session | null>>;
 
-function signIn(userId = "user-1") {
-  mockAuth.mockResolvedValue({ user: { id: userId }, expires: "" } as Session);
+function signIn(userId = "user-1", isPro = false) {
+  mockAuth.mockResolvedValue({ user: { id: userId, isPro }, expires: "" } as Session);
 }
 
 const INPUT = { title: " useAuth Hook ", description: "", tags: ["react", "react"] };
@@ -194,6 +198,57 @@ describe("createItem", () => {
     await expect(createItem(CREATE_INPUT)).resolves.toEqual({
       success: false,
       error: "Something went wrong. Please try again.",
+    });
+  });
+
+  it("doesn't limit free users when plans aren't enforced", async () => {
+    signIn();
+    vi.mocked(createItemQuery).mockResolvedValue({ id: "item-1" } as ItemDetail);
+    await expect(createItem(CREATE_INPUT)).resolves.toMatchObject({ success: true });
+    expect(getItemStats).not.toHaveBeenCalled();
+  });
+
+  describe("with plans enforced", () => {
+    beforeEach(() => {
+      vi.stubEnv("ENFORCE_PLANS", "true");
+      vi.stubEnv("AUTH_SECRET", "test-secret");
+    });
+
+    it("rejects File and Image items for free users", async () => {
+      signIn("user-42");
+      const uploadToken = createUploadToken("user-42", UPLOADED_FILE);
+      await expect(
+        createItem({ ...INPUT, typeSlug: "images", uploadToken })
+      ).resolves.toEqual({ success: false, error: PRO_REQUIRED_ERROR });
+      expect(createItemQuery).not.toHaveBeenCalled();
+    });
+
+    it("rejects free users at the item limit", async () => {
+      signIn("user-42");
+      vi.mocked(getItemStats).mockResolvedValue({ total: FREE_LIMITS.items, favorites: 0 });
+      await expect(createItem(CREATE_INPUT)).resolves.toEqual({
+        success: false,
+        error: ITEM_LIMIT_ERROR,
+      });
+      expect(getItemStats).toHaveBeenCalledWith("user-42");
+      expect(createItemQuery).not.toHaveBeenCalled();
+    });
+
+    it("lets free users under the limit create items", async () => {
+      signIn();
+      vi.mocked(getItemStats).mockResolvedValue({ total: FREE_LIMITS.items - 1, favorites: 0 });
+      vi.mocked(createItemQuery).mockResolvedValue({ id: "item-1" } as ItemDetail);
+      await expect(createItem(CREATE_INPUT)).resolves.toMatchObject({ success: true });
+    });
+
+    it("lets Pro users create uploads without counting items", async () => {
+      signIn("user-42", true);
+      vi.mocked(createItemQuery).mockResolvedValue({ id: "item-1" } as ItemDetail);
+      const uploadToken = createUploadToken("user-42", UPLOADED_FILE);
+      await expect(
+        createItem({ ...INPUT, typeSlug: "images", uploadToken })
+      ).resolves.toMatchObject({ success: true });
+      expect(getItemStats).not.toHaveBeenCalled();
     });
   });
 });

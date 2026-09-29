@@ -5,6 +5,7 @@ import { verifyUploadToken } from "@/lib/upload-token";
 import {
   deleteUploadedFile,
   getSignedFileUrl,
+  UPLOAD_PRO_REQUIRED_ERROR,
   uploadComplete,
   uploadMiddleware,
 } from "@/lib/uploadthing";
@@ -15,6 +16,8 @@ const { deleteFiles, generateSignedURL } = vi.hoisted(() => ({
 }));
 
 vi.mock("@/auth", () => ({ auth: vi.fn() }));
+vi.mock("@/lib/db/collections", () => ({ countCollections: vi.fn() }));
+vi.mock("@/lib/db/items", () => ({ getItemStats: vi.fn() }));
 vi.mock("uploadthing/server", async (importOriginal) => ({
   ...(await importOriginal<typeof import("uploadthing/server")>()),
   UTApi: class {
@@ -55,6 +58,29 @@ describe("uploadMiddleware", () => {
     mockAuth.mockResolvedValue({ user: { id: "user-1" }, expires: "" } as Session);
     await expect(uploadMiddleware("images")({ files: [IMAGE] })).resolves.toEqual({
       userId: "user-1",
+    });
+  });
+
+  describe("with plans enforced", () => {
+    beforeEach(() => {
+      vi.stubEnv("ENFORCE_PLANS", "true");
+    });
+
+    it("rejects uploads from free users", async () => {
+      mockAuth.mockResolvedValue({ user: { id: "user-1", isPro: false }, expires: "" } as Session);
+      await expect(uploadMiddleware("images")({ files: [IMAGE] })).rejects.toThrow(
+        UPLOAD_PRO_REQUIRED_ERROR
+      );
+      await expect(uploadMiddleware("files")({ files: [IMAGE] })).rejects.toThrow(
+        UPLOAD_PRO_REQUIRED_ERROR
+      );
+    });
+
+    it("accepts uploads from Pro users", async () => {
+      mockAuth.mockResolvedValue({ user: { id: "user-1", isPro: true }, expires: "" } as Session);
+      await expect(uploadMiddleware("images")({ files: [IMAGE] })).resolves.toEqual({
+        userId: "user-1",
+      });
     });
   });
 });
