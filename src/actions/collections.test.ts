@@ -5,12 +5,14 @@ import {
   createCollection as createCollectionQuery,
   deleteCollection as deleteCollectionQuery,
   getCollectionOptions as getCollectionOptionsQuery,
+  setCollectionFavorite as setCollectionFavoriteQuery,
   updateCollection as updateCollectionQuery,
 } from "@/lib/db/collections";
 import {
   createCollection,
   deleteCollection,
   getCollectionOptions,
+  setCollectionFavorite,
   updateCollection,
 } from "@/actions/collections";
 import type { CollectionSummary } from "@/types/collections";
@@ -21,6 +23,7 @@ vi.mock("@/lib/db/collections", () => ({
   createCollection: vi.fn(),
   updateCollection: vi.fn(),
   deleteCollection: vi.fn(),
+  setCollectionFavorite: vi.fn(),
 }));
 
 // auth() is overloaded (it also wraps middleware), so narrow it to the session getter
@@ -123,6 +126,62 @@ describe("updateCollection", () => {
     signIn();
     vi.mocked(updateCollectionQuery).mockRejectedValue(new Error("db down"));
     await expect(updateCollection("c1", INPUT)).resolves.toEqual({
+      success: false,
+      error: "Something went wrong. Please try again.",
+    });
+  });
+});
+
+describe("setCollectionFavorite", () => {
+  beforeEach(() => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  it("requires a session", async () => {
+    mockAuth.mockResolvedValue(null);
+    await expect(setCollectionFavorite("c1", true)).resolves.toEqual({
+      success: false,
+      error: "You must be signed in.",
+    });
+    expect(setCollectionFavoriteQuery).not.toHaveBeenCalled();
+  });
+
+  it("rejects invalid input without querying", async () => {
+    signIn();
+    await expect(setCollectionFavorite("  ", true)).resolves.toEqual({
+      success: false,
+      error: "Collection not found.",
+    });
+    await expect(setCollectionFavorite("c1", "yes" as unknown as boolean)).resolves.toEqual({
+      success: false,
+      error: "Collection not found.",
+    });
+    expect(setCollectionFavoriteQuery).not.toHaveBeenCalled();
+  });
+
+  it("sets the favorite state on the session user's collection", async () => {
+    signIn("user-42");
+    vi.mocked(setCollectionFavoriteQuery).mockResolvedValue(true);
+    await expect(setCollectionFavorite(" c1 ", false)).resolves.toEqual({
+      success: true,
+      data: { id: "c1", isFavorite: false },
+    });
+    expect(setCollectionFavoriteQuery).toHaveBeenCalledWith("user-42", "c1", false);
+  });
+
+  it("returns not found when nothing was updated", async () => {
+    signIn();
+    vi.mocked(setCollectionFavoriteQuery).mockResolvedValue(false);
+    await expect(setCollectionFavorite("c1", true)).resolves.toEqual({
+      success: false,
+      error: "Collection not found.",
+    });
+  });
+
+  it("returns a generic error when the update fails", async () => {
+    signIn();
+    vi.mocked(setCollectionFavoriteQuery).mockRejectedValue(new Error("db down"));
+    await expect(setCollectionFavorite("c1", true)).resolves.toEqual({
       success: false,
       error: "Something went wrong. Please try again.",
     });

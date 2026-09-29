@@ -8,6 +8,7 @@ import {
   getCollections,
   getFavoriteCollections,
   getSearchCollections,
+  setCollectionFavorite,
   updateCollection,
 } from "@/lib/db/collections";
 
@@ -19,6 +20,7 @@ vi.mock("@/lib/db", () => ({
       findMany: vi.fn(),
       findFirst: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn(),
       deleteMany: vi.fn(),
     },
   },
@@ -65,6 +67,21 @@ describe("getSearchCollections", () => {
       })
     );
     expect(findMany.mock.calls[0][0]).not.toHaveProperty("take");
+  });
+});
+
+describe("setCollectionFavorite", () => {
+  it("updates only the user's collection and reports whether it existed", async () => {
+    const updateMany = vi.mocked(prisma.collection.updateMany);
+    updateMany.mockResolvedValue({ count: 1 });
+    await expect(setCollectionFavorite("user-1", "c1", true)).resolves.toBe(true);
+    expect(updateMany).toHaveBeenCalledWith({
+      where: { id: "c1", userId: "user-1" },
+      data: { isFavorite: true },
+    });
+
+    updateMany.mockResolvedValue({ count: 0 });
+    await expect(setCollectionFavorite("user-1", "c2", false)).resolves.toBe(false);
   });
 });
 

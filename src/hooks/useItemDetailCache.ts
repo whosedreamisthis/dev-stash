@@ -46,6 +46,14 @@ export function useItemDetailCache() {
     setDetails((prev) => ({ ...prev, [detail.id]: detail }));
   }, []);
 
+  // Updates fields of a cached item, such as its favorite state; no-op if not loaded
+  const patchDetail = useCallback((itemId: string, changes: Partial<ItemDetail>) => {
+    setDetails((prev) => {
+      const detail = prev[itemId];
+      return detail ? { ...prev, [itemId]: { ...detail, ...changes } } : prev;
+    });
+  }, []);
+
   // Drops a deleted item. Its ID stays marked as requested so the card, which
   // regains focus as the drawer closes and stays mounted until the refresh
   // finishes, doesn't prefetch it again and get a 404.
@@ -59,5 +67,5 @@ export function useItemDetailCache() {
     });
   }, []);
 
-  return { details, errors, loadItem, setDetail, removeDetail };
+  return { details, errors, loadItem, setDetail, patchDetail, removeDetail };
 }

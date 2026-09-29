@@ -5,8 +5,10 @@ import {
   createCollection as createCollectionQuery,
   deleteCollection as deleteCollectionQuery,
   getCollectionOptions as getCollectionOptionsQuery,
+  setCollectionFavorite as setCollectionFavoriteQuery,
   updateCollection as updateCollectionQuery,
 } from "@/lib/db/collections";
+import { setFavoriteSchema } from "@/lib/validations/favorites";
 import { getSessionUserId, NOT_SIGNED_IN_ERROR } from "@/lib/session";
 import {
   createCollectionSchema,
@@ -111,6 +113,36 @@ export async function getCollectionOptions(): Promise<GetCollectionOptionsResult
     return { success: true, data: await getCollectionOptionsQuery(userId) };
   } catch (error) {
     console.error("Loading collection options failed:", error);
+    return { success: false, error: "Something went wrong. Please try again." };
+  }
+}
+
+export interface SetCollectionFavoriteResult {
+  success: boolean;
+  data?: { id: string; isFavorite: boolean };
+  error?: string;
+}
+
+export async function setCollectionFavorite(
+  collectionId: string,
+  isFavorite: boolean
+): Promise<SetCollectionFavoriteResult> {
+  const userId = await getSessionUserId();
+  if (!userId) return { success: false, error: NOT_SIGNED_IN_ERROR };
+
+  const parsed = setFavoriteSchema.safeParse({ id: collectionId, isFavorite });
+  if (!parsed.success) return { success: false, error: "Collection not found." };
+
+  try {
+    const updated = await setCollectionFavoriteQuery(
+      userId,
+      parsed.data.id,
+      parsed.data.isFavorite
+    );
+    if (!updated) return { success: false, error: "Collection not found." };
+    return { success: true, data: parsed.data };
+  } catch (error) {
+    console.error("Updating collection favorite failed:", error);
     return { success: false, error: "Something went wrong. Please try again." };
   }
 }

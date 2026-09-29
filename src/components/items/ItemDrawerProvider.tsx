@@ -9,6 +9,8 @@ interface ItemDrawerContextValue {
   openItem: (item: ItemSummary) => void;
   // Starts loading an item's detail before it is clicked (on hover or focus)
   prefetchItem: (itemId: string) => void;
+  // Keeps the drawer in sync when an item is favorited from a card
+  setFavorite: (itemId: string, isFavorite: boolean) => void;
 }
 
 const ItemDrawerContext = createContext<ItemDrawerContextValue | null>(null);
@@ -27,7 +29,8 @@ interface ItemDrawerProviderProps {
 export function ItemDrawerProvider({ children }: ItemDrawerProviderProps) {
   const [item, setItem] = useState<ItemSummary | null>(null);
   const [open, setOpen] = useState(false);
-  const { details, errors, loadItem, setDetail, removeDetail } = useItemDetailCache();
+  const { details, errors, loadItem, setDetail, patchDetail, removeDetail } =
+    useItemDetailCache();
 
   const openItem = useCallback(
     (nextItem: ItemSummary) => {
@@ -38,9 +41,17 @@ export function ItemDrawerProvider({ children }: ItemDrawerProviderProps) {
     [loadItem]
   );
 
+  const setFavorite = useCallback(
+    (itemId: string, isFavorite: boolean) => {
+      patchDetail(itemId, { isFavorite });
+      setItem((prev) => (prev?.id === itemId ? { ...prev, isFavorite } : prev));
+    },
+    [patchDetail]
+  );
+
   const value = useMemo(
-    () => ({ openItem, prefetchItem: loadItem }),
-    [openItem, loadItem]
+    () => ({ openItem, prefetchItem: loadItem, setFavorite }),
+    [openItem, loadItem, setFavorite]
   );
 
   return (
@@ -54,6 +65,7 @@ export function ItemDrawerProvider({ children }: ItemDrawerProviderProps) {
         open={open}
         onOpenChange={setOpen}
         onSaved={setDetail}
+        onFavoriteSaved={setFavorite}
         onDeleted={removeDetail}
       />
     </ItemDrawerContext>

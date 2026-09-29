@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { MoreHorizontal, Pencil, Star, Trash2 } from "lucide-react";
+import { setCollectionFavorite } from "@/actions/collections";
 import { DeleteCollectionDialog } from "@/components/collections/DeleteCollectionDialog";
 import { EditCollectionDialog } from "@/components/collections/EditCollectionDialog";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useFavoriteToggle } from "@/hooks/useFavoriteToggle";
 import { rememberCollection } from "@/lib/collection-preview";
 import type { CollectionSummary } from "@/types/collections";
 import {
@@ -30,6 +32,10 @@ export function CollectionCard({ collection }: CollectionCardProps) {
   const { mainType, types } = collection;
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const { isFavorite, toggle } = useFavoriteToggle({
+    isFavorite: collection.isFavorite,
+    save: (next) => setCollectionFavorite(collection.id, next),
+  });
 
   return (
     <div className="relative">
@@ -45,7 +51,7 @@ export function CollectionCard({ collection }: CollectionCardProps) {
         <div>
           <div className="flex items-center gap-2">
             <h3 className="truncate font-medium">{collection.name}</h3>
-            {collection.isFavorite && (
+            {isFavorite && (
               <Star className="size-4 shrink-0 fill-yellow-400 text-yellow-400" />
             )}
           </div>
@@ -87,9 +93,9 @@ export function CollectionCard({ collection }: CollectionCardProps) {
           <MoreHorizontal />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-40">
-          <DropdownMenuItem disabled>
-            <Star />
-            Favorite
+          <DropdownMenuItem onClick={toggle}>
+            <Star className={cn(isFavorite && "fill-yellow-400 text-yellow-400")} />
+            {isFavorite ? "Unfavorite" : "Favorite"}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setEditOpen(true)}>
             <Pencil />

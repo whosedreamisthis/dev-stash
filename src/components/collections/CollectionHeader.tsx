@@ -2,9 +2,12 @@
 
 import { useState } from "react";
 import { Pencil, Star, Trash2 } from "lucide-react";
+import { setCollectionFavorite } from "@/actions/collections";
 import { DeleteCollectionDialog } from "@/components/collections/DeleteCollectionDialog";
 import { EditCollectionDialog } from "@/components/collections/EditCollectionDialog";
 import { Button } from "@/components/ui/button";
+import { useFavoriteToggle } from "@/hooks/useFavoriteToggle";
+import { cn } from "@/lib/utils";
 import type { CollectionDetail } from "@/types/collections";
 
 interface CollectionHeaderProps {
@@ -15,16 +18,15 @@ interface CollectionHeaderProps {
 export function CollectionHeader({ collection }: CollectionHeaderProps) {
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const { isFavorite, toggle } = useFavoriteToggle({
+    isFavorite: collection.isFavorite,
+    save: (next) => setCollectionFavorite(collection.id, next),
+  });
 
   return (
     <header className="flex items-start justify-between gap-4">
       <div className="min-w-0">
-        <div className="flex items-center gap-3">
-          <h1 className="truncate text-3xl font-bold tracking-tight">{collection.name}</h1>
-          {collection.isFavorite && (
-            <Star aria-label="Favorite" className="size-5 shrink-0 fill-yellow-400 text-yellow-400" />
-          )}
-        </div>
+        <h1 className="truncate text-3xl font-bold tracking-tight">{collection.name}</h1>
         {collection.description && (
           <p className="mt-2 text-muted-foreground">{collection.description}</p>
         )}
@@ -34,11 +36,13 @@ export function CollectionHeader({ collection }: CollectionHeaderProps) {
         <Button
           variant="ghost"
           size="icon"
-          disabled
-          title="Favoriting isn't available yet"
-          aria-label="Favorite collection"
+          aria-pressed={isFavorite}
+          aria-label={isFavorite ? "Unfavorite collection" : "Favorite collection"}
+          title={isFavorite ? "Unfavorite" : "Favorite"}
+          onClick={toggle}
+          className={cn(isFavorite && "text-yellow-400 hover:text-yellow-400")}
         >
-          <Star className="size-4" />
+          <Star className={cn("size-4", isFavorite && "fill-yellow-400")} />
         </Button>
         <Button
           variant="ghost"

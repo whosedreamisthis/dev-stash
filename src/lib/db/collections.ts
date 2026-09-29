@@ -209,6 +209,19 @@ export async function updateCollection(
   return toCollectionSummary(collection);
 }
 
+// Returns false for collections that don't exist or belong to another user
+export async function setCollectionFavorite(
+  userId: string,
+  collectionId: string,
+  isFavorite: boolean
+): Promise<boolean> {
+  const { count } = await prisma.collection.updateMany({
+    where: { id: collectionId, userId },
+    data: { isFavorite },
+  });
+  return count > 0;
+}
+
 // Deletes the collection and its item links; the items themselves are kept
 export async function deleteCollection(userId: string, collectionId: string): Promise<boolean> {
   const { count } = await prisma.collection.deleteMany({ where: { id: collectionId, userId } });

@@ -9,6 +9,7 @@ import {
   getItemsByCollection,
   getItemsByType,
   getSearchItems,
+  setItemFavorite,
   toCollectionLinks,
   toTagLinks,
   updateItem,
@@ -22,6 +23,7 @@ vi.mock("@/lib/db", () => ({
       findMany: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn(),
       deleteMany: vi.fn(),
     },
     itemType: { findFirst: vi.fn() },
@@ -525,6 +527,21 @@ describe("getSearchItems", () => {
       }),
     ]);
     expect(items[0]).not.toHaveProperty("copyText");
+  });
+});
+
+describe("setItemFavorite", () => {
+  it("updates only the user's item and reports whether it existed", async () => {
+    const updateMany = vi.mocked(prisma.item.updateMany);
+    updateMany.mockResolvedValue({ count: 1 });
+    await expect(setItemFavorite("user-1", "item-1", true)).resolves.toBe(true);
+    expect(updateMany).toHaveBeenCalledWith({
+      where: { id: "item-1", userId: "user-1" },
+      data: { isFavorite: true },
+    });
+
+    updateMany.mockResolvedValue({ count: 0 });
+    await expect(setItemFavorite("user-1", "item-2", false)).resolves.toBe(false);
   });
 });
 

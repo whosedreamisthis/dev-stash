@@ -2,11 +2,15 @@
 
 import { Copy, Pencil, Pin, Star, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { setItemFavorite } from "@/actions/items";
 import { Button } from "@/components/ui/button";
+import { useFavoriteToggle } from "@/hooks/useFavoriteToggle";
 import { cn } from "@/lib/utils";
 
 interface ItemDrawerActionsProps {
+  itemId: string;
   isFavorite: boolean;
+  onFavoriteSaved: (isFavorite: boolean) => void;
   isPinned: boolean;
   // Text to copy; null while loading or when the item has nothing to copy
   copyValue: string | null;
@@ -15,7 +19,7 @@ interface ItemDrawerActionsProps {
   onDelete?: () => void;
 }
 
-// Favorite and pin are wired up in a later feature
+// Pin is wired up in a later feature
 function showComingSoon() {
   toast("Coming soon");
 }
@@ -30,19 +34,27 @@ async function copyToClipboard(value: string) {
 }
 
 export function ItemDrawerActions({
-  isFavorite,
+  itemId,
+  isFavorite: savedIsFavorite,
+  onFavoriteSaved,
   isPinned,
   copyValue,
   onEdit,
   onDelete,
 }: ItemDrawerActionsProps) {
+  const { isFavorite, toggle } = useFavoriteToggle({
+    isFavorite: savedIsFavorite,
+    save: (next) => setItemFavorite(itemId, next),
+    onSaved: onFavoriteSaved,
+  });
+
   return (
     <div className="flex items-center gap-1 border-b px-6 py-3">
       <Button
         variant="ghost"
         size="sm"
         aria-pressed={isFavorite}
-        onClick={showComingSoon}
+        onClick={toggle}
         className={cn(isFavorite && "text-yellow-400 hover:text-yellow-400")}
       >
         <Star className={cn(isFavorite && "fill-yellow-400")} />

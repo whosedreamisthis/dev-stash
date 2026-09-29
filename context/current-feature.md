@@ -1,20 +1,36 @@
-# Current Feature
+# Current Feature: Favorite Toggle
 
 <!-- Feature name and short description -->
+
+Let users favorite and unfavorite items and collections from the item drawer, the collection page and the cards.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- Server actions to toggle `isFavorite` on an item and on a collection, scoped to the session user and validated with Zod, returning `{ success, data, error }`
+- Item drawer: the Favorite button (currently "Coming soon") toggles the item's favorite state
+- Collection page: the disabled star button in `CollectionHeader` toggles the collection's favorite state
+- Collection cards: the disabled "Favorite" item in the `CollectionCard` 3-dot menu toggles it (label switches to "Unfavorite")
+- Item cards: a star button on `ItemCard` toggles the item's favorite state without opening the drawer
+- The star icon updates right away (optimistic), reverts with an error toast on failure, and the page refreshes so the sidebar, stats and `/favorites` stay in sync
+- Unit tests for the new actions and query helpers
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- The drawer's Pin button stays "Coming soon"; only favorite is in scope.
+- Toggling updates `updatedAt`, which `/favorites` already uses as the favorited time, so a newly favorited entry moves to the top.
+- The drawer keeps a per-page detail cache (`useItemDetailCache`); the cached detail must reflect the new favorite state.
+- Card buttons must sit above the card's full-size click target (like `CopyButton`) so clicking them doesn't open the drawer or navigate.
+- Existing actions live in `src/actions/items.ts` and `src/actions/collections.ts`; queries in `src/lib/db/`.
 
 ## Completed Features
 

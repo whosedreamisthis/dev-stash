@@ -5,8 +5,10 @@ import {
   createItem as createItemQuery,
   deleteItem as deleteItemQuery,
   getItemDetail,
+  setItemFavorite as setItemFavoriteQuery,
   updateItem as updateItemQuery,
 } from "@/lib/db/items";
+import { setFavoriteSchema } from "@/lib/validations/favorites";
 import { getSessionUserId, NOT_SIGNED_IN_ERROR } from "@/lib/session";
 import { isUploadTypeSlug } from "@/lib/upload-constraints";
 import { verifyUploadToken, type UploadedFile } from "@/lib/upload-token";
@@ -149,6 +151,32 @@ export async function getItem(itemId: string): Promise<GetItemResult> {
     return { success: true, data: item };
   } catch (error) {
     console.error("Loading item failed:", error);
+    return { success: false, error: "Something went wrong. Please try again." };
+  }
+}
+
+export interface SetItemFavoriteResult {
+  success: boolean;
+  data?: { id: string; isFavorite: boolean };
+  error?: string;
+}
+
+export async function setItemFavorite(
+  itemId: string,
+  isFavorite: boolean
+): Promise<SetItemFavoriteResult> {
+  const userId = await getSessionUserId();
+  if (!userId) return { success: false, error: NOT_SIGNED_IN_ERROR };
+
+  const parsed = setFavoriteSchema.safeParse({ id: itemId, isFavorite });
+  if (!parsed.success) return { success: false, error: "Item not found." };
+
+  try {
+    const updated = await setItemFavoriteQuery(userId, parsed.data.id, parsed.data.isFavorite);
+    if (!updated) return { success: false, error: "Item not found." };
+    return { success: true, data: parsed.data };
+  } catch (error) {
+    console.error("Updating item favorite failed:", error);
     return { success: false, error: "Something went wrong. Please try again." };
   }
 }

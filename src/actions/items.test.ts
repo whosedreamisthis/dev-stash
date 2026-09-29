@@ -5,11 +5,12 @@ import {
   createItem as createItemQuery,
   deleteItem as deleteItemQuery,
   getItemDetail,
+  setItemFavorite as setItemFavoriteQuery,
   updateItem as updateItemQuery,
 } from "@/lib/db/items";
 import { createUploadToken } from "@/lib/upload-token";
 import { deleteUploadedFile } from "@/lib/uploadthing";
-import { createItem, deleteItem, getItem, updateItem } from "@/actions/items";
+import { createItem, deleteItem, getItem, setItemFavorite, updateItem } from "@/actions/items";
 import type { ItemDetail } from "@/types/items";
 
 vi.mock("@/auth", () => ({ auth: vi.fn() }));
@@ -18,6 +19,7 @@ vi.mock("@/lib/db/items", () => ({
   updateItem: vi.fn(),
   deleteItem: vi.fn(),
   getItemDetail: vi.fn(),
+  setItemFavorite: vi.fn(),
 }));
 vi.mock("@/lib/uploadthing", () => ({ deleteUploadedFile: vi.fn() }));
 
@@ -236,6 +238,62 @@ describe("updateItem", () => {
     signIn();
     vi.mocked(updateItemQuery).mockRejectedValue(new Error("db down"));
     await expect(updateItem("item-1", INPUT)).resolves.toEqual({
+      success: false,
+      error: "Something went wrong. Please try again.",
+    });
+  });
+});
+
+describe("setItemFavorite", () => {
+  beforeEach(() => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  it("requires a session", async () => {
+    mockAuth.mockResolvedValue(null);
+    await expect(setItemFavorite("item-1", true)).resolves.toEqual({
+      success: false,
+      error: "You must be signed in.",
+    });
+    expect(setItemFavoriteQuery).not.toHaveBeenCalled();
+  });
+
+  it("rejects invalid input without querying", async () => {
+    signIn();
+    await expect(setItemFavorite("  ", true)).resolves.toEqual({
+      success: false,
+      error: "Item not found.",
+    });
+    await expect(setItemFavorite("item-1", "yes" as unknown as boolean)).resolves.toEqual({
+      success: false,
+      error: "Item not found.",
+    });
+    expect(setItemFavoriteQuery).not.toHaveBeenCalled();
+  });
+
+  it("sets the favorite state on the session user's item", async () => {
+    signIn("user-42");
+    vi.mocked(setItemFavoriteQuery).mockResolvedValue(true);
+    await expect(setItemFavorite(" item-1 ", true)).resolves.toEqual({
+      success: true,
+      data: { id: "item-1", isFavorite: true },
+    });
+    expect(setItemFavoriteQuery).toHaveBeenCalledWith("user-42", "item-1", true);
+  });
+
+  it("returns not found when nothing was updated", async () => {
+    signIn();
+    vi.mocked(setItemFavoriteQuery).mockResolvedValue(false);
+    await expect(setItemFavorite("item-1", false)).resolves.toEqual({
+      success: false,
+      error: "Item not found.",
+    });
+  });
+
+  it("returns a generic error when the update fails", async () => {
+    signIn();
+    vi.mocked(setItemFavoriteQuery).mockRejectedValue(new Error("db down"));
+    await expect(setItemFavorite("item-1", true)).resolves.toEqual({
       success: false,
       error: "Something went wrong. Please try again.",
     });

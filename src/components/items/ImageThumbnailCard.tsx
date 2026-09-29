@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Image as ImageIcon, Pin, Star } from "lucide-react";
+import { Image as ImageIcon, Pin } from "lucide-react";
+import { ItemFavoriteButton } from "@/components/items/ItemFavoriteButton";
 import { useItemDrawer } from "@/components/items/ItemDrawerProvider";
 import { ITEM_TYPE_BORDER_COLORS } from "@/lib/item-type-icons";
 import { cn } from "@/lib/utils";
@@ -53,9 +54,8 @@ export function ImageThumbnailCard({ item }: ImageThumbnailCardProps) {
       <div className="flex items-center gap-2 px-4 py-3">
         <h3 className="truncate font-medium">{item.title}</h3>
         {item.isPinned && <Pin className="size-4 shrink-0 text-muted-foreground" />}
-        {item.isFavorite && (
-          <Star className="size-4 shrink-0 fill-yellow-400 text-yellow-400" />
-        )}
+        {/* Above the card's button so clicking it doesn't open the drawer */}
+        <ItemFavoriteButton item={item} className="relative z-20 ml-auto shrink-0" />
       </div>
     </article>
   );

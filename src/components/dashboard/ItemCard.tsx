@@ -1,7 +1,8 @@
 "use client";
 
-import { Pin, Star } from "lucide-react";
+import { Pin } from "lucide-react";
 import { CopyButton } from "@/components/items/CopyButton";
+import { ItemFavoriteButton } from "@/components/items/ItemFavoriteButton";
 import { useItemDrawer } from "@/components/items/ItemDrawerProvider";
 import type { ItemSummary } from "@/types/items";
 import {
@@ -56,9 +57,6 @@ export function ItemCard({ item }: ItemCardProps) {
           {item.isPinned && (
             <Pin className="size-4 shrink-0 text-muted-foreground" />
           )}
-          {item.isFavorite && (
-            <Star className="size-4 shrink-0 fill-yellow-400 text-yellow-400" />
-          )}
         </div>
         {item.description && (
           <p className="mt-1 truncate text-sm text-muted-foreground">
@@ -85,14 +83,11 @@ export function ItemCard({ item }: ItemCardProps) {
         >
           {dateFormatter.format(item.createdAt)}
         </time>
-        {item.copyText && (
-          // Above the card's button so clicking it copies instead of opening the drawer
-          <CopyButton
-            value={item.copyText}
-            label={`Copy ${item.title}`}
-            className="relative z-10"
-          />
-        )}
+        {/* Above the card's button so clicking them doesn't open the drawer */}
+        <div className="relative z-10 flex items-center gap-1">
+          <ItemFavoriteButton item={item} />
+          {item.copyText && <CopyButton value={item.copyText} label={`Copy ${item.title}`} />}
+        </div>
       </div>
     </article>
   );
