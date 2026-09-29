@@ -2,19 +2,28 @@
 
 <!-- Feature name and short description -->
 
+**Shared App Layout (Snappier Navigation):** clicking a collection on the dashboard paused before anything changed, because `/dashboard` and `/collections` each had their own `DashboardShell` layout. Crossing between them re-rendered the layout (auth plus sidebar database queries) before the collection's loading skeleton could show.
+
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- Move `dashboard`, `collections`, `items`, `favorites`, `profile`, `settings` and `upgrade` into a `src/app/(app)/` route group; URLs stay the same
+- One `src/app/(app)/layout.tsx` renders `DashboardShell` with `getSidebarData()`; remove the seven duplicate layouts
+- The shell stays mounted between app pages, so existing `loading.tsx` skeletons show as soon as a link is clicked
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- The sidebar is no longer re-fetched on every navigation; mutations already call `router.refresh()`, which re-renders the shared layout
+- No changes to `src/proxy.ts`: route groups don't change URLs
 
 ## Completed Features
 
