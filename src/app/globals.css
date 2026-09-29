@@ -140,6 +140,11 @@
   html {
     @apply font-sans;
     }
+  /* Tailwind v4 no longer gives buttons a pointer cursor */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
 }
 
 /* Hide the scrollbar but keep the element scrollable */

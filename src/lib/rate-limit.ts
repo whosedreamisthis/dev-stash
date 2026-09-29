@@ -21,6 +21,8 @@ const RATE_LIMITS = {
   resetPassword: { limit: 5, window: "15 m" },
   resendVerification: { limit: 3, window: "15 m" },
   changePassword: { limit: 5, window: "15 m" },
+  // Per user; each AI call costs money and uses the shared Gemini quota
+  ai: { limit: 20, window: "1 h" },
 } satisfies Record<string, RateLimitRule>;
 
 export type RateLimitName = keyof typeof RATE_LIMITS;

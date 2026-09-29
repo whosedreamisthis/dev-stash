@@ -12,11 +12,12 @@ import { ItemDrawerHeader } from "@/components/items/ItemDrawerHeader";
 import { ItemFormField as EditField } from "@/components/items/ItemFormField";
 import { LanguageSelector } from "@/components/items/LanguageSelector";
 import { MarkdownEditor } from "@/components/items/MarkdownEditor";
+import { TagSuggestions } from "@/components/items/TagSuggestions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { getItemFields, toItemPayload, type ItemFormValues } from "@/lib/item-fields";
-import { MARKDOWN_TYPE_SLUGS } from "@/lib/validations/items";
+import { addTagToInput, MARKDOWN_TYPE_SLUGS } from "@/lib/validations/items";
 import type { ItemDetail } from "@/types/items";
 
 function toFormValues(item: ItemDetail): ItemFormValues {
@@ -163,12 +164,22 @@ export function ItemEditForm({ item, onCancel, onSaved }: ItemEditFormProps) {
         )}
         <EditField id="item-tags" label="Tags" error={fieldErrors.tags}>
           {(props) => (
-            <Input
-              {...props}
-              value={values.tags}
-              onChange={setValue("tags")}
-              placeholder="react, hooks, typescript"
-            />
+            <TagSuggestions
+              title={values.title}
+              content={values.content}
+              typeSlug={item.type.slug}
+              tags={values.tags}
+              onAccept={(tag) =>
+                setValues((prev) => ({ ...prev, tags: addTagToInput(prev.tags, tag) }))
+              }
+            >
+              <Input
+                {...props}
+                value={values.tags}
+                onChange={setValue("tags")}
+                placeholder="react, hooks, typescript"
+              />
+            </TagSuggestions>
           )}
         </EditField>
         <CollectionSelector

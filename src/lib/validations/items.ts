@@ -122,3 +122,10 @@ export function parseTagInput(value: string): string[] {
     .map((tag) => tag.trim())
     .filter(Boolean);
 }
+
+// Adds a tag to the comma-separated tags input unless it's already there
+export function addTagToInput(value: string, tag: string): string {
+  const tags = parseTagInput(value);
+  if (tags.some((existing) => existing.toLowerCase() === tag.toLowerCase())) return value;
+  return [...tags, tag].join(", ");
+}

@@ -11,6 +11,7 @@ import { ItemFormField } from "@/components/items/ItemFormField";
 import { ItemTypeSelector } from "@/components/items/ItemTypeSelector";
 import { LanguageSelector } from "@/components/items/LanguageSelector";
 import { MarkdownEditor } from "@/components/items/MarkdownEditor";
+import { TagSuggestions } from "@/components/items/TagSuggestions";
 import { Button } from "@/components/ui/button";
 import { DialogClose, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -23,7 +24,7 @@ import {
   type ItemFormValues,
 } from "@/lib/item-fields";
 import { isUploadTypeSlug } from "@/lib/upload-constraints";
-import type { CreatableTypeSlug } from "@/lib/validations/items";
+import { addTagToInput, type CreatableTypeSlug } from "@/lib/validations/items";
 
 interface NewItemFormProps {
   defaultType: CreatableTypeSlug;
@@ -66,6 +67,11 @@ export function NewItemForm({ defaultType, onCreated }: NewItemFormProps) {
   function setLanguage(language: string) {
     setValues((prev) => ({ ...prev, language }));
     setFieldErrors((prev) => ({ ...prev, language: undefined }));
+  }
+
+  function addTag(tag: string) {
+    setValues((prev) => ({ ...prev, tags: addTagToInput(prev.tags, tag) }));
+    setFieldErrors((prev) => ({ ...prev, tags: undefined }));
   }
 
   function handleCollectionsChange(ids: string[]) {
@@ -191,12 +197,20 @@ export function NewItemForm({ defaultType, onCreated }: NewItemFormProps) {
         )}
         <ItemFormField id="new-item-tags" label="Tags" error={fieldErrors.tags}>
           {(props) => (
-            <Input
-              {...props}
-              value={values.tags}
-              onChange={setValue("tags")}
-              placeholder="react, hooks, typescript"
-            />
+            <TagSuggestions
+              title={values.title}
+              content={values.content}
+              typeSlug={typeSlug}
+              tags={values.tags}
+              onAccept={addTag}
+            >
+              <Input
+                {...props}
+                value={values.tags}
+                onChange={setValue("tags")}
+                placeholder="react, hooks, typescript"
+              />
+            </TagSuggestions>
           )}
         </ItemFormField>
         <CollectionSelector

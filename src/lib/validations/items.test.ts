@@ -7,6 +7,7 @@ import {
   ITEM_LIMITS,
   LANGUAGE_TYPE_SLUGS,
   MARKDOWN_TYPE_SLUGS,
+  addTagToInput,
   parseTagInput,
   updateItemSchema,
 } from "@/lib/validations/items";
@@ -192,5 +193,16 @@ describe("parseTagInput", () => {
 
   it("returns no tags for an empty input", () => {
     expect(parseTagInput("   ")).toEqual([]);
+  });
+});
+
+describe("addTagToInput", () => {
+  it("appends the tag to the list", () => {
+    expect(addTagToInput("react, hooks", "typescript")).toBe("react, hooks, typescript");
+    expect(addTagToInput("", "react")).toBe("react");
+  });
+
+  it("leaves the input alone when the tag is already there, ignoring case", () => {
+    expect(addTagToInput("React, hooks", "react")).toBe("React, hooks");
   });
 });

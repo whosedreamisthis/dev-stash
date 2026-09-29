@@ -12,13 +12,13 @@ Research output for `context/research/ai-integration-research.md`. This plan cov
 
 Google's pricing page (checked 2026-09-29) lists these models with a free tier:
 
-| Model | Free tier | Paid input / 1M | Paid output / 1M |
-| --- | --- | --- | --- |
-| **Gemini 3.8 Flash** | ✅ | $0.75* | $3.75* |
-| Gemini 3.7 / 3.6 Flash | ✅ | $0.75* | $3.75* |
-| Gemini 3.5 Flash | ✅ | $1.50 | $9.00 |
-| Gemini 3.5 Flash-Lite | ✅ | $0.30 | $2.50 |
-| Gemini 2.5 Flash-Lite | ✅ | $0.10 | $0.40 |
+| Model                  | Free tier | Paid input / 1M | Paid output / 1M |
+| ---------------------- | --------- | --------------- | ---------------- |
+| **Gemini 3.8 Flash**   | ✅        | $0.75\*         | $3.75\*          |
+| Gemini 3.7 / 3.6 Flash | ✅        | $0.75\*         | $3.75\*          |
+| Gemini 3.5 Flash       | ✅        | $1.50           | $9.00            |
+| Gemini 3.5 Flash-Lite  | ✅        | $0.30           | $2.50            |
+| Gemini 2.5 Flash-Lite  | ✅        | $0.10           | $0.40            |
 
 \* Introductory price through Dec 31, 2026. It goes up on Jan 1, 2027.
 
@@ -26,7 +26,7 @@ Keep the model ID in one constant (`AI_MODEL` in `src/lib/ai.ts`) so it can be s
 
 ### Free-tier caveats that matter for DevStash
 
-1. **Data use.** On the free tier, Google marks prompt and response content as *"used to improve our products"*. On the paid tier it is not. User snippets, prompts and notes can contain private code or secrets, so **production should run on a paid (billing-enabled) project**. The free tier is fine for development.
+1. **Data use.** On the free tier, Google marks prompt and response content as _"used to improve our products"_. On the paid tier it is not. User snippets, prompts and notes can contain private code or secrets, so **production should run on a paid (billing-enabled) project**. The free tier is fine for development.
 2. **Quotas are per Google Cloud project, not per API key or per user.** Every DevStash user shares one project's RPM, TPM and RPD. Exact numbers vary by model and account and are shown in AI Studio. Requests-per-day quotas reset at midnight Pacific time. This is why DevStash needs its own per-user limits (section 5).
 3. **Over-quota requests return HTTP `429 RESOURCE_EXHAUSTED`.**
 
@@ -73,17 +73,17 @@ export function getAiClient(): GoogleGenAI {
 ```ts
 const response = await getAiClient().models.generateContent({
   model: AI_MODEL,
-  contents: userContent,                 // the item content, sent as data
+  contents: userContent, // the item content, sent as data
   config: {
-    systemInstruction: SYSTEM_PROMPT,    // fixed per feature, never user-supplied
-    maxOutputTokens: 400,                // hard cost cap per feature
+    systemInstruction: SYSTEM_PROMPT, // fixed per feature, never user-supplied
+    maxOutputTokens: 400, // hard cost cap per feature
     temperature: 0.3,
     thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
     abortSignal: AbortSignal.timeout(20_000),
   },
 });
-const text = response.text;              // convenience accessor
-const usage = response.usageMetadata;    // token counts for logging
+const text = response.text; // convenience accessor
+const usage = response.usageMetadata; // token counts for logging
 ```
 
 Useful `GenerateContentConfig` fields (from the SDK reference): `systemInstruction`, `maxOutputTokens`, `temperature`, `responseMimeType`, `responseJsonSchema`, `thinkingConfig`, `abortSignal`, `safetySettings`, `stopSequences`, `seed`.
@@ -92,12 +92,12 @@ Useful `GenerateContentConfig` fields (from the SDK reference): `systemInstructi
 
 Gemini 3.x Flash thinks by default at **medium**, and **thinking tokens are billed as output tokens**. None of the four features needs deep reasoning, so set `thinkingLevel` explicitly:
 
-| Feature | Thinking level |
-| --- | --- |
-| Auto-tag | `MINIMAL` if the model accepts it, otherwise `LOW` |
-| Summary | `LOW` |
-| Explain code | `LOW` (try `MEDIUM` if quality is poor) |
-| Prompt optimizer | `LOW` or `MEDIUM` |
+| Feature          | Thinking level                                     |
+| ---------------- | -------------------------------------------------- |
+| Auto-tag         | `MINIMAL` if the model accepts it, otherwise `LOW` |
+| Summary          | `LOW`                                              |
+| Explain code     | `LOW` (try `MEDIUM` if quality is poor)            |
+| Prompt optimizer | `LOW` or `MEDIUM`                                  |
 
 The SDK's `ThinkingLevel` enum has `MINIMAL`, `LOW`, `MEDIUM` and `HIGH`. Google's thinking guide lists only low/medium/high for `gemini-3.8-flash`, so check `MINIMAL` against the live model before relying on it.
 
@@ -134,13 +134,13 @@ The codebase loads and mutates data from client components through server action
 
 ### Suggested file layout
 
-| File | Purpose |
-| --- | --- |
-| `src/lib/ai.ts` | Lazy client, `AI_MODEL`, `AI_LIMITS`, shared `generateText` / `generateJson` helpers, error mapping |
-| `src/lib/ai-prompts.ts` | System prompts and prompt builders per feature (pure functions, easy to unit test) |
-| `src/lib/validations/ai.ts` | Zod input schemas and the tag-suggestion output schema |
-| `src/actions/ai.ts` | `suggestTags`, `summarizeItem`, `explainCode`, `optimizePrompt` |
-| `src/actions/ai.test.ts` | Vitest tests with `@/lib/ai`, `@/auth` and `@/lib/rate-limit` mocked |
+| File                        | Purpose                                                                                             |
+| --------------------------- | --------------------------------------------------------------------------------------------------- |
+| `src/lib/ai.ts`             | Lazy client, `AI_MODEL`, `AI_LIMITS`, shared `generateText` / `generateJson` helpers, error mapping |
+| `src/lib/ai-prompts.ts`     | System prompts and prompt builders per feature (pure functions, easy to unit test)                  |
+| `src/lib/validations/ai.ts` | Zod input schemas and the tag-suggestion output schema                                              |
+| `src/actions/ai.ts`         | `suggestTags`, `summarizeItem`, `explainCode`, `optimizePrompt`                                     |
+| `src/actions/ai.test.ts`    | Vitest tests with `@/lib/ai`, `@/auth` and `@/lib/rate-limit` mocked                                |
 
 ### Action template
 
@@ -166,7 +166,11 @@ export async function suggestTags(itemId: string): Promise<AiResult<string[]>> {
 
   const limit = await checkRateLimit("ai", user.id);
   if (!limit.success) {
-    return { success: false, rateLimited: true, error: getRateLimitMessage(limit.reset) };
+    return {
+      success: false,
+      rateLimited: true,
+      error: getRateLimitMessage(limit.reset),
+    };
   }
 
   try {
@@ -186,7 +190,7 @@ export async function suggestTags(itemId: string): Promise<AiResult<string[]>> {
 ### Load by item ID, or accept draft content?
 
 - **Existing items (drawer):** pass `itemId`, and the action loads the content with the user-scoped `getItemDetail`. This keeps the input bounded, owned by the user and already validated.
-- **Unsaved drafts (`NewItemForm`, `ItemEditForm`):** auto-tag and the prompt optimizer are most useful *while* the user is writing. Accept `{ title, content, typeSlug }` and validate it with a Zod schema that reuses `ITEM_LIMITS`, plus a tighter AI-specific cap (see section 6).
+- **Unsaved drafts (`NewItemForm`, `ItemEditForm`):** auto-tag and the prompt optimizer are most useful _while_ the user is writing. Accept `{ title, content, typeSlug }` and validate it with a Zod schema that reuses `ITEM_LIMITS`, plus a tighter AI-specific cap (see section 6).
 
 Supporting both is reasonable: validate either `{ itemId }` or `{ draft }` with a Zod union.
 
@@ -198,11 +202,11 @@ The AI actions **return suggestions only; they don't save them**. Accepted tags,
 
 ## 4. Streaming vs non-streaming
 
-| Feature | Output size | Recommendation |
-| --- | --- | --- |
-| Auto-tag | Tiny JSON | **Non-streaming**; JSON must be complete to parse |
-| Summary | 2–4 sentences | **Non-streaming** |
-| Explain code | A few paragraphs | Non-streaming to start; streaming is a nice-to-have |
+| Feature          | Output size                        | Recommendation                                      |
+| ---------------- | ---------------------------------- | --------------------------------------------------- |
+| Auto-tag         | Tiny JSON                          | **Non-streaming**; JSON must be complete to parse   |
+| Summary          | 2–4 sentences                      | **Non-streaming**                                   |
+| Explain code     | A few paragraphs                   | Non-streaming to start; streaming is a nice-to-have |
 | Prompt optimizer | About the size of the input prompt | Non-streaming to start; streaming is a nice-to-have |
 
 **Start with non-streaming server actions for all four.** Reasons:
@@ -214,7 +218,11 @@ The AI actions **return suggestions only; they don't save them**. Accepted tags,
 **If streaming is added later** (explain and optimize only), the SDK supports it with `generateContentStream`:
 
 ```ts
-const stream = await getAiClient().models.generateContentStream({ model: AI_MODEL, contents, config });
+const stream = await getAiClient().models.generateContentStream({
+  model: AI_MODEL,
+  contents,
+  config,
+});
 for await (const chunk of stream) {
   // chunk.text is the next piece of text
 }
@@ -225,7 +233,7 @@ There are two ways to deliver it to the browser:
 1. **A Route Handler that returns a `ReadableStream`** (`text/plain`). This is the most reliable option. It adds an API route, which is an explicit exception to the server-actions rule, so it needs the user's approval.
 2. **A server action that returns a `ReadableStream` or async iterable** to the client (React 19 Flight can serialize these). This keeps the server-actions pattern, but confirm current Next.js 16 support in the docs before using it.
 
-In both cases, run the full auth, Pro and rate-limit checks *before* opening the stream, and pass `abortSignal` so a closed drawer stops the generation.
+In both cases, run the full auth, Pro and rate-limit checks _before_ opening the stream, and pass `abortSignal` so a closed drawer stops the generation.
 
 ---
 
@@ -235,15 +243,15 @@ In both cases, run the full auth, Pro and rate-limit checks *before* opening the
 
 The SDK throws on non-2xx responses; its error carries the HTTP status. Map errors to friendly messages in one helper (`toAiErrorMessage` in `src/lib/ai.ts`) and log the raw error server-side:
 
-| Condition | User message |
-| --- | --- |
-| `429` / `RESOURCE_EXHAUSTED` (project quota hit) | "AI is busy right now. Please try again in a minute." |
-| `400` (bad request, content too long) | "This item is too long for AI features." |
-| `401` / `403` (bad or missing key) | Generic message; log loudly, since it's a config error |
-| `500` / `503` (model overloaded) | "AI is temporarily unavailable. Please try again." |
-| Timeout (`AbortSignal.timeout`) | "The AI took too long to respond. Please try again." |
-| Empty `response.text` or blocked (`promptFeedback.blockReason` / safety finish reason) | "The AI couldn't process this content." |
-| Output fails the Zod schema | "The AI returned an unexpected response. Please try again." |
+| Condition                                                                              | User message                                                |
+| -------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `429` / `RESOURCE_EXHAUSTED` (project quota hit)                                       | "AI is busy right now. Please try again in a minute."       |
+| `400` (bad request, content too long)                                                  | "This item is too long for AI features."                    |
+| `401` / `403` (bad or missing key)                                                     | Generic message; log loudly, since it's a config error      |
+| `500` / `503` (model overloaded)                                                       | "AI is temporarily unavailable. Please try again."          |
+| Timeout (`AbortSignal.timeout`)                                                        | "The AI took too long to respond. Please try again."        |
+| Empty `response.text` or blocked (`promptFeedback.blockReason` / safety finish reason) | "The AI couldn't process this content."                     |
+| Output fails the Zod schema                                                            | "The AI returned an unexpected response. Please try again." |
 
 **Retries:** do at most one retry, with a short backoff, and only on `503` or a timeout. Do not retry `429`: that makes quota exhaustion worse.
 
@@ -256,7 +264,7 @@ ai: { limit: 20, window: "1 m" },      // burst protection
 aiDaily: { limit: 200, window: "1 d" }, // cost ceiling per user
 ```
 
-**Fail-open vs fail-closed:** `checkRateLimit` currently *fails open* on purpose, so auth keeps working when Upstash is down. That is the wrong default for AI, where each call costs money. Options:
+**Fail-open vs fail-closed:** `checkRateLimit` currently _fails open_ on purpose, so auth keeps working when Upstash is down. That is the wrong default for AI, where each call costs money. Options:
 
 - Add an optional `failClosed` flag to `checkRateLimit` for the AI limiters, or
 - Accept fail-open, and rely on Gemini's project-level quota and paid-tier spend limits as the backstop.
@@ -298,12 +306,12 @@ All AI UI lives in client components and calls the server actions. Suggested com
 
 ### Where each feature appears
 
-| Feature | Location | Trigger |
-| --- | --- | --- |
-| Auto-tag | Tags field in `NewItemForm` / `ItemEditForm` | "✨ Suggest tags" button next to the tags input |
-| Summary | Item drawer, for notes, prompts and long content | "Summarize" in `ItemDrawerActions` |
-| Explain code | Item drawer, for snippets and commands (`LANGUAGE_TYPE_SLUGS`) | "Explain" in `ItemDrawerActions` |
-| Prompt optimizer | Prompt edit form, next to `MarkdownEditor` | "Optimize prompt" button |
+| Feature          | Location                                                       | Trigger                                         |
+| ---------------- | -------------------------------------------------------------- | ----------------------------------------------- |
+| Auto-tag         | Tags field in `NewItemForm` / `ItemEditForm`                   | "✨ Suggest tags" button next to the tags input |
+| Summary          | Item drawer, for notes, prompts and long content               | "Summarize" in `ItemDrawerActions`              |
+| Explain code     | Item drawer, for snippets and commands (`LANGUAGE_TYPE_SLUGS`) | "Explain" in `ItemDrawerActions`                |
+| Prompt optimizer | Prompt edit form, next to `MarkdownEditor`                     | "Optimize prompt" button                        |
 
 ### Loading states
 
@@ -313,7 +321,7 @@ All AI UI lives in client components and calls the server actions. Suggested com
 
 ### Accept / reject suggestions
 
-AI output is always a *proposal* the user has to accept:
+AI output is always a _proposal_ the user has to accept:
 
 - **Tags:** show suggestions as clickable, dashed-outline chips under the tags input. Clicking one adds it to the tag list; there's also "Add all" and a dismiss ✕. Don't show tags the item already has, and respect `ITEM_LIMITS.tags`.
 - **Prompt optimizer:** show the rewritten prompt in a side-by-side or tabbed **Original / Optimized** view with **Accept**, **Reject** and **Copy** buttons. Accept replaces the editor content; nothing is saved until the user saves the form. Keep the original so Accept can be undone.
