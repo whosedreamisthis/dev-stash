@@ -1,41 +1,20 @@
-# Current Feature: AI Auto-Tagging
+# Current Feature
 
 <!-- Feature name and short description -->
-
-**AI Auto-Tagging:** a Pro-only "Suggest Tags" button in the new item dialog and the item drawer's edit mode asks Gemini `gemini-3.8-flash` for 3-5 freeform tags from the item's title and content; each suggestion can be accepted or rejected. As the first AI feature, it also sets up the Gemini foundation. Spec: `context/features/ai-auto-tag-spec.md`.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- Install `@google/genai` and add `src/lib/ai.ts`: `AI_MODEL = "gemini-3.8-flash"` and a lazily created, `server-only` Gemini client reading `GEMINI_API_KEY`
-- Add an `ai` rate limit (20 requests per hour per user) to `src/lib/rate-limit.ts`
-- `generateAutoTags` server action in `src/actions/ai.ts`: session check, `hasProAccess` Pro gate, Zod validation of title/content/type, content truncated to 2000 characters, rate limit, then Gemini
-- Gemini call uses `generateContent` with `systemInstruction`, JSON output (`responseMimeType` + `responseJsonSchema` from `z.toJSONSchema()`), `maxOutputTokens`, `thinkingLevel: LOW` and a timeout
-- Validate the reply with Zod and normalize tags (trim, lowercase, dedupe, length cap, drop tags the item already has); return `{ success, data, error }` with `rateLimited` for rate-limit errors
-- Map Gemini errors to friendly messages (429 busy, 5xx unavailable, empty/blocked reply) and log raw errors server-side only
-- "Suggest Tags" button (Sparkles icon, ghost variant) next to the tags input in `NewItemForm` and `ItemEditForm`, hidden when `useHasProAccess()` is false
-- Suggested tags show as badges with accept (check) and reject (X) controls; accepting adds the tag to the form's tag list, and nothing is saved until the form is saved
-- Toast errors for Pro gating, rate limits and AI failures
-- Vitest tests for `generateAutoTags` with `@/lib/ai`, the session and `@/lib/rate-limit` mocked
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Tags are freeform, not limited to existing tags in the database
-- Accepted tags are saved through the existing `createItem` / `updateItem` actions; the AI action only suggests
-- `GEMINI_API_KEY` is already in `.env` and `.env.example`; it's server-only
-- UI gating uses the existing `useHasProAccess()` from `src/components/billing/PlanContext.tsx`; while `ENFORCE_PLANS` isn't `"true"`, everyone sees the button
-- `thinkingLevel: MINIMAL` may not be supported by `gemini-3.8-flash`; use `LOW`
-- On the free tier, Google may use prompts to improve its products; production should use a billing-enabled project
-- Full architecture: `docs/ai-integration-plan.md`
 
 ## Completed Features
 
@@ -101,3 +80,4 @@ In Progress
 - **Language Dropdown:** `LanguageSelector` Select above the code editor in new/edit item forms; `CODE_LANGUAGES` and `getCodeLanguageLabel` in `src/lib/code-editor.ts` show names like TypeScript.
 - **Shared App Layout (Snappier Navigation):** app pages moved into a `src/app/(app)/` route group with one `DashboardShell` layout, so the shell stays mounted and loading skeletons show instantly.
 - **Page Skeletons & Cached isPro:** `loading.tsx` skeletons for dashboard, favorites, profile, settings and upgrade; the `jwt` callback's `isPro` read is `getUserIsPro`, wrapped in React `cache()`.
+- **AI Auto-Tagging:** Pro "Suggest Tags" button beside the tags input (`TagSuggestions`) via the `generateAutoTags` action and Gemini `gemini-3.8-flash`; foundation in `src/lib/ai.ts` and `src/lib/ai-tags.ts`.
