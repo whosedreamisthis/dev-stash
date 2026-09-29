@@ -1,29 +1,20 @@
-# Current Feature: Pro Gate on File & Image Pages
+# Current Feature
 
 <!-- Feature name and short description -->
-
-Free users who visit `/items/files` or `/items/images` see an upgrade page instead of the item list.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- `/items/[type]` checks the Pro-only types (`isUploadTypeSlug`, the same check `createItem` uses) with `hasProAccess(session user)` and, without Pro access, renders an upgrade page instead of the header's New button and the item grid.
-- The upgrade page explains that Files and Images are a Pro feature and reuses `UpgradeButtons` ($8 / month, $72 / year) so users can go straight to Checkout.
-- In the New Item dialog, the File and Image type options are disabled (grayed out, with a PRO badge) for users without Pro access. Access comes from `getSidebarData` (`hasProAccess`) through a `PlanProvider` in `DashboardShell` (`useHasProAccess`), like editor preferences.- Nothing changes while `ENFORCE_PLANS` is unset, and Pro users see the lists and options as before.
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Requested by the user after Stripe Phase 2; the sidebar still links to both types with their PRO badge.
-- Checkout returns to `/settings`, where the success toast shows.
 
 ## Completed Features
 
@@ -84,3 +75,4 @@ In Progress
 - **Homepage Nav on Auth Pages:** `/sign-in` and `/register` show `HomeNav` (new `page` prop, `/#…` section links via `getSectionLinks`) above `AuthCard` with its `belowNav` option.
 - **Stripe Integration Phase 1 - Core Infrastructure:** lazy Stripe client (`src/lib/stripe.ts`), plan gating in `src/lib/usage-limits.ts`, `isPro` on the session via `getSessionUser()`, subscription sync in `src/lib/billing.ts` and `src/lib/db/billing.ts`.
 - **Stripe Integration Phase 2 - Integration & UI:** `/api/webhooks/stripe`, Checkout/Portal actions (`src/actions/billing.ts`), Billing section on `/settings` (`src/components/billing/`), free-tier limits on items, collections and uploads.
+- **Pro Gate on File & Image Pages:** free users get `ProUpgradePrompt` on `/items/files` and `/items/images`, and disabled File/Image options in the new item type dropdown (`PlanProvider` / `useHasProAccess`).
