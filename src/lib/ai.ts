@@ -3,7 +3,7 @@ import { ApiError, GoogleGenAI } from "@google/genai";
 export const AI_MODEL = "gemini-3.8-flash";
 
 // Long enough for a short answer; a stuck request returns an error instead of hanging
-export const AI_TIMEOUT_MS = 15_000;
+export const AI_TIMEOUT_MS = 30_000;
 
 export const AI_BUSY_ERROR =
   "AI is busy right now. Please try again in a minute.";

@@ -15,10 +15,20 @@ import {
   buildAutoTagPrompt,
   parseTagSuggestions,
 } from "@/lib/ai-tags";
+import {
+  buildDescriptionPrompt,
+  cleanDescription,
+  DESCRIPTION_SYSTEM_PROMPT,
+} from "@/lib/ai-description";
 import { checkRateLimit, getRateLimitMessage } from "@/lib/rate-limit";
 import { getSessionUser, NOT_SIGNED_IN_ERROR } from "@/lib/session";
 import { hasProAccess, PRO_REQUIRED_ERROR } from "@/lib/usage-limits";
-import { generateAutoTagsSchema, type GenerateAutoTagsInput } from "@/lib/validations/ai";
+import {
+  generateAutoTagsSchema,
+  generateDescriptionSchema,
+  type GenerateAutoTagsInput,
+  type GenerateDescriptionInput,
+} from "@/lib/validations/ai";
 
 export interface AiResult<T> {
   success: boolean;
@@ -72,6 +82,52 @@ export async function generateAutoTags(
     return { success: true, data: tags };
   } catch (error) {
     console.error("Generating auto tags failed:", error);
+    return { success: false, error: toAiErrorMessage(error) };
+  }
+}
+
+// Writes a short description of the item as typed in the form; saving it is left to the form
+export async function generateDescription(
+  input: GenerateDescriptionInput
+): Promise<AiResult<string>> {
+  const user = await getSessionUser();
+  if (!user) return { success: false, error: NOT_SIGNED_IN_ERROR };
+  // Checked before anything that costs money
+  if (!hasProAccess(user)) return { success: false, error: PRO_REQUIRED_ERROR };
+
+  const parsed = generateDescriptionSchema.safeParse(input);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid item." };
+  }
+
+  const limit = await checkRateLimit("ai", user.id);
+  if (!limit.success) {
+    return { success: false, rateLimited: true, error: getRateLimitMessage(limit.reset) };
+  }
+
+  try {
+    const response = await getAiClient().models.generateContent({
+      model: AI_MODEL,
+      contents: buildDescriptionPrompt(parsed.data),
+      config: {
+        systemInstruction: DESCRIPTION_SYSTEM_PROMPT,
+        maxOutputTokens: 200,
+        temperature: 0.4,
+        thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
+        abortSignal: AbortSignal.timeout(AI_TIMEOUT_MS),
+      },
+    });
+
+    // Empty when nothing was generated, e.g. a safety filter blocked the prompt
+    const text = response.text;
+    if (!text) return { success: false, error: AI_EMPTY_ERROR };
+
+    const description = cleanDescription(text);
+    if (!description) return { success: false, error: AI_INVALID_RESPONSE_ERROR };
+
+    return { success: true, data: description };
+  } catch (error) {
+    console.error("Generating description failed:", error);
     return { success: false, error: toAiErrorMessage(error) };
   }
 }

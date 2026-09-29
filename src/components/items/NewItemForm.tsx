@@ -6,7 +6,8 @@ import { toast } from "sonner";
 import { createItem, type CreateItemFieldErrors } from "@/actions/items";
 import { CollectionSelector } from "@/components/collections/CollectionSelector";
 import { CodeEditor } from "@/components/items/CodeEditor";
-import { FileUpload } from "@/components/items/FileUpload";
+import { DescriptionGenerator } from "@/components/items/DescriptionGenerator";
+import { FileUpload, type UploadedFileInfo } from "@/components/items/FileUpload";
 import { ItemFormField } from "@/components/items/ItemFormField";
 import { ItemTypeSelector } from "@/components/items/ItemTypeSelector";
 import { LanguageSelector } from "@/components/items/LanguageSelector";
@@ -39,6 +40,7 @@ export function NewItemForm({ defaultType, onCreated }: NewItemFormProps) {
   const [collectionIds, setCollectionIds] = useState<string[]>([]);
   const [fieldErrors, setFieldErrors] = useState<CreateItemFieldErrors>({});
   const [uploadToken, setUploadToken] = useState<string | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<UploadedFileInfo | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -64,6 +66,11 @@ export function NewItemForm({ defaultType, onCreated }: NewItemFormProps) {
     setFieldErrors((prev) => ({ ...prev, content: undefined }));
   }
 
+  function setDescription(description: string) {
+    setValues((prev) => ({ ...prev, description }));
+    setFieldErrors((prev) => ({ ...prev, description: undefined }));
+  }
+
   function setLanguage(language: string) {
     setValues((prev) => ({ ...prev, language }));
     setFieldErrors((prev) => ({ ...prev, language: undefined }));
@@ -79,8 +86,9 @@ export function NewItemForm({ defaultType, onCreated }: NewItemFormProps) {
     setFieldErrors((prev) => ({ ...prev, collectionIds: undefined }));
   }
 
-  function handleUploaded(token: string | null) {
+  function handleUploaded(token: string | null, file?: UploadedFileInfo) {
     setUploadToken(token);
+    setUploadedFile(file ?? null);
     setFieldErrors((prev) => ({ ...prev, uploadToken: undefined }));
   }
 
@@ -89,6 +97,7 @@ export function NewItemForm({ defaultType, onCreated }: NewItemFormProps) {
     setTypeSlug(slug);
     setFieldErrors({});
     setUploadToken(null);
+    setUploadedFile(null);
     setIsUploading(false);
   }
 
@@ -139,7 +148,21 @@ export function NewItemForm({ defaultType, onCreated }: NewItemFormProps) {
         )}
         <ItemFormField id="new-item-description" label="Description" error={fieldErrors.description}>
           {(props) => (
-            <Textarea {...props} value={values.description} onChange={setValue("description")} />
+            <DescriptionGenerator
+              source={{
+                title: values.title,
+                typeSlug,
+                content: fields.content ? values.content : undefined,
+                language: fields.language ? values.language : undefined,
+                url: fields.url ? values.url : undefined,
+                fileName: uploadedFile?.name,
+                fileMimeType: uploadedFile?.mimeType,
+                tags: values.tags,
+              }}
+              onGenerate={setDescription}
+            >
+              <Textarea {...props} value={values.description} onChange={setValue("description")} />
+            </DescriptionGenerator>
           )}
         </ItemFormField>
         {uploadType && (

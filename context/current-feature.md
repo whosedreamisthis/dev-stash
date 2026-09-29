@@ -1,20 +1,39 @@
-# Current Feature
+# Current Feature: AI Description Generator
 
 <!-- Feature name and short description -->
+
+A Pro icon button beside the description input that uses Gemini to write a concise 1-2 sentence description from whatever the item form currently holds, without saving first.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- Icon button (e.g. Lucide `Sparkles`, with tooltip/aria-label, pointer cursor) beside the Description field in both the new item dialog and the drawer edit form.
+- Clicking it generates a good, concise 1-2 sentence description and fills the description input; the user can still edit it before saving. Nothing is saved automatically.
+- Works for every content type, using whatever the form currently has:
+  - Text types (snippet, prompt, command, note): title, content, language, tags.
+  - Link: title, URL, tags.
+  - File / Image: title, file name, MIME type, tags (no file contents).
+- New `generateDescription` server action in `src/actions/ai.ts`, following `generateAutoTags`: session check, Pro check (`hasProAccess`), Zod validation, `"ai"` rate limit, Gemini `gemini-3.8-flash`, `{ success, data, error }` result.
+- Prompt helpers in `src/lib/ai-description.ts` (system prompt, prompt builder with delimited item data and content excerpt, response parsing/trimming to the `ITEM_LIMITS` description length); input schema in `src/lib/validations/ai.ts`.
+- Button shows a loading state while generating and is disabled when there's nothing to describe (no title and no content/URL/file); errors and rate limits show as toasts.
+- Free users don't get the feature (hidden or disabled, consistent with `TagSuggestions`).
+- Vitest tests for the prompt helpers and the `generateDescription` action (no session, not Pro, invalid input, rate limited, empty/invalid AI response, success).
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- Reuse the existing AI foundation in `src/lib/ai.ts` (`getAiClient`, `AI_MODEL`, `AI_TIMEOUT_MS`, error helpers) and the `TagSuggestions` component patterns.
+- The item data is sent as data in delimiters; the system prompt tells the model to ignore instructions inside it.
+- Plain-text output (no markdown, no quotes, no "This snippet..." filler where avoidable).
+- If the description already has text, clicking replaces it.
 
 ## Completed Features
 

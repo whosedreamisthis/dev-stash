@@ -18,11 +18,16 @@ type UploadStatus = "idle" | "uploading" | "done";
 
 const UPLOAD_FAILED_ERROR = "Upload failed. Please try again.";
 
+export interface UploadedFileInfo {
+  name: string;
+  mimeType: string;
+}
+
 interface FileUploadProps {
   id?: string;
   typeSlug: UploadTypeSlug;
-  // Receives the server-signed upload token, or null when the file is removed
-  onUploaded: (uploadToken: string | null) => void;
+  // Receives the server-signed upload token and the file's name and type, or null when the file is removed
+  onUploaded: (uploadToken: string | null, file?: UploadedFileInfo) => void;
   onUploadingChange?: (isUploading: boolean) => void;
   disabled?: boolean;
   invalid?: boolean;
@@ -93,14 +98,15 @@ export function FileUpload({
       onUploadProgress: setProgress,
       onClientUploadComplete: (results) => {
         if (!isMountedRef.current) return;
-        const serverData = results[0]?.serverData;
+        const uploaded = results[0];
+        const serverData = uploaded?.serverData;
         if (!serverData?.uploadToken) {
           failUpload(serverData?.error ?? UPLOAD_FAILED_ERROR);
           return;
         }
         setStatus("done");
         onUploadingChange?.(false);
-        onUploaded(serverData.uploadToken);
+        onUploaded(serverData.uploadToken, { name: uploaded.name, mimeType: uploaded.type });
       },
       onUploadError: (uploadError) => {
         if (!isMountedRef.current) return;

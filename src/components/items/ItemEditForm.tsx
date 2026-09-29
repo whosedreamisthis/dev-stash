@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { updateItem, type UpdateItemFieldErrors } from "@/actions/items";
 import { CollectionSelector } from "@/components/collections/CollectionSelector";
 import { CodeEditor } from "@/components/items/CodeEditor";
+import { DescriptionGenerator } from "@/components/items/DescriptionGenerator";
 import { ItemMetaSections } from "@/components/items/ItemDetailSections";
 import { ItemDrawerHeader } from "@/components/items/ItemDrawerHeader";
 import { ItemFormField as EditField } from "@/components/items/ItemFormField";
@@ -113,7 +114,21 @@ export function ItemEditForm({ item, onCancel, onSaved }: ItemEditFormProps) {
       <div className="scrollbar-none flex flex-1 flex-col gap-6 overflow-y-auto p-6">
         <EditField id="item-description" label="Description" error={fieldErrors.description}>
           {(props) => (
-            <Textarea {...props} value={values.description} onChange={setValue("description")} />
+            <DescriptionGenerator
+              source={{
+                title: values.title,
+                typeSlug: item.type.slug,
+                content: fields.content ? values.content : undefined,
+                language: fields.language ? values.language : undefined,
+                url: fields.url ? values.url : undefined,
+                fileName: item.fileName,
+                fileMimeType: item.fileMimeType,
+                tags: values.tags,
+              }}
+              onGenerate={(description) => setValues((prev) => ({ ...prev, description }))}
+            >
+              <Textarea {...props} value={values.description} onChange={setValue("description")} />
+            </DescriptionGenerator>
           )}
         </EditField>
         {fields.language && (
