@@ -6,6 +6,7 @@ import {
   getCollectionById,
   getCollectionOptions,
   getCollections,
+  getFavoriteCollections,
   getSearchCollections,
   updateCollection,
 } from "@/lib/db/collections";
@@ -64,6 +65,24 @@ describe("getSearchCollections", () => {
       })
     );
     expect(findMany.mock.calls[0][0]).not.toHaveProperty("take");
+  });
+});
+
+describe("getFavoriteCollections", () => {
+  it("returns the user's favorited collections, most recently updated first", async () => {
+    const findMany = vi.mocked(prisma.collection.findMany);
+    const updatedAt = new Date("2026-01-02T00:00:00Z");
+    findMany.mockResolvedValue([{ ...COLLECTION_ROW, updatedAt }] as never);
+
+    await expect(getFavoriteCollections("user-1")).resolves.toEqual([
+      { ...COLLECTION_SUMMARY, updatedAt },
+    ]);
+    expect(findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { userId: "user-1", isFavorite: true },
+        orderBy: [{ updatedAt: "desc" }, { id: "asc" }],
+      })
+    );
   });
 });
 

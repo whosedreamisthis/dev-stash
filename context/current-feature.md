@@ -1,20 +1,37 @@
-# Current Feature
+# Current Feature: Favorites Page
 
 <!-- Feature name and short description -->
+
+A `/favorites` page listing all of the user's favorited items and collections in a compact, dev-focused list.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- Star icon button in the TopBar linking to `/favorites`
+- Protected `/favorites` route
+- Fetch all of the session user's favorited items (`Item.isFavorite`) and collections (`Collection.isFavorite`)
+- Compact list view (VS Code / terminal style, not cards)
+- Each row: type icon, title, type badge, date added
+- Separate Items and Collections sections, each with a count
+- Clicking an item opens the ItemDrawer; clicking a collection navigates to `/collections/[id]`
+- Empty state when there are no favorites
+- Sort by most recently favorited (`updatedAt` desc)
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- UI style: monospace or semi-monospace font, minimal padding, high density, subtle hover states, no cards or heavy borders (clean divider lines only).
+- There is no `favoritedAt` field, so `updatedAt` stands in for "most recently favorited" per the spec (no schema change).
+- Queries must be scoped by `userId`; server component fetches directly with Prisma (`src/lib/db/`).
+- Spec: `context/features/favorites-spec.md`.
 
 ## Completed Features
 

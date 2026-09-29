@@ -9,6 +9,7 @@ import { DASHBOARD_RECENT_ITEMS_LIMIT, ITEMS_PER_PAGE, paginate } from "@/lib/pa
 import { toContentPreview } from "@/lib/search";
 import type { UploadedFile } from "@/lib/upload-token";
 import type { CollectionItemType } from "@/types/collections";
+import type { FavoriteItem } from "@/types/favorites";
 import type { PaginatedResult } from "@/types/pagination";
 import type { SearchItem } from "@/types/search";
 import type {
@@ -265,6 +266,17 @@ export async function getPinnedItems(userId: string): Promise<ItemSummary[]> {
   });
 
   return items.map(toItemSummary);
+}
+
+// Most recently favorited first; updatedAt stands in for the time it was favorited
+export async function getFavoriteItems(userId: string): Promise<FavoriteItem[]> {
+  const items = await prisma.item.findMany({
+    where: { userId, isFavorite: true },
+    orderBy: [{ updatedAt: "desc" }, { id: "asc" }],
+    include: ITEM_SUMMARY_INCLUDE,
+  });
+
+  return items.map((item) => ({ ...toItemSummary(item), updatedAt: item.updatedAt }));
 }
 
 export async function getRecentItems(

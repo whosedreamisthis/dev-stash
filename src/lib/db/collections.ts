@@ -2,6 +2,7 @@ import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
 import { COLLECTIONS_PER_PAGE, DASHBOARD_COLLECTIONS_LIMIT, paginate } from "@/lib/pagination";
 import type { CreateCollectionData, UpdateCollectionData } from "@/lib/validations/collections";
+import type { FavoriteCollection } from "@/types/favorites";
 import type { PaginatedResult } from "@/types/pagination";
 import type {
   CollectionDetail,
@@ -73,6 +74,20 @@ export async function getRecentCollections(
   });
 
   return collections.map(toCollectionSummary);
+}
+
+// Most recently favorited first; updatedAt stands in for the time it was favorited
+export async function getFavoriteCollections(userId: string): Promise<FavoriteCollection[]> {
+  const collections = await prisma.collection.findMany({
+    where: { userId, isFavorite: true },
+    orderBy: [{ updatedAt: "desc" }, { id: "asc" }],
+    include: COLLECTION_SUMMARY_INCLUDE,
+  });
+
+  return collections.map((collection) => ({
+    ...toCollectionSummary(collection),
+    updatedAt: collection.updatedAt,
+  }));
 }
 
 // All of the user's collections for the command palette, favorites first

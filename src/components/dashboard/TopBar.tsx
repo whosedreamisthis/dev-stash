@@ -1,9 +1,10 @@
 "use client";
 
-import { PanelLeft, Search } from "lucide-react";
+import Link from "next/link";
+import { PanelLeft, Search, Star } from "lucide-react";
 import { NewCollectionDialog } from "@/components/collections/NewCollectionDialog";
 import { NewItemDialog } from "@/components/items/NewItemDialog";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { useIsMac } from "@/hooks/useIsMac";
 
 interface TopBarProps {
@@ -48,6 +49,14 @@ export function TopBar({ onToggleSidebar, onOpenMobileSidebar, onOpenSearch }: T
         </kbd>
       </button>
       <div className="ml-auto flex items-center gap-2">
+        <Link
+          href="/favorites"
+          aria-label="Favorites"
+          title="Favorites"
+          className={buttonVariants({ variant: "ghost", size: "icon" })}
+        >
+          <Star />
+        </Link>
         <NewCollectionDialog />
         <NewItemDialog />
       </div>

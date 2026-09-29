@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import {
   createItem,
   deleteItem,
+  getFavoriteItems,
   getItemDetail,
   getItemFile,
   getItemsByCollection,
@@ -524,6 +525,22 @@ describe("getSearchItems", () => {
       }),
     ]);
     expect(items[0]).not.toHaveProperty("copyText");
+  });
+});
+
+describe("getFavoriteItems", () => {
+  it("returns the user's favorited items, most recently updated first", async () => {
+    findMany.mockResolvedValue([{ ...ITEM_ROW, isFavorite: true }] as never);
+    const items = await getFavoriteItems("user-1");
+    expect(findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { userId: "user-1", isFavorite: true },
+        orderBy: [{ updatedAt: "desc" }, { id: "asc" }],
+      })
+    );
+    expect(items).toEqual([
+      expect.objectContaining({ id: "item-1", isFavorite: true, updatedAt: UPDATED_AT }),
+    ]);
   });
 });
 
