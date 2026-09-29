@@ -168,6 +168,10 @@ export async function getCollectionStats(userId: string): Promise<CollectionStat
   return { total, favorites };
 }
 
+export function countCollections(userId: string): Promise<number> {
+  return prisma.collection.count({ where: { userId } });
+}
+
 export async function getCollectionOptions(userId: string): Promise<CollectionOption[]> {
   return prisma.collection.findMany({
     where: { userId },

@@ -207,7 +207,8 @@ STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 STRIPE_PRICE_MONTHLY=
 STRIPE_PRICE_YEARLY=
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
+ENFORCE_PLANS=             # "true" turns on free-tier limits; anything else = everyone is Pro
+# NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is unused: hosted Checkout is a plain redirect
 ```
 
 ---
@@ -634,13 +635,12 @@ The yearly plan works out to **25% off** ($6/mo).
 Build the Pro foundation now (flags, checks, Stripe wiring), but **let all users access everything during development**. Centralize the gating in one place so it's easy to switch on:
 
 ```ts
-// src/lib/plan.ts
+// src/lib/usage-limits.ts
 export const FREE_LIMITS = { items: 50, collections: 3 } as const;
 
-const ENFORCE_PLANS = process.env.ENFORCE_PLANS === "true";
-
+// Read on each call so tests can switch it with vi.stubEnv
 export function hasProAccess(user: { isPro: boolean }) {
-  if (!ENFORCE_PLANS) return true; // everyone is Pro during development
+  if (process.env.ENFORCE_PLANS !== "true") return true; // everyone is Pro during development
   return user.isPro;
 }
 ```
@@ -740,7 +740,7 @@ Other conventions:
 
 - All data access is scoped by `userId` — never trust client-supplied ownership.
 - Validate all input with a schema library (e.g. Zod) on the server.
-- Plan/limit checks live in `src/lib/plan.ts` and run server-side.
+- Plan/limit checks live in `src/lib/usage-limits.ts` and run server-side.
 - Use Neon branches for dev/preview databases so migrations can be tested before prod.
 - Unit test server actions and utilities with Vitest (`npm test`); tests mock the database and never touch Neon.
 
