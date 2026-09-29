@@ -156,7 +156,7 @@ describe("getOrCreateCustomerId", () => {
     await expect(getOrCreateCustomerId("user-1")).resolves.toBe("cus_new");
     expect(stripe.customers.create).toHaveBeenCalledWith(
       { email: "ada@example.com", name: "Ada", metadata: { userId: "user-1" } },
-      { idempotencyKey: "customer-user-1" },
+      { idempotencyKey: expect.stringMatching(/^customer-user-1-\d+$/) },
     );
     expect(mockSetStripeCustomerId).toHaveBeenCalledWith("user-1", "cus_new");
   });

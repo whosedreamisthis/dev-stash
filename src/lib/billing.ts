@@ -3,7 +3,11 @@ import { getBillingUser, setStripeCustomerId, syncSubscription } from "@/lib/db/
 import { getStripe } from "@/lib/stripe";
 
 // Returns the user's Stripe customer, creating and saving one on first checkout.
-// The idempotency key stops a double click from creating two customers.
+// The idempotency key stops a double click from creating two customers. It changes every
+// minute because Stripe replays a key's response for 24 hours, which would hand back a
+// customer that was since deleted.
+const CUSTOMER_KEY_WINDOW_MS = 60_000;
+
 export async function getOrCreateCustomerId(userId: string): Promise<string | null> {
   const user = await getBillingUser(userId);
   if (!user) return null;
@@ -15,7 +19,7 @@ export async function getOrCreateCustomerId(userId: string): Promise<string | nu
       name: user.name ?? undefined,
       metadata: { userId },
     },
-    { idempotencyKey: `customer-${userId}` },
+    { idempotencyKey: `customer-${userId}-${Math.floor(Date.now() / CUSTOMER_KEY_WINDOW_MS)}` },
   );
   await setStripeCustomerId(userId, customer.id);
   return customer.id;

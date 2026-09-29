@@ -2,19 +2,30 @@
 
 <!-- Feature name and short description -->
 
+**Upgrade Page:** a clear upgrade path for free users. An "Upgrade" ghost button in the top bar leads to a new `/upgrade` page that shows the plans like the homepage pricing section, where the user picks monthly ($8) or yearly ($72) and continues to Stripe Checkout.
+
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- Free users (no Pro access) see a subtle ghost "Upgrade" button in the top bar, linking to `/upgrade`; hidden for users with Pro access
+- New protected `/upgrade` page inside the dashboard shell, showing Free and Pro plan cards with features, like the homepage pricing section
+- Monthly/yearly toggle picks $8/month or $72/year; the Pro card's button starts Stripe Checkout for the chosen interval
+- Users who already have a subscription are redirected to `/settings`
+- The Pro gate on `/items/files` and `/items/images` shows the same Free vs Pro comparison with the monthly/yearly toggle
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- Reuse `PLANS`, `FREE_PLAN_PRICE`, `BillingToggle`, `ProPrice`, `Checklist` and `PlanPrice` from the homepage
+- Checkout logic shared between `UpgradeButtons` and the new page via a `useCheckout` hook
 
 ## Completed Features
 

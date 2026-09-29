@@ -1,11 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { PanelLeft, Search, Star } from "lucide-react";
+import { PanelLeft, Search, Sparkles, Star } from "lucide-react";
+import { useHasProAccess } from "@/components/billing/PlanContext";
 import { NewCollectionDialog } from "@/components/collections/NewCollectionDialog";
 import { NewItemDialog } from "@/components/items/NewItemDialog";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useIsMac } from "@/hooks/useIsMac";
+import { COMPACT_BUTTON, COMPACT_LABEL } from "@/lib/compact-button";
+import { cn } from "@/lib/utils";
 
 interface TopBarProps {
   sidebarOpen: boolean;
@@ -21,6 +24,7 @@ export function TopBar({
   onOpenSearch,
 }: TopBarProps) {
   const shortcut = useIsMac() ? "⌘K" : "Ctrl+K";
+  const hasProAccess = useHasProAccess();
 
   return (
     <header className="flex h-14 shrink-0 items-center gap-2 border-b px-3 sm:gap-4 sm:px-4">
@@ -57,6 +61,20 @@ export function TopBar({
         </kbd>
       </button>
       <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+        {!hasProAccess && (
+          <Link
+            href="/upgrade"
+            title="Upgrade to Pro"
+            className={cn(
+              buttonVariants({ variant: "ghost" }),
+              COMPACT_BUTTON,
+              "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <Sparkles />
+            <span className={COMPACT_LABEL}>Upgrade</span>
+          </Link>
+        )}
         <Link
           href="/favorites"
           aria-label="Favorites"

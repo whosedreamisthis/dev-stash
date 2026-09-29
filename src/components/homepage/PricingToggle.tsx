@@ -54,6 +54,10 @@ export function BillingToggle() {
   );
 }
 
+export function useBillingPeriod(): BillingPeriod {
+  return useBilling().period;
+}
+
 export function ProPrice() {
   const { period } = useBilling();
   return <PlanPrice {...PRO_PRICES[period]} />;
