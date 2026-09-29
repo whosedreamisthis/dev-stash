@@ -1,20 +1,29 @@
-# Current Feature
+# Current Feature: Pro Gate on File & Image Pages
 
 <!-- Feature name and short description -->
+
+Free users who visit `/items/files` or `/items/images` see an upgrade page instead of the item list.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- `/items/[type]` checks the Pro-only types (`isUploadTypeSlug`, the same check `createItem` uses) with `hasProAccess(session user)` and, without Pro access, renders an upgrade page instead of the header's New button and the item grid.
+- The upgrade page explains that Files and Images are a Pro feature and reuses `UpgradeButtons` ($8 / month, $72 / year) so users can go straight to Checkout.
+- In the New Item dialog, the File and Image type options are disabled (grayed out, with a PRO badge) for users without Pro access. Access comes from `getSidebarData` (`hasProAccess`) through a `PlanProvider` in `DashboardShell` (`useHasProAccess`), like editor preferences.- Nothing changes while `ENFORCE_PLANS` is unset, and Pro users see the lists and options as before.
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- Requested by the user after Stripe Phase 2; the sidebar still links to both types with their PRO badge.
+- Checkout returns to `/settings`, where the success toast shows.
 
 ## Completed Features
 

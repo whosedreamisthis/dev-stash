@@ -14,4 +14,6 @@ export interface SidebarData {
   collections: SidebarCollections;
   // Loaded with the sidebar because every page in the shell can open a code editor
   editorPreferences: EditorPreferences;
+  // Whether Pro-only types (File, Image) can be created; always true while plans aren't enforced
+  hasProAccess: boolean;
 }

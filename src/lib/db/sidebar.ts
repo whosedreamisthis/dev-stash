@@ -3,6 +3,7 @@ import { getSidebarCollections } from "@/lib/db/collections";
 import { getSidebarItemTypes } from "@/lib/db/items";
 import { getEditorPreferences } from "@/lib/db/users";
 import { DEFAULT_EDITOR_PREFERENCES } from "@/lib/editor-preferences";
+import { hasProAccess } from "@/lib/usage-limits";
 import type { SidebarData } from "@/types/sidebar";
 
 // Shared by every layout that renders the dashboard shell
@@ -23,6 +24,7 @@ export async function getSidebarData(): Promise<SidebarData> {
       itemTypes: [],
       collections: { favorites: [], recent: [] },
       editorPreferences: DEFAULT_EDITOR_PREFERENCES,
+      hasProAccess: false,
     };
   }
 
@@ -32,5 +34,11 @@ export async function getSidebarData(): Promise<SidebarData> {
     getEditorPreferences(userId),
   ]);
 
-  return { user, itemTypes, collections, editorPreferences };
+  return {
+    user,
+    itemTypes,
+    collections,
+    editorPreferences,
+    hasProAccess: hasProAccess({ isPro: session?.user?.isPro ?? false }),
+  };
 }
