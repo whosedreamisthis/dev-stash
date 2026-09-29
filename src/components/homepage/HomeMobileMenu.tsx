@@ -10,14 +10,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { SECTION_LINKS } from "@/lib/homepage-content";
 
 interface HomeMobileMenuProps {
-  isSignedIn: boolean;
+  sectionLinks: { label: string; href: string }[];
+  showSignIn: boolean;
 }
 
 // Section links (and Sign In) for small screens, where the header hides them
-export function HomeMobileMenu({ isSignedIn }: HomeMobileMenuProps) {
+export function HomeMobileMenu({ sectionLinks, showSignIn }: HomeMobileMenuProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -26,12 +26,12 @@ export function HomeMobileMenu({ isSignedIn }: HomeMobileMenuProps) {
         <Menu />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-44">
-        {SECTION_LINKS.map((link) => (
+        {sectionLinks.map((link) => (
           <DropdownMenuItem key={link.href} render={<a href={link.href} />}>
             {link.label}
           </DropdownMenuItem>
         ))}
-        {!isSignedIn && (
+        {showSignIn && (
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem render={<Link href="/sign-in" />}>Sign In</DropdownMenuItem>

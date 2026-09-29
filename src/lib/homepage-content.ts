@@ -23,6 +23,15 @@ export const SECTION_LINKS: NavLink[] = [
   { label: "Pricing", href: "#pricing" },
 ];
 
+// Pages that show the homepage nav; the auth pages hide their own button in it
+export type HomeNavPage = "home" | "sign-in" | "register";
+
+// Off the homepage, the section anchors lead back to the homepage's sections
+export function getSectionLinks(page: HomeNavPage): NavLink[] {
+  if (page === "home") return SECTION_LINKS;
+  return SECTION_LINKS.map((link) => ({ ...link, href: `/${link.href}` }));
+}
+
 export const FOOTER_COLUMNS: { title: string; links: NavLink[] }[] = [
   { title: "Product", links: SECTION_LINKS },
   {

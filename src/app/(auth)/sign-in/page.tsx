@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { GitHubAuthForm } from "@/components/auth/GitHubAuthForm";
 import { SignInForm } from "@/components/auth/SignInForm";
+import { HomeNav } from "@/components/homepage/HomeNav";
 
 // Errors Auth.js sends back to the sign-in page as ?error=...
 const AUTH_ERROR_MESSAGES: Record<string, string> = {
@@ -55,36 +56,41 @@ export default async function SignInPage({ searchParams }: PageProps<"/sign-in">
     undefined;
 
   return (
-    <AuthCard
-      title="Sign in to DevStash"
-      description="Welcome back. Sign in to your account."
-      footer={
-        <>
-          Don&apos;t have an account?{" "}
-          <Link href="/register" className="font-medium text-foreground hover:underline">
-            Register
-          </Link>
-        </>
-      }
-    >
-      {successMessage && (
-        <p className="rounded-md bg-emerald-500/10 px-3 py-2 text-sm text-emerald-500">
-          {successMessage}
-        </p>
-      )}
-      {noticeError && (
-        <p role="alert" className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
-          {noticeError}
-        </p>
-      )}
-      {error && (
-        <p role="alert" className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
-          {AUTH_ERROR_MESSAGES[error] ?? "Sign in failed. Please try again."}
-        </p>
-      )}
+    <>
+      {/* Signed-in visitors were redirected above */}
+      <HomeNav isSignedIn={false} page="sign-in" />
+      <AuthCard
+        belowNav
+        title="Sign in to DevStash"
+        description="Welcome back. Sign in to your account."
+        footer={
+          <>
+            Don&apos;t have an account?{" "}
+            <Link href="/register" className="font-medium text-foreground hover:underline">
+              Register
+            </Link>
+          </>
+        }
+      >
+        {successMessage && (
+          <p className="rounded-md bg-emerald-500/10 px-3 py-2 text-sm text-emerald-500">
+            {successMessage}
+          </p>
+        )}
+        {noticeError && (
+          <p role="alert" className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            {noticeError}
+          </p>
+        )}
+        {error && (
+          <p role="alert" className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            {AUTH_ERROR_MESSAGES[error] ?? "Sign in failed. Please try again."}
+          </p>
+        )}
 
-      <GitHubAuthForm label="Sign in with GitHub" callbackUrl={callbackUrl} />
-      <SignInForm callbackUrl={callbackUrl} />
-    </AuthCard>
+        <GitHubAuthForm label="Sign in with GitHub" callbackUrl={callbackUrl} />
+        <SignInForm callbackUrl={callbackUrl} />
+      </AuthCard>
+    </>
   );
 }
