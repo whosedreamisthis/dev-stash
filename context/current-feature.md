@@ -2,19 +2,28 @@
 
 <!-- Feature name and short description -->
 
+**Fix Cluttered Top Bar on Small Screens:** the dashboard `TopBar` overflows on phones (New Item runs off-screen, the search shortcut badge overlaps the Favorites star) and is cramped on tablets next to the sidebar.
+
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- New Collection and New Item buttons in the top bar show only their icon below `lg`, keeping the label for screen readers
+- Hide the search shortcut badge (`Ctrl+K` / `⌘K`) below `md`, where there's no keyboard
+- Tighter header padding and gaps on phones; the right-hand button group never shrinks, so the search box is what gives way
+- Other `NewItemDialog` uses (e.g. "New Snippet" on items pages) keep their full label
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- Found with Playwright at 375px and 768px; the sidebar is always visible from `md`, so the main area is only ~510px wide at 768px
 
 ## Completed Features
 

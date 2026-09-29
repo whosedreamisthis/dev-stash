@@ -12,15 +12,23 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { COMPACT_BUTTON, COMPACT_LABEL } from "@/lib/compact-button";
 
-export function NewCollectionDialog() {
+interface NewCollectionDialogProps {
+  // Shows only the icon below the lg breakpoint; the label stays for screen readers
+  compact?: boolean;
+}
+
+export function NewCollectionDialog({ compact }: NewCollectionDialogProps) {
   const [open, setOpen] = useState(false);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button variant="outline" />}>
+      <DialogTrigger
+        render={<Button variant="outline" className={compact ? COMPACT_BUTTON : undefined} />}
+      >
         <FolderPlus />
-        New Collection
+        <span className={compact ? COMPACT_LABEL : undefined}>New Collection</span>
       </DialogTrigger>
       <DialogContent className="w-[calc(100%-2rem)] max-w-lg sm:max-w-lg">
         <DialogHeader>

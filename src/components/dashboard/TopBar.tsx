@@ -17,7 +17,7 @@ export function TopBar({ onToggleSidebar, onOpenMobileSidebar, onOpenSearch }: T
   const shortcut = useIsMac() ? "⌘K" : "Ctrl+K";
 
   return (
-    <header className="flex h-14 shrink-0 items-center gap-4 border-b px-4">
+    <header className="flex h-14 shrink-0 items-center gap-2 border-b px-3 sm:gap-4 sm:px-4">
       <Button
         variant="ghost"
         size="icon"
@@ -44,11 +44,11 @@ export function TopBar({ onToggleSidebar, onOpenMobileSidebar, onOpenSearch }: T
       >
         <Search className="size-4 shrink-0" />
         <span className="truncate">Search items and collections...</span>
-        <kbd className="ml-auto shrink-0 rounded border bg-muted px-1.5 font-mono text-xs">
+        <kbd className="ml-auto hidden shrink-0 rounded border bg-muted px-1.5 font-mono text-xs md:inline">
           {shortcut}
         </kbd>
       </button>
-      <div className="ml-auto flex items-center gap-2">
+      <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
         <Link
           href="/favorites"
           aria-label="Favorites"
@@ -57,8 +57,8 @@ export function TopBar({ onToggleSidebar, onOpenMobileSidebar, onOpenSearch }: T
         >
           <Star />
         </Link>
-        <NewCollectionDialog />
-        <NewItemDialog />
+        <NewCollectionDialog compact />
+        <NewItemDialog compact />
       </div>
     </header>
   );
