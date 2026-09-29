@@ -52,7 +52,11 @@ export function getEditorHeight(contentHeight: number, readOnly: boolean): numbe
 }
 
 // Height guess from the line count, used before Monaco has measured the content
-export function estimateEditorHeight(value: string, readOnly: boolean): number {
+export function estimateEditorHeight(
+  value: string,
+  readOnly: boolean,
+  lineHeight = CODE_EDITOR_LINE_HEIGHT,
+): number {
   const lines = value.split("\n").length;
-  return getEditorHeight(lines * CODE_EDITOR_LINE_HEIGHT + CODE_EDITOR_PADDING * 2, readOnly);
+  return getEditorHeight(lines * lineHeight + CODE_EDITOR_PADDING * 2, readOnly);
 }

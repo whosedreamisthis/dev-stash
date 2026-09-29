@@ -47,6 +47,10 @@ describe("estimateEditorHeight", () => {
     expect(estimateEditorHeight("a\nb\nc", true)).toBe(84);
   });
 
+  it("uses the given line height for larger fonts", () => {
+    expect(estimateEditorHeight("a\nb\nc", true, 27)).toBe(105);
+  });
+
   it("caps long content at the max height", () => {
     expect(estimateEditorHeight("x\n".repeat(100), true)).toBe(CODE_EDITOR_MAX_HEIGHT);
   });

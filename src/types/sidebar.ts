@@ -1,3 +1,4 @@
+import type { EditorPreferences } from "@/lib/validations/editor-preferences";
 import type { SidebarCollections } from "@/types/collections";
 import type { SidebarItemType } from "@/types/items";
 
@@ -11,4 +12,6 @@ export interface SidebarData {
   user: SidebarUser | null;
   itemTypes: SidebarItemType[];
   collections: SidebarCollections;
+  // Loaded with the sidebar because every page in the shell can open a code editor
+  editorPreferences: EditorPreferences;
 }

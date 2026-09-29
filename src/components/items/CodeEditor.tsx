@@ -3,16 +3,16 @@
 import { useState } from "react";
 import Editor, { type BeforeMount, type OnMount } from "@monaco-editor/react";
 import { EditorWindowHeader } from "@/components/items/EditorWindowHeader";
+import { useEditorPreferences } from "@/components/settings/EditorPreferencesContext";
 import {
-  CODE_EDITOR_LINE_HEIGHT,
   CODE_EDITOR_PADDING,
   estimateEditorHeight,
   getEditorHeight,
   toMonacoLanguage,
 } from "@/lib/code-editor";
+import { getEditorLineHeight } from "@/lib/editor-preferences";
+import { defineEditorThemes, getMonacoThemeName } from "@/lib/monaco-themes";
 import { cn } from "@/lib/utils";
-
-const THEME_NAME = "devstash-dark";
 
 const handleBeforeMount: BeforeMount = (monaco) => {
   // Snippets are standalone, so imports like "react" can never resolve; only
@@ -22,24 +22,7 @@ const handleBeforeMount: BeforeMount = (monaco) => {
     noSyntaxValidation: false,
   });
 
-  // Dark theme matching the app's neutral palette, including the scrollbar
-  monaco.editor.defineTheme(THEME_NAME, {
-    base: "vs-dark",
-    inherit: true,
-    rules: [],
-    colors: {
-      "editor.background": "#171717",
-      "editorGutter.background": "#171717",
-      "editorLineNumber.foreground": "#525252",
-      "editorLineNumber.activeForeground": "#a3a3a3",
-      "editor.lineHighlightBackground": "#ffffff08",
-      "editor.lineHighlightBorder": "#00000000",
-      "scrollbar.shadow": "#00000000",
-      "scrollbarSlider.background": "#ffffff1a",
-      "scrollbarSlider.hoverBackground": "#ffffff2e",
-      "scrollbarSlider.activeBackground": "#ffffff40",
-    },
-  });
+  defineEditorThemes(monaco.editor);
 };
 
 interface CodeEditorProps {
@@ -61,7 +44,11 @@ export function CodeEditor({
   invalid,
   className,
 }: CodeEditorProps) {
-  const [height, setHeight] = useState(() => estimateEditorHeight(value, readOnly));
+  const { preferences } = useEditorPreferences();
+  const lineHeight = getEditorLineHeight(preferences.fontSize);
+  const [height, setHeight] = useState(() =>
+    estimateEditorHeight(value, readOnly, lineHeight),
+  );
 
   // Grows with the content up to the max height, then scrolls
   const handleMount: OnMount = (editor) => {
@@ -83,7 +70,7 @@ export function CodeEditor({
         height={height}
         value={value}
         language={toMonacoLanguage(language)}
-        theme={THEME_NAME}
+        theme={getMonacoThemeName(preferences.theme)}
         beforeMount={handleBeforeMount}
         onMount={handleMount}
         onChange={(next) => onChange?.(next ?? "")}
@@ -92,11 +79,14 @@ export function CodeEditor({
           readOnly,
           domReadOnly: readOnly,
           ariaLabel,
-          fontSize: 13,
-          lineHeight: CODE_EDITOR_LINE_HEIGHT,
+          fontSize: preferences.fontSize,
+          lineHeight,
           padding: { top: CODE_EDITOR_PADDING, bottom: CODE_EDITOR_PADDING },
-          tabSize: 2,
-          minimap: { enabled: false },
+          tabSize: preferences.tabSize,
+          // Otherwise Monaco guesses the tab size from the content and ignores the setting
+          detectIndentation: false,
+          wordWrap: preferences.wordWrap ? "on" : "off",
+          minimap: { enabled: preferences.minimap },
           lineNumbersMinChars: 3,
           folding: false,
           glyphMargin: false,

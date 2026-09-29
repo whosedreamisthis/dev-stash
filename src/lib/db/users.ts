@@ -1,6 +1,8 @@
 import bcrypt from "bcryptjs";
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
+import { parseEditorPreferences } from "@/lib/editor-preferences";
+import type { EditorPreferences } from "@/lib/validations/editor-preferences";
 import type { ProfileUser } from "@/types/profile";
 
 const BCRYPT_ROUNDS = 12;
@@ -14,6 +16,27 @@ export async function getProfileUser(userId: string): Promise<ProfileUser | null
 
   const { password, ...profile } = user;
   return { ...profile, hasPassword: password !== null };
+}
+
+// Defaults for users who haven't changed a setting, or who no longer exist
+export async function getEditorPreferences(userId: string): Promise<EditorPreferences> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { editorPreferences: true },
+  });
+  return parseEditorPreferences(user?.editorPreferences);
+}
+
+// Returns false when the user no longer exists
+export async function updateEditorPreferences(
+  userId: string,
+  preferences: EditorPreferences
+): Promise<boolean> {
+  const { count } = await prisma.user.updateMany({
+    where: { id: userId },
+    data: { editorPreferences: preferences },
+  });
+  return count > 0;
 }
 
 export interface NewUser {

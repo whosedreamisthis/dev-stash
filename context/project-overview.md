@@ -374,6 +374,9 @@ model User {
   stripeSubscriptionId   String?   @unique
   stripeCurrentPeriodEnd DateTime?
 
+  // Code editor settings; null until the user changes one, then defaults fill the gaps
+  editorPreferences Json?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

@@ -1,20 +1,42 @@
-# Current Feature
+# Current Feature: Editor Preferences Settings
 
 <!-- Feature name and short description -->
+
+An Editor section on `/settings` whose preferences auto-save to the database and apply to the Monaco code editor.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- Editor preferences section on the settings page with:
+  - Font size dropdown
+  - Tab size dropdown
+  - Word wrap toggle (default: on)
+  - Minimap toggle (default: off)
+  - Theme dropdown: vs-dark, monokai, github-dark (default: vs-dark)
+- Store the preferences in a JSON column `editorPreferences` on the `User` model
+- Create and run a Prisma migration (`prisma migrate dev`, never `db push`) on the Neon `development` branch
+- Server action to update the preferences, validated with Zod
+- Auto-save on every change (no save button), with a success toast
+- `EditorPreferencesContext` provides the preferences to client components
+- Apply the preferences to the Monaco `CodeEditor`
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- Spec: `context/features/editor-settings-spec.md`
+- `CodeEditor` currently hard-codes font size 13, tab size 2, minimap off, no word wrap, and a custom `devstash-dark` theme (vs-dark base with the app's neutral colors); these become the defaults where the spec doesn't set one
+- Monaco only ships `vs-dark` built in; `monokai` and `github-dark` need theme definitions
+- Line height is fixed at `CODE_EDITOR_LINE_HEIGHT` (20) and feeds the editor height estimate, so bigger font sizes need a matching line height
+- Server actions and the new utilities get Vitest tests; mock the database
+- Options: font sizes 12, 13, 14, 16, 18 (default 13); tab sizes 2, 4, 8 (default 2); the `vs-dark` option keeps the current `devstash-dark` look
 
 ## Completed Features
 

@@ -2,10 +2,15 @@ import { describe, expect, it, vi } from "vitest";
 import bcrypt from "bcryptjs";
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
-import { createUser } from "@/lib/db/users";
+import {
+  createUser,
+  getEditorPreferences,
+  updateEditorPreferences,
+} from "@/lib/db/users";
+import { DEFAULT_EDITOR_PREFERENCES } from "@/lib/editor-preferences";
 
 vi.mock("@/lib/db", () => ({
-  prisma: { user: { findUnique: vi.fn(), create: vi.fn() } },
+  prisma: { user: { findUnique: vi.fn(), create: vi.fn(), updateMany: vi.fn() } },
 }));
 
 vi.mock("bcryptjs", () => ({ default: { hash: vi.fn() } }));
@@ -58,5 +63,43 @@ describe("createUser", () => {
     await expect(createUser("Ada", "ada@example.com", "secret123")).rejects.toThrow(
       "connection lost"
     );
+  });
+});
+
+describe("getEditorPreferences", () => {
+  it("reads the user's stored preferences over the defaults", async () => {
+    findUnique.mockResolvedValue({ editorPreferences: { fontSize: 16, theme: "monokai" } } as never);
+    await expect(getEditorPreferences("user-1")).resolves.toEqual({
+      ...DEFAULT_EDITOR_PREFERENCES,
+      fontSize: 16,
+      theme: "monokai",
+    });
+    expect(findUnique).toHaveBeenCalledWith({
+      where: { id: "user-1" },
+      select: { editorPreferences: true },
+    });
+  });
+
+  it("returns the defaults when nothing is stored or the user is gone", async () => {
+    findUnique.mockResolvedValue({ editorPreferences: null } as never);
+    await expect(getEditorPreferences("user-1")).resolves.toEqual(DEFAULT_EDITOR_PREFERENCES);
+    findUnique.mockResolvedValue(null);
+    await expect(getEditorPreferences("user-1")).resolves.toEqual(DEFAULT_EDITOR_PREFERENCES);
+  });
+});
+
+describe("updateEditorPreferences", () => {
+  const updateMany = vi.mocked(prisma.user.updateMany);
+
+  it("saves the preferences on the user and reports whether the user exists", async () => {
+    updateMany.mockResolvedValue({ count: 1 });
+    await expect(updateEditorPreferences("user-1", DEFAULT_EDITOR_PREFERENCES)).resolves.toBe(true);
+    expect(updateMany).toHaveBeenCalledWith({
+      where: { id: "user-1" },
+      data: { editorPreferences: DEFAULT_EDITOR_PREFERENCES },
+    });
+
+    updateMany.mockResolvedValue({ count: 0 });
+    await expect(updateEditorPreferences("gone", DEFAULT_EDITOR_PREFERENCES)).resolves.toBe(false);
   });
 });

@@ -1,6 +1,8 @@
 import { auth } from "@/auth";
 import { getSidebarCollections } from "@/lib/db/collections";
 import { getSidebarItemTypes } from "@/lib/db/items";
+import { getEditorPreferences } from "@/lib/db/users";
+import { DEFAULT_EDITOR_PREFERENCES } from "@/lib/editor-preferences";
 import type { SidebarData } from "@/types/sidebar";
 
 // Shared by every layout that renders the dashboard shell
@@ -16,13 +18,19 @@ export async function getSidebarData(): Promise<SidebarData> {
     : null;
 
   if (!userId) {
-    return { user, itemTypes: [], collections: { favorites: [], recent: [] } };
+    return {
+      user,
+      itemTypes: [],
+      collections: { favorites: [], recent: [] },
+      editorPreferences: DEFAULT_EDITOR_PREFERENCES,
+    };
   }
 
-  const [itemTypes, collections] = await Promise.all([
+  const [itemTypes, collections, editorPreferences] = await Promise.all([
     getSidebarItemTypes(userId),
     getSidebarCollections(userId),
+    getEditorPreferences(userId),
   ]);
 
-  return { user, itemTypes, collections };
+  return { user, itemTypes, collections, editorPreferences };
 }
