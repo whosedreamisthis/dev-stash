@@ -1,43 +1,20 @@
-# Current Feature: Homepage
+# Current Feature
 
 <!-- Feature name and short description -->
-
-Replace the placeholder `src/app/page.tsx` with the real marketing homepage, rebuilt from the `prototypes/homepage/` mockup with Tailwind and shadcn/ui.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- Public `/` route with page `metadata`; `page.tsx` only composes section components from `src/components/homepage/`
-- Sections from the mockup: fixed nav, hero text, chaos → arrow → dashboard preview, 6 feature cards, Pro AI section with editor mockup and AI tags, pricing, closing CTA, footer
-- Static content (features, plans, footer links, chaos icons) in data arrays in one file (e.g. `src/lib/homepage-content.ts`), mapped over rather than repeated
-- Server components by default; small client components only for:
-  - `ChaosIcons`: `requestAnimationFrame` drift, wall bounce, rotate/scale pulse, cursor repel, cleanup on unmount, positions scaled on resize (no bunching)
-  - Nav scroll state (more opaque with a border after scrolling)
-  - `PricingToggle`: shadcn `Switch`, $8/mo ↔ $72/yr ("$6/month, billed yearly")
-  - Reusable `Reveal` fade-in with `IntersectionObserver` (shared hook also drives the AI tags appearing one by one)
-- Reduced motion turns off icon motion, arrow pulse and fade-ins; content stays visible without JavaScript
-- Tailwind v4 + shadcn (`Button`, `Badge`, `Switch`), no inline styles; custom keyframes in `src/app/globals.css`
-- App type colors and icons from `src/lib/item-type-icons.ts` (not the mockup palette); preview cards use the app's card border style; brand icons (Notion, GitHub, Slack, VS Code) as small inline SVG components
-- Responsive: hero stacks with the arrow pointing down, single-column grids, nav hides links and Sign In on mobile
-- Links: logo → `/`; Features/Pricing/See Features → `#features`/`#pricing` with nav offset; signed out, Sign In → `/sign-in` and Get Started / Start for Free / plan / CTA buttons → `/register`; signed in (session checked in the server nav), "Go to Dashboard" and those buttons → `/dashboard`; Upgrade to Pro → `/register` or `/dashboard`
-- Footer: only real links (Features, Pricing, Sign In, Register), current-year copyright
-- Shared `Logo` (`src/components/shared/Logo.tsx`) links to `/`; used by the homepage nav and footer and the dashboard sidebar, so the sidebar logo leads to the homepage
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Spec: `context/features/homepage-spec.md`; reference mockup: `prototypes/homepage/` (keep it).
-- Pricing from the project overview: Free $0 (50 items, 3 collections), Pro $8/mo or $72/yr. There's no `src/lib/plan.ts` yet, so the numbers live in the homepage content file.
-- No new server actions or queries beyond reading the session. Stripe checkout isn't built, so Upgrade to Pro doesn't go to billing.
-- `/` isn't in the `src/proxy.ts` matcher, so it's already public.
 
 ## Completed Features
 
@@ -92,3 +69,4 @@ In Progress
 - **Favorites Sorting:** per-section sort dropdowns on `/favorites` (items: date/name/type, collections: date/name) in `FavoritesList`, with helpers in `src/lib/favorites-sort.ts`.
 - **Pinned Items:** item drawer Pin button toggles pins optimistically with toasts via the `toggleItemPin` action and shared `useOptimisticToggle` hook; pinned items lead listings and the dashboard.
 - **Homepage Mockup:** static marketing homepage prototype in `prototypes/homepage/` with an animated "chaos to order" hero; app cards gained type-colored top borders with hover outlines (`ITEM_TYPE_BORDER_COLORS`).
+- **Homepage:** real `/` marketing page from `src/components/homepage/` sections with content in `src/lib/homepage-content.ts`, tested `src/lib/chaos-physics.ts`, and a shared `Logo` linking home.
