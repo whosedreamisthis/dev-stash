@@ -1,36 +1,20 @@
-# Current Feature: Stripe Integration Phase 1 - Core Infrastructure
+# Current Feature
 
 <!-- Feature name and short description -->
-
-Foundation for DevStash Pro ($8/month or $72/year): the Stripe client, a central usage-limits module, `isPro` on the session, and the billing data layer that syncs subscriptions into the database. Nothing user-facing yet; with `ENFORCE_PLANS` unset the app behaves exactly as today.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- **Dependencies and config:** `npm install stripe`; add `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` (placeholder), `STRIPE_PRICE_MONTHLY`, `STRIPE_PRICE_YEARLY` and `ENFORCE_PLANS` to `.env`. No publishable key, no migration (billing fields already exist on `User`).
-- **`src/lib/stripe.ts`:** lazy `getStripe()` that throws only when called without `STRIPE_SECRET_KEY`; `getPriceId("monthly" | "yearly")`; no pinned `apiVersion`.
-- **`src/lib/usage-limits.ts`:** `FREE_LIMITS = { items: 50, collections: 3 }`; `PRO_REQUIRED_ERROR`, `ITEM_LIMIT_ERROR`, `COLLECTION_LIMIT_ERROR`; `hasProAccess(user)` (reads `ENFORCE_PLANS` at call time); `isAtLimit(user, count, limit)`; `checkItemLimit(user)` / `checkCollectionLimit(user)` that skip counting for Pro users. Add `countCollections(userId)` to `src/lib/db/collections.ts`; items reuse `getItemStats(userId).total`. Replace `src/lib/plan.ts` references in `context/project-overview.md`.
-- **Session `isPro`:** `isPro` on `Session.user` and `JWT` in `src/types/next-auth.d.ts`; `jwt` callback in `src/auth.ts` re-reads `isPro` from the DB on each session check and the `session` callback copies it (not in `auth.config.ts`); `getSessionUser()` returning `{ id, isPro } | null` in `src/lib/session.ts`, `getSessionUserId()` unchanged.
-- **Billing data layer:** `src/lib/db/billing.ts` with `getBillingUser`, `setStripeCustomerId` and idempotent `syncSubscription` (active/trialing set Pro, subscription ID and period end from `items.data[0].current_period_end`; other statuses clear Pro only when the stored subscription ID matches). `src/lib/billing.ts` with `getOrCreateCustomerId` (idempotency key), `syncSubscriptionById` (always re-fetches), `handleStripeEvent` (checkout completed + subscription created/updated/deleted) and `syncCheckoutSession` (signed-in user's completed sessions only).
-- **Tests:** `src/lib/usage-limits.test.ts`, `src/lib/db/billing.test.ts`, `src/lib/billing.test.ts`, `src/lib/session.test.ts`, mocking `@/lib/db`, `@/lib/stripe` and `@/auth`.
-- **Checks:** `npm test` passes; `npm run build` passes without Stripe env vars; the app works as before with full access for everyone.
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Spec: `context/features/stripe-phase-1-spec.md`; full plan in `docs/stripe-integration-plan.md` (§3–§6, implementation steps 1–4); research in `context/research/stripe-integration-research.md`.
-- `usage-limits.test.ts` cases: `hasProAccess` with `ENFORCE_PLANS` unset / `"true"` / other values; `isAtLimit` below, at and above the limit, Pro and enforcement off; limit checks return `null` under the limit, the right error at 50 items / 3 collections, `null` for Pro without querying counts; messages include `FREE_LIMITS` numbers.
-- `billing.test.ts` cases: event routing to re-fetches, ignoring other events and non-subscription checkouts; `syncCheckoutSession` ignores other users' and incomplete sessions; `getOrCreateCustomerId` reuses or saves a customer.
-- `db/billing.test.ts` cases: active, trialing, canceled, past_due; clearing only the matching subscription; string vs expanded `customer`; missing period end.
-- Out of scope (Phase 2): webhook route, Checkout/Portal actions, billing UI, gating in `createItem` / `createCollection` / uploads, cancelling subscriptions on account deletion.
 
 ## Completed Features
 
@@ -89,3 +73,4 @@ In Progress
 - **Fix Cluttered Top Bar on Small Screens:** top bar create buttons collapse to icons below `lg` via a `compact` dialog prop (`src/lib/compact-button.ts`); shortcut badge hidden below `md`.
 - **UI Review Fixes:** Playwright review fixes: full-width mobile item drawer, stacked mobile `ItemCard`, homepage `HomeMobileMenu`, `scrollbar-thin`, no autofill in item/collection form fields.
 - **Homepage Nav on Auth Pages:** `/sign-in` and `/register` show `HomeNav` (new `page` prop, `/#…` section links via `getSectionLinks`) above `AuthCard` with its `belowNav` option.
+- **Stripe Integration Phase 1 - Core Infrastructure:** lazy Stripe client (`src/lib/stripe.ts`), plan gating in `src/lib/usage-limits.ts`, `isPro` on the session via `getSessionUser()`, subscription sync in `src/lib/billing.ts` and `src/lib/db/billing.ts`.
