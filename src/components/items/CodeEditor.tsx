@@ -7,6 +7,7 @@ import { useEditorPreferences } from "@/components/settings/EditorPreferencesCon
 import {
   CODE_EDITOR_PADDING,
   estimateEditorHeight,
+  getCodeLanguageLabel,
   getEditorHeight,
   toMonacoLanguage,
 } from "@/lib/code-editor";
@@ -65,7 +66,7 @@ export function CodeEditor({
         className,
       )}
     >
-      <EditorWindowHeader value={value} label={language} />
+      <EditorWindowHeader value={value} label={language && getCodeLanguageLabel(language)} />
       <Editor
         height={height}
         value={value}

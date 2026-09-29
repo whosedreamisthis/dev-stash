@@ -10,6 +10,7 @@ import { CodeEditor } from "@/components/items/CodeEditor";
 import { ItemMetaSections } from "@/components/items/ItemDetailSections";
 import { ItemDrawerHeader } from "@/components/items/ItemDrawerHeader";
 import { ItemFormField as EditField } from "@/components/items/ItemFormField";
+import { LanguageSelector } from "@/components/items/LanguageSelector";
 import { MarkdownEditor } from "@/components/items/MarkdownEditor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -114,6 +115,14 @@ export function ItemEditForm({ item, onCancel, onSaved }: ItemEditFormProps) {
             <Textarea {...props} value={values.description} onChange={setValue("description")} />
           )}
         </EditField>
+        {fields.language && (
+          <LanguageSelector
+            id="item-language"
+            value={values.language}
+            onChange={(language) => setValues((prev) => ({ ...prev, language }))}
+            error={fieldErrors.language}
+          />
+        )}
         {fields.content && (
           <EditField id="item-content" label="Content" error={fieldErrors.content}>
             {(props) =>
@@ -143,13 +152,6 @@ export function ItemEditForm({ item, onCancel, onSaved }: ItemEditFormProps) {
                 />
               )
             }
-          </EditField>
-        )}
-        {fields.language && (
-          <EditField id="item-language" label="Language" error={fieldErrors.language}>
-            {(props) => (
-              <Input {...props} value={values.language} onChange={setValue("language")} />
-            )}
           </EditField>
         )}
         {fields.url && (

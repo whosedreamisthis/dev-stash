@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   CODE_EDITOR_MAX_HEIGHT,
   CODE_EDITOR_MIN_EDIT_HEIGHT,
+  CODE_LANGUAGES,
   estimateEditorHeight,
+  getCodeLanguageLabel,
   getEditorHeight,
   toMonacoLanguage,
 } from "@/lib/code-editor";
@@ -23,6 +25,28 @@ describe("toMonacoLanguage", () => {
     expect(toMonacoLanguage(null)).toBe("plaintext");
     expect(toMonacoLanguage(undefined)).toBe("plaintext");
     expect(toMonacoLanguage("   ")).toBe("plaintext");
+  });
+});
+
+describe("getCodeLanguageLabel", () => {
+  it("returns the display name of a listed language", () => {
+    expect(getCodeLanguageLabel("typescript")).toBe("TypeScript");
+    expect(getCodeLanguageLabel("plaintext")).toBe("Plain text");
+  });
+
+  it("returns the display name of an alias", () => {
+    expect(getCodeLanguageLabel("ts")).toBe("TypeScript");
+    expect(getCodeLanguageLabel("bash")).toBe("Shell / Bash");
+  });
+
+  it("shows unlisted languages as typed", () => {
+    expect(getCodeLanguageLabel("elixir")).toBe("elixir");
+  });
+
+  it("offers only unique languages that toMonacoLanguage keeps as they are", () => {
+    const ids = CODE_LANGUAGES.map((language) => language.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const id of ids) expect(toMonacoLanguage(id)).toBe(id);
   });
 });
 

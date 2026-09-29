@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { SheetTitle } from "@/components/ui/sheet";
+import { getCodeLanguageLabel } from "@/lib/code-editor";
 import { ITEM_TYPE_ICONS, ITEM_TYPE_TEXT_COLORS } from "@/lib/item-type-icons";
 import { cn } from "@/lib/utils";
 import type { ItemSummary } from "@/types/items";
@@ -27,7 +28,7 @@ export function ItemDrawerHeader({ item, language, titleSlot }: ItemDrawerHeader
         {titleSlot}
         <div className="flex flex-wrap gap-2">
           <Badge variant="secondary">{item.type.name}s</Badge>
-          {language && <Badge variant="outline">{language}</Badge>}
+          {language && <Badge variant="outline">{getCodeLanguageLabel(language)}</Badge>}
         </div>
       </div>
     </header>

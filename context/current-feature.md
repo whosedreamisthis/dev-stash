@@ -2,19 +2,29 @@
 
 <!-- Feature name and short description -->
 
+**Language Dropdown:** pick a snippet's or command's language from a dropdown placed above the code editor, so syntax highlighting updates while typing.
+
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- Replace the free-text Language input with a shadcn Select of common languages (Monaco language IDs) in the new item dialog and the item drawer's edit form
+- Show the Language field above the Content field
+- Changing the language re-highlights the code editor immediately
+- Existing free-text languages still display: aliases like `ts` show as TypeScript, unknown values show as typed
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- The language list and its label lookup live in `src/lib/code-editor.ts` next to `toMonacoLanguage`
+- No schema change: `language` stays a string, and the selected Monaco ID is saved
 
 ## Completed Features
 

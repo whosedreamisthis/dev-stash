@@ -108,7 +108,7 @@ Search across **titles, content, tags and types**.
 
 ### F. AI Features (Pro)
 
-Powered by **OpenAI `gpt-5-nano`**.
+Powered by **Google Gemini `gemini-3.8-flash`**.
 
 | Feature | Description |
 | --- | --- |
@@ -131,7 +131,7 @@ Powered by **OpenAI `gpt-5-nano`**.
 | Caching | Redis *(optional, later)* | e.g. Upstash if needed |
 | File storage | **UploadThing** | Stores File/Image uploads; downloads go through a signed-URL proxy |
 | Auth | **Auth.js (NextAuth v5)** | Credentials + GitHub, Prisma adapter |
-| AI | **OpenAI** `gpt-5-nano` | Pro features only |
+| AI | **Google Gemini** `gemini-3.8-flash` | Pro features only; `@google/genai` SDK |
 | Payments | **Stripe** | Subscriptions (monthly / yearly) |
 | Styling | **Tailwind CSS v4** + **shadcn/ui** | Lucide icons |
 | Testing | **Vitest** | Unit tests for server actions and utilities (no component tests) |
@@ -199,8 +199,8 @@ UPSTASH_REDIS_REST_TOKEN=
 # File storage (UploadThing)
 UPLOADTHING_TOKEN=
 
-# OpenAI
-OPENAI_API_KEY=
+# Google Gemini
+GEMINI_API_KEY=
 
 # Stripe
 STRIPE_SECRET_KEY=
@@ -230,7 +230,7 @@ flowchart LR
     subgraph Services["☁️ External Services"]
         DB[("Neon<br/>PostgreSQL")]
         UT[("UploadThing<br/>File storage")]
-        OAI["OpenAI<br/>gpt-5-nano"]
+        OAI["Google Gemini<br/>gemini-3.8-flash"]
         STRIPE["Stripe"]
         GH["GitHub OAuth"]
         REDIS[("Redis<br/>(optional)")]
@@ -770,7 +770,7 @@ Other conventions:
 | Auth.js (NextAuth v5) | https://authjs.dev |
 | Auth.js Prisma adapter | https://authjs.dev/getting-started/adapters/prisma |
 | UploadThing | https://docs.uploadthing.com |
-| OpenAI API | https://platform.openai.com/docs |
+| Gemini API | https://ai.google.dev/gemini-api/docs |
 | Stripe Billing | https://docs.stripe.com/billing |
 | Tailwind CSS v4 | https://tailwindcss.com/docs |
 | shadcn/ui | https://ui.shadcn.com |

@@ -45,6 +45,50 @@ export function toMonacoLanguage(language: string | null | undefined): string {
   return LANGUAGE_ALIASES[normalized] ?? normalized;
 }
 
+export interface CodeLanguage {
+  id: string;
+  label: string;
+}
+
+// Languages offered in the item forms' dropdown, by Monaco language ID
+export const CODE_LANGUAGES: readonly CodeLanguage[] = [
+  { id: "plaintext", label: "Plain text" },
+  { id: "c", label: "C" },
+  { id: "cpp", label: "C++" },
+  { id: "csharp", label: "C#" },
+  { id: "css", label: "CSS" },
+  { id: "dart", label: "Dart" },
+  { id: "dockerfile", label: "Dockerfile" },
+  { id: "go", label: "Go" },
+  { id: "graphql", label: "GraphQL" },
+  { id: "html", label: "HTML" },
+  { id: "java", label: "Java" },
+  { id: "javascript", label: "JavaScript" },
+  { id: "json", label: "JSON" },
+  { id: "kotlin", label: "Kotlin" },
+  { id: "lua", label: "Lua" },
+  { id: "markdown", label: "Markdown" },
+  { id: "php", label: "PHP" },
+  { id: "powershell", label: "PowerShell" },
+  { id: "python", label: "Python" },
+  { id: "r", label: "R" },
+  { id: "ruby", label: "Ruby" },
+  { id: "rust", label: "Rust" },
+  { id: "scss", label: "SCSS" },
+  { id: "shell", label: "Shell / Bash" },
+  { id: "sql", label: "SQL" },
+  { id: "swift", label: "Swift" },
+  { id: "typescript", label: "TypeScript" },
+  { id: "xml", label: "XML" },
+  { id: "yaml", label: "YAML" },
+];
+
+// Display name for a language or alias (e.g. "ts" → "TypeScript"); unknown ones show as typed
+export function getCodeLanguageLabel(language: string): string {
+  const id = toMonacoLanguage(language);
+  return CODE_LANGUAGES.find((option) => option.id === id)?.label ?? language;
+}
+
 // Height of the content, never above the max and, when editing, never below the min
 export function getEditorHeight(contentHeight: number, readOnly: boolean): number {
   const min = readOnly ? 0 : CODE_EDITOR_MIN_EDIT_HEIGHT;

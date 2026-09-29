@@ -9,6 +9,7 @@ import { CodeEditor } from "@/components/items/CodeEditor";
 import { FileUpload } from "@/components/items/FileUpload";
 import { ItemFormField } from "@/components/items/ItemFormField";
 import { ItemTypeSelector } from "@/components/items/ItemTypeSelector";
+import { LanguageSelector } from "@/components/items/LanguageSelector";
 import { MarkdownEditor } from "@/components/items/MarkdownEditor";
 import { Button } from "@/components/ui/button";
 import { DialogClose, DialogFooter } from "@/components/ui/dialog";
@@ -60,6 +61,11 @@ export function NewItemForm({ defaultType, onCreated }: NewItemFormProps) {
   function setContent(content: string) {
     setValues((prev) => ({ ...prev, content }));
     setFieldErrors((prev) => ({ ...prev, content: undefined }));
+  }
+
+  function setLanguage(language: string) {
+    setValues((prev) => ({ ...prev, language }));
+    setFieldErrors((prev) => ({ ...prev, language: undefined }));
   }
 
   function handleCollectionsChange(ids: string[]) {
@@ -151,6 +157,14 @@ export function NewItemForm({ defaultType, onCreated }: NewItemFormProps) {
             )}
           </ItemFormField>
         )}
+        {fields.language && (
+          <LanguageSelector
+            id="new-item-language"
+            value={values.language}
+            onChange={setLanguage}
+            error={fieldErrors.language}
+          />
+        )}
         {fields.content && (
           <ItemFormField id="new-item-content" label="Content" error={fieldErrors.content}>
             {(props) =>
@@ -173,18 +187,6 @@ export function NewItemForm({ defaultType, onCreated }: NewItemFormProps) {
                 />
               )
             }
-          </ItemFormField>
-        )}
-        {fields.language && (
-          <ItemFormField id="new-item-language" label="Language" error={fieldErrors.language}>
-            {(props) => (
-              <Input
-                {...props}
-                value={values.language}
-                onChange={setValue("language")}
-                placeholder="typescript"
-              />
-            )}
           </ItemFormField>
         )}
         <ItemFormField id="new-item-tags" label="Tags" error={fieldErrors.tags}>
