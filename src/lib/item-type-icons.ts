@@ -51,12 +51,13 @@ export const ITEM_TYPE_BG_COLORS: Record<string, string> = {
   links: "bg-[#10b981]",
 };
 
+// Card borders: a thick colored top edge, and the whole thin border takes the color on hover
 export const ITEM_TYPE_BORDER_COLORS: Record<string, string> = {
-  snippets: "border-[#3b82f6]",
-  prompts: "border-[#8b5cf6]",
-  commands: "border-[#f97316]",
-  notes: "border-[#fde047]",
-  files: "border-[#6b7280]",
-  images: "border-[#ec4899]",
-  links: "border-[#10b981]",
+  snippets: "border-t-3 border-t-[#3b82f6] hover:border-[#3b82f6]",
+  prompts: "border-t-3 border-t-[#8b5cf6] hover:border-[#8b5cf6]",
+  commands: "border-t-3 border-t-[#f97316] hover:border-[#f97316]",
+  notes: "border-t-3 border-t-[#fde047] hover:border-[#fde047]",
+  files: "border-t-3 border-t-[#6b7280] hover:border-[#6b7280]",
+  images: "border-t-3 border-t-[#ec4899] hover:border-[#ec4899]",
+  links: "border-t-3 border-t-[#10b981] hover:border-[#10b981]",
 };
