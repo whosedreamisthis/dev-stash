@@ -1,20 +1,34 @@
-# Current Feature
+# Current Feature: Pinned Items
 
 <!-- Feature name and short description -->
+
+Make the existing Pin button in `ItemDrawer` work, so pinned items show at the top of listings and in the dashboard's pinned items section.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- Create a `toggleItemPin` server action (user-scoped, Zod-validated)
+- Make the Pin button in `ItemDrawer` clickable (it exists but has no `onClick`)
+- Optimistic UI update for instant feedback
+- Toast notification on success and error
+- Pinned items sort to the top of listings
+- Pinned items appear in the dashboard's pinned items section
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- Follow the Favorite Toggle pattern (`useFavoriteToggle`, `setItemFavorite`).
+- Items only, not collections.
+- The pin icon on `ItemCard` stays a static indicator (not clickable).
+- Spec: `context/features/pinned-spec.md`
 
 ## Completed Features
 

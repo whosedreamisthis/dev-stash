@@ -281,6 +281,19 @@ export async function setItemFavorite(
   return count > 0;
 }
 
+// Returns false for items that don't exist or belong to another user
+export async function setItemPinned(
+  userId: string,
+  itemId: string,
+  isPinned: boolean
+): Promise<boolean> {
+  const { count } = await prisma.item.updateMany({
+    where: { id: itemId, userId },
+    data: { isPinned },
+  });
+  return count > 0;
+}
+
 // Most recently favorited first; updatedAt stands in for the time it was favorited
 export async function getFavoriteItems(userId: string): Promise<FavoriteItem[]> {
   const items = await prisma.item.findMany({

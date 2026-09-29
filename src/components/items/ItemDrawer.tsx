@@ -17,6 +17,7 @@ interface ItemDrawerProps {
   onOpenChange: (open: boolean) => void;
   onSaved: (item: ItemDetail) => void;
   onFavoriteSaved: (itemId: string, isFavorite: boolean) => void;
+  onPinSaved: (itemId: string, isPinned: boolean) => void;
   onDeleted: (itemId: string) => void;
 }
 
@@ -28,6 +29,7 @@ export function ItemDrawer({
   onOpenChange,
   onSaved,
   onFavoriteSaved,
+  onPinSaved,
   onDeleted,
 }: ItemDrawerProps) {
   // Tracks the edited item's ID so opening another item starts in view mode
@@ -73,12 +75,13 @@ export function ItemDrawer({
               <>
                 <ItemDrawerHeader item={current} language={detail?.language} />
                 <ItemDrawerActions
-                  // Keyed so opening another item resets the favorite toggle's state
+                  // Keyed so opening another item resets the favorite and pin toggles' state
                   key={current.id}
                   itemId={current.id}
                   isFavorite={current.isFavorite}
                   onFavoriteSaved={(isFavorite) => onFavoriteSaved(current.id, isFavorite)}
                   isPinned={current.isPinned}
+                  onPinSaved={(isPinned) => onPinSaved(current.id, isPinned)}
                   copyValue={detail?.copyText ?? null}
                   onEdit={detail ? () => setEditingId(detail.id) : undefined}
                   onDelete={detail ? () => setIsDeleteOpen(true) : undefined}

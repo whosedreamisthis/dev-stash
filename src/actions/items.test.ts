@@ -6,11 +6,19 @@ import {
   deleteItem as deleteItemQuery,
   getItemDetail,
   setItemFavorite as setItemFavoriteQuery,
+  setItemPinned as setItemPinnedQuery,
   updateItem as updateItemQuery,
 } from "@/lib/db/items";
 import { createUploadToken } from "@/lib/upload-token";
 import { deleteUploadedFile } from "@/lib/uploadthing";
-import { createItem, deleteItem, getItem, setItemFavorite, updateItem } from "@/actions/items";
+import {
+  createItem,
+  deleteItem,
+  getItem,
+  setItemFavorite,
+  toggleItemPin,
+  updateItem,
+} from "@/actions/items";
 import type { ItemDetail } from "@/types/items";
 
 vi.mock("@/auth", () => ({ auth: vi.fn() }));
@@ -20,6 +28,7 @@ vi.mock("@/lib/db/items", () => ({
   deleteItem: vi.fn(),
   getItemDetail: vi.fn(),
   setItemFavorite: vi.fn(),
+  setItemPinned: vi.fn(),
 }));
 vi.mock("@/lib/uploadthing", () => ({ deleteUploadedFile: vi.fn() }));
 
@@ -294,6 +303,62 @@ describe("setItemFavorite", () => {
     signIn();
     vi.mocked(setItemFavoriteQuery).mockRejectedValue(new Error("db down"));
     await expect(setItemFavorite("item-1", true)).resolves.toEqual({
+      success: false,
+      error: "Something went wrong. Please try again.",
+    });
+  });
+});
+
+describe("toggleItemPin", () => {
+  beforeEach(() => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  it("requires a session", async () => {
+    mockAuth.mockResolvedValue(null);
+    await expect(toggleItemPin("item-1", true)).resolves.toEqual({
+      success: false,
+      error: "You must be signed in.",
+    });
+    expect(setItemPinnedQuery).not.toHaveBeenCalled();
+  });
+
+  it("rejects invalid input without querying", async () => {
+    signIn();
+    await expect(toggleItemPin("  ", true)).resolves.toEqual({
+      success: false,
+      error: "Item not found.",
+    });
+    await expect(toggleItemPin("item-1", "yes" as unknown as boolean)).resolves.toEqual({
+      success: false,
+      error: "Item not found.",
+    });
+    expect(setItemPinnedQuery).not.toHaveBeenCalled();
+  });
+
+  it("sets the pinned state on the session user's item", async () => {
+    signIn("user-42");
+    vi.mocked(setItemPinnedQuery).mockResolvedValue(true);
+    await expect(toggleItemPin(" item-1 ", true)).resolves.toEqual({
+      success: true,
+      data: { id: "item-1", isPinned: true },
+    });
+    expect(setItemPinnedQuery).toHaveBeenCalledWith("user-42", "item-1", true);
+  });
+
+  it("returns not found when nothing was updated", async () => {
+    signIn();
+    vi.mocked(setItemPinnedQuery).mockResolvedValue(false);
+    await expect(toggleItemPin("item-1", false)).resolves.toEqual({
+      success: false,
+      error: "Item not found.",
+    });
+  });
+
+  it("returns a generic error when the update fails", async () => {
+    signIn();
+    vi.mocked(setItemPinnedQuery).mockRejectedValue(new Error("db down"));
+    await expect(toggleItemPin("item-1", true)).resolves.toEqual({
       success: false,
       error: "Something went wrong. Please try again.",
     });

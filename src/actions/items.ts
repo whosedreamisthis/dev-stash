@@ -6,9 +6,11 @@ import {
   deleteItem as deleteItemQuery,
   getItemDetail,
   setItemFavorite as setItemFavoriteQuery,
+  setItemPinned as setItemPinnedQuery,
   updateItem as updateItemQuery,
 } from "@/lib/db/items";
 import { setFavoriteSchema } from "@/lib/validations/favorites";
+import { setPinSchema } from "@/lib/validations/pins";
 import { getSessionUserId, NOT_SIGNED_IN_ERROR } from "@/lib/session";
 import { isUploadTypeSlug } from "@/lib/upload-constraints";
 import { verifyUploadToken, type UploadedFile } from "@/lib/upload-token";
@@ -177,6 +179,33 @@ export async function setItemFavorite(
     return { success: true, data: parsed.data };
   } catch (error) {
     console.error("Updating item favorite failed:", error);
+    return { success: false, error: "Something went wrong. Please try again." };
+  }
+}
+
+export interface ToggleItemPinResult {
+  success: boolean;
+  data?: { id: string; isPinned: boolean };
+  error?: string;
+}
+
+// Takes the new state from the client's toggle instead of flipping the stored one
+export async function toggleItemPin(
+  itemId: string,
+  isPinned: boolean
+): Promise<ToggleItemPinResult> {
+  const userId = await getSessionUserId();
+  if (!userId) return { success: false, error: NOT_SIGNED_IN_ERROR };
+
+  const parsed = setPinSchema.safeParse({ id: itemId, isPinned });
+  if (!parsed.success) return { success: false, error: "Item not found." };
+
+  try {
+    const updated = await setItemPinnedQuery(userId, parsed.data.id, parsed.data.isPinned);
+    if (!updated) return { success: false, error: "Item not found." };
+    return { success: true, data: parsed.data };
+  } catch (error) {
+    console.error("Updating item pin failed:", error);
     return { success: false, error: "Something went wrong. Please try again." };
   }
 }

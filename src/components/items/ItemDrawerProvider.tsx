@@ -49,6 +49,14 @@ export function ItemDrawerProvider({ children }: ItemDrawerProviderProps) {
     [patchDetail]
   );
 
+  const setPinned = useCallback(
+    (itemId: string, isPinned: boolean) => {
+      patchDetail(itemId, { isPinned });
+      setItem((prev) => (prev?.id === itemId ? { ...prev, isPinned } : prev));
+    },
+    [patchDetail]
+  );
+
   const value = useMemo(
     () => ({ openItem, prefetchItem: loadItem, setFavorite }),
     [openItem, loadItem, setFavorite]
@@ -66,6 +74,7 @@ export function ItemDrawerProvider({ children }: ItemDrawerProviderProps) {
         onOpenChange={setOpen}
         onSaved={setDetail}
         onFavoriteSaved={setFavorite}
+        onPinSaved={setPinned}
         onDeleted={removeDetail}
       />
     </ItemDrawerContext>

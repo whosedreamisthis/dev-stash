@@ -10,6 +10,7 @@ import {
   getItemsByType,
   getSearchItems,
   setItemFavorite,
+  setItemPinned,
   toCollectionLinks,
   toTagLinks,
   updateItem,
@@ -542,6 +543,21 @@ describe("setItemFavorite", () => {
 
     updateMany.mockResolvedValue({ count: 0 });
     await expect(setItemFavorite("user-1", "item-2", false)).resolves.toBe(false);
+  });
+});
+
+describe("setItemPinned", () => {
+  it("updates only the user's item and reports whether it existed", async () => {
+    const updateMany = vi.mocked(prisma.item.updateMany);
+    updateMany.mockResolvedValue({ count: 1 });
+    await expect(setItemPinned("user-1", "item-1", true)).resolves.toBe(true);
+    expect(updateMany).toHaveBeenCalledWith({
+      where: { id: "item-1", userId: "user-1" },
+      data: { isPinned: true },
+    });
+
+    updateMany.mockResolvedValue({ count: 0 });
+    await expect(setItemPinned("user-1", "item-2", false)).resolves.toBe(false);
   });
 });
 

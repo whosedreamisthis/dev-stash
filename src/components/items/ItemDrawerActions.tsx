@@ -2,9 +2,10 @@
 
 import { Copy, Pencil, Pin, Star, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { setItemFavorite } from "@/actions/items";
+import { setItemFavorite, toggleItemPin } from "@/actions/items";
 import { Button } from "@/components/ui/button";
 import { useFavoriteToggle } from "@/hooks/useFavoriteToggle";
+import { useOptimisticToggle } from "@/hooks/useOptimisticToggle";
 import { cn } from "@/lib/utils";
 
 interface ItemDrawerActionsProps {
@@ -12,6 +13,7 @@ interface ItemDrawerActionsProps {
   isFavorite: boolean;
   onFavoriteSaved: (isFavorite: boolean) => void;
   isPinned: boolean;
+  onPinSaved: (isPinned: boolean) => void;
   // Text to copy; null while loading or when the item has nothing to copy
   copyValue: string | null;
   // Undefined while the item is loading, which disables the buttons
@@ -19,9 +21,10 @@ interface ItemDrawerActionsProps {
   onDelete?: () => void;
 }
 
-// Pin is wired up in a later feature
-function showComingSoon() {
-  toast("Coming soon");
+const PIN_ERROR = "Couldn't update the pin. Please try again.";
+
+function pinMessage(isPinned: boolean) {
+  return isPinned ? "Item pinned" : "Item unpinned";
 }
 
 async function copyToClipboard(value: string) {
@@ -37,7 +40,8 @@ export function ItemDrawerActions({
   itemId,
   isFavorite: savedIsFavorite,
   onFavoriteSaved,
-  isPinned,
+  isPinned: savedIsPinned,
+  onPinSaved,
   copyValue,
   onEdit,
   onDelete,
@@ -46,6 +50,13 @@ export function ItemDrawerActions({
     isFavorite: savedIsFavorite,
     save: (next) => setItemFavorite(itemId, next),
     onSaved: onFavoriteSaved,
+  });
+  const { value: isPinned, toggle: togglePin } = useOptimisticToggle({
+    value: savedIsPinned,
+    save: (next) => toggleItemPin(itemId, next),
+    onSaved: onPinSaved,
+    errorMessage: PIN_ERROR,
+    successMessage: pinMessage,
   });
 
   return (
@@ -64,7 +75,7 @@ export function ItemDrawerActions({
         variant="ghost"
         size="sm"
         aria-pressed={isPinned}
-        onClick={showComingSoon}
+        onClick={togglePin}
         className={cn(isPinned && "text-foreground")}
       >
         <Pin className={cn(isPinned && "fill-current")} />
