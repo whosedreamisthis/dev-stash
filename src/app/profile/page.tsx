@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { AccountActions } from "@/components/profile/AccountActions";
 import { ProfileInfo } from "@/components/profile/ProfileInfo";
 import { UsageStats } from "@/components/profile/UsageStats";
 import { getCollectionStats } from "@/lib/db/collections";
@@ -42,7 +41,6 @@ export default async function ProfilePage() {
       </header>
       <ProfileInfo user={user} />
       <UsageStats stats={stats} />
-      <AccountActions hasPassword={user.hasPassword} />
     </div>
   );
 }

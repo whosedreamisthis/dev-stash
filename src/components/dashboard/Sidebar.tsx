@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Layers, Settings } from "lucide-react";
+import { Layers } from "lucide-react";
 import { SidebarCollectionLink } from "@/components/dashboard/SidebarCollectionLink";
 import { SidebarSection } from "@/components/dashboard/SidebarSection";
 import { SidebarTypeLink } from "@/components/dashboard/SidebarTypeLink";
@@ -102,17 +102,11 @@ export function Sidebar({ data, onNavigate }: SidebarProps) {
         </SidebarSection>
       </nav>
 
-      <div className="flex shrink-0 items-center gap-2 border-t p-3">
-        {user ? <UserMenu user={user} onNavigate={onNavigate} /> : <div className="flex-1" />}
-        <Link
-          href="/settings"
-          onClick={onNavigate}
-          aria-label="Settings"
-          className="text-muted-foreground hover:text-foreground"
-        >
-          <Settings className="size-4" />
-        </Link>
-      </div>
+      {user && (
+        <div className="flex shrink-0 items-center gap-2 border-t p-3">
+          <UserMenu user={user} onNavigate={onNavigate} />
+        </div>
+      )}
     </div>
   );
 }

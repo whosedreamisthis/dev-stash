@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { LogOut, User } from "lucide-react";
+import { LogOut, Settings, User } from "lucide-react";
 import { signOutUser } from "@/actions/auth";
 import { UserAvatar } from "@/components/user/UserAvatar";
 import {
@@ -36,6 +36,10 @@ export function UserMenu({ user, onNavigate }: UserMenuProps) {
         <DropdownMenuItem render={<Link href="/profile" onClick={onNavigate} />}>
           <User />
           Profile
+        </DropdownMenuItem>
+        <DropdownMenuItem render={<Link href="/settings" onClick={onNavigate} />}>
+          <Settings />
+          Settings
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" onClick={() => signOutUser()}>

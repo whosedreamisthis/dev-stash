@@ -1,20 +1,31 @@
-# Current Feature
+# Current Feature: Settings Page
 
 <!-- Feature name and short description -->
+
+A protected `/settings` page, linked from the sidebar user menu, that takes over the account actions from the profile page.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- New `/settings` page, protected (signed-out visitors are sent to sign-in and back)
+- "Settings" link in the user dropdown at the bottom of the sidebar
+- Move the Account actions section (change password and delete account) from `/profile` to `/settings`
+- `/profile` keeps the user info and usage stats only
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- Inline description, no spec file
+- "Forgot password" in the request is read as the profile's change password action: `AccountActions` holds `ChangePasswordDialog` and `DeleteAccountDialog`, and the forgot-password flow lives on `/forgot-password`
+- The project overview lists theme and export for `/settings`; they're out of scope here
 
 ## Completed Features
 
