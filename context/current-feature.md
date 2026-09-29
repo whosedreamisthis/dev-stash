@@ -1,36 +1,20 @@
-# Current Feature: Favorites Sorting
+# Current Feature
 
 <!-- Feature name and short description -->
-
-Client-side sorting on the `/favorites` page: sort the Items and Collections lists by name, date or item type without a server round trip.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- Each section on `/favorites` has its own sort control (shadcn Select) in its header.
-- **Items:** Date, Name or Type. **Collections:** Date or Name (collections have no type).
-- **Name:** A→Z by item title / collection name, case-insensitive.
-- **Date:** newest first by `updatedAt` (the date shown on each row); this is the default and matches the current server order.
-- **Type (items only):** grouped by item type (in system type order: Snippet, Prompt, Command, Note, Link, File, Image), then by name.
-- Sorting runs in the browser only; no new queries, actions or URL params.
-- Pure sort helpers in `src/lib/` with Vitest unit tests.
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Page today: `src/app/favorites/page.tsx` (server component) fetches `getFavoriteItems` / `getFavoriteCollections` and renders `FavoritesSection` lists of `FavoriteItemRow` / `FavoriteCollectionRow` (`src/components/favorites/`).
-- Data types: `FavoriteItem` / `FavoriteCollection` in `src/types/favorites.ts` (both carry `updatedAt`; items have `type`, collections have nullable `mainType`).
-- Plan: keep the page a server component for auth and fetching; move the list rendering into a small client component (e.g. `FavoritesList`) that holds the sort state and renders the sort control plus both sections.
-- `updatedAt` arrives as a `Date` after being passed to a client component (RSC serializes Dates), so no string parsing should be needed.
-- Hide the sort control when there are no favorites (the empty state stays as is).
 
 ## Completed Features
 
@@ -82,3 +66,4 @@ In Progress
 - **Editor Preferences Settings:** auto-saving Editor section on `/settings` (font, tab size, wrap, minimap, theme) stored in `User.editorPreferences`, shared via `EditorPreferencesContext` and applied to `CodeEditor`.
 - **Favorites Page:** protected `/favorites` (TopBar star link) with compact monospace Items and Collections lists from `getFavoriteItems`/`getFavoriteCollections`; components in `src/components/favorites/`.
 - **Favorite Toggle:** optimistic favorite toggles (`useFavoriteToggle`) in the item drawer, item/image cards (`ItemFavoriteButton`), collection header and card menu via `setItemFavorite`/`setCollectionFavorite` actions.
+- **Favorites Sorting:** per-section sort dropdowns on `/favorites` (items: date/name/type, collections: date/name) in `FavoritesList`, with helpers in `src/lib/favorites-sort.ts`.
