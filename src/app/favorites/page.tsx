@@ -2,9 +2,7 @@ import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Star } from "lucide-react";
 import { auth } from "@/auth";
-import { FavoriteCollectionRow } from "@/components/favorites/FavoriteCollectionRow";
-import { FavoriteItemRow } from "@/components/favorites/FavoriteItemRow";
-import { FavoritesSection } from "@/components/favorites/FavoritesSection";
+import { FavoritesList } from "@/components/favorites/FavoritesList";
 import { getFavoriteCollections } from "@/lib/db/collections";
 import { getFavoriteItems } from "@/lib/db/items";
 
@@ -33,18 +31,7 @@ export default async function FavoritesPage() {
           No favorites yet. Star items and collections to find them here.
         </p>
       ) : (
-        <>
-          <FavoritesSection title="Items" count={items.length}>
-            {items.map((item) => (
-              <FavoriteItemRow key={item.id} item={item} />
-            ))}
-          </FavoritesSection>
-          <FavoritesSection title="Collections" count={collections.length}>
-            {collections.map((collection) => (
-              <FavoriteCollectionRow key={collection.id} collection={collection} />
-            ))}
-          </FavoritesSection>
-        </>
+        <FavoritesList items={items} collections={collections} />
       )}
     </div>
   );
