@@ -1,31 +1,20 @@
-# Current Feature: Settings Page
+# Current Feature
 
 <!-- Feature name and short description -->
-
-A protected `/settings` page, linked from the sidebar user menu, that takes over the account actions from the profile page.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- New `/settings` page, protected (signed-out visitors are sent to sign-in and back)
-- "Settings" link in the user dropdown at the bottom of the sidebar
-- Move the Account actions section (change password and delete account) from `/profile` to `/settings`
-- `/profile` keeps the user info and usage stats only
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Inline description, no spec file
-- "Forgot password" in the request is read as the profile's change password action: `AccountActions` holds `ChangePasswordDialog` and `DeleteAccountDialog`, and the forgot-password flow lives on `/forgot-password`
-- The project overview lists theme and export for `/settings`; they're out of scope here
 
 ## Completed Features
 
@@ -73,3 +62,4 @@ In Progress
 - **Global Search / Command Palette:** Cmd+K / Ctrl+K `CommandPalette` fuzzy searches items and collections in the browser, with data from the `getSearchData` action (`src/actions/search.ts`); the TopBar search box opens it.
 - **Pagination:** server-side `?page=N` pagination (21 per page) on `/items/[type]`, `/collections` and `/collections/[id]` via `src/lib/pagination.ts` and the `Pagination` component.
 - **Replace API Routes with Server Actions:** `getItem`, `getCollectionOptions` and `registerUser` actions replace `/api/items/[id]`, `/api/collections` and `/api/auth/register`; only callback/file routes remain.
+- **Settings Page:** protected `/settings` with change password and delete account (moved from `/profile`, components in `src/components/settings/`), linked from the sidebar user menu.
