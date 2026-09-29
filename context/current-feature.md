@@ -1,33 +1,20 @@
-# Current Feature: Homepage Nav on Auth Pages
+# Current Feature
 
 <!-- Feature name and short description -->
-
-Show the homepage top nav bar (`HomeNav`) on the `/sign-in` and `/register` pages, so visitors can get back to the homepage and its sections from there.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- `/sign-in` and `/register` render the same top nav as the homepage: logo linking to `/`, Features and Pricing links, Sign In and Get Started buttons, and the `HomeMobileMenu` on mobile
-- The Features and Pricing links work from the auth pages by pointing at the homepage sections (`/#features`, `/#pricing`) instead of same-page anchors
-- The fixed nav doesn't cover the auth card: the card stays vertically centered in the space below the nav at 375, 768 and 1280px
-- The homepage nav and its behavior (scroll state, anchor links, signed-in "Go to Dashboard") are unchanged
-- `/forgot-password` and `/reset-password` stay as they are
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- `HomeNav` (`src/components/homepage/HomeNav.tsx`) is a server component taking `isSignedIn`; it wraps the client `NavShell`, which is fixed at the top and turns opaque after 20px of scroll. The mobile menu is `HomeMobileMenu`.
-- The section links come from `SECTION_LINKS` in `src/lib/homepage-content.ts` (`#features`, `#pricing`), also used by the footer's Product column; they need a way to resolve to `/#...` off the homepage.
-- The auth pages live in `src/app/(auth)/` with no shared layout; each renders `AuthCard` (`src/components/auth/AuthCard.tsx`), whose `<main>` is `min-h-screen` and centered. Both pages redirect signed-in users to `/dashboard`, so the nav there always shows the signed-out buttons.
-- Decided (defaults, no answer given): the nav hides the button for the current page (Sign In on `/sign-in`, Get Started on `/register`), and `AuthCard` drops its own logo mark on these two pages since the nav shows the logo.
 
 ## Completed Features
 
@@ -85,3 +72,4 @@ In Progress
 - **Homepage:** real `/` marketing page from `src/components/homepage/` sections with content in `src/lib/homepage-content.ts`, tested `src/lib/chaos-physics.ts`, and a shared `Logo` linking home.
 - **Fix Cluttered Top Bar on Small Screens:** top bar create buttons collapse to icons below `lg` via a `compact` dialog prop (`src/lib/compact-button.ts`); shortcut badge hidden below `md`.
 - **UI Review Fixes:** Playwright review fixes: full-width mobile item drawer, stacked mobile `ItemCard`, homepage `HomeMobileMenu`, `scrollbar-thin`, no autofill in item/collection form fields.
+- **Homepage Nav on Auth Pages:** `/sign-in` and `/register` show `HomeNav` (new `page` prop, `/#…` section links via `getSectionLinks`) above `AuthCard` with its `belowNav` option.
