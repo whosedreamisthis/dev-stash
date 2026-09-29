@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import {
   createUser,
   getEditorPreferences,
+  getUserIsPro,
   updateEditorPreferences,
 } from "@/lib/db/users";
 import { DEFAULT_EDITOR_PREFERENCES } from "@/lib/editor-preferences";
@@ -63,6 +64,22 @@ describe("createUser", () => {
     await expect(createUser("Ada", "ada@example.com", "secret123")).rejects.toThrow(
       "connection lost"
     );
+  });
+});
+
+describe("getUserIsPro", () => {
+  it("reads the user's plan", async () => {
+    findUnique.mockResolvedValue({ isPro: true } as never);
+    await expect(getUserIsPro("user-1")).resolves.toBe(true);
+    expect(findUnique).toHaveBeenCalledWith({
+      where: { id: "user-1" },
+      select: { isPro: true },
+    });
+  });
+
+  it("returns false when the user no longer exists", async () => {
+    findUnique.mockResolvedValue(null);
+    await expect(getUserIsPro("gone")).resolves.toBe(false);
   });
 });
 

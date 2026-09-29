@@ -1,3 +1,4 @@
+import { cache } from "react";
 import bcrypt from "bcryptjs";
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
@@ -17,6 +18,16 @@ export async function getProfileUser(userId: string): Promise<ProfileUser | null
   const { password, ...profile } = user;
   return { ...profile, hasPassword: password !== null };
 }
+
+// Cached per request: every auth() call re-reads isPro in the jwt callback, and one
+// page render can call auth() several times. False when the user no longer exists
+export const getUserIsPro = cache(async (userId: string): Promise<boolean> => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { isPro: true },
+  });
+  return user?.isPro ?? false;
+});
 
 // Defaults for users who haven't changed a setting, or who no longer exist
 export async function getEditorPreferences(userId: string): Promise<EditorPreferences> {

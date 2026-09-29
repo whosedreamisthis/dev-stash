@@ -4,6 +4,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import bcrypt from "bcryptjs";
 import authConfig from "@/auth.config";
 import { prisma } from "@/lib/db";
+import { getUserIsPro } from "@/lib/db/users";
 import { checkRateLimit, getClientIp, resetRateLimit } from "@/lib/rate-limit";
 import { signInSchema } from "@/lib/validations/auth";
 import { isEmailVerificationEnabled } from "@/lib/verification";
@@ -85,13 +86,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user?.id) token.sub = user.id;
 
       // Always re-read isPro so Stripe webhook changes show up without calling update()
-      if (token.sub) {
-        const dbUser = await prisma.user.findUnique({
-          where: { id: token.sub },
-          select: { isPro: true },
-        });
-        token.isPro = dbUser?.isPro ?? false;
-      }
+      if (token.sub) token.isPro = await getUserIsPro(token.sub);
 
       return token;
     },
