@@ -2,47 +2,19 @@
 
 <!-- Feature name and short description -->
 
-**UI Review Fixes:** fix the layout, responsiveness and accessibility issues found by a Playwright UI review of the homepage and dashboard at 375, 768 and 1280px.
-
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-Homepage:
-
-- Mobile nav menu for the Features and Pricing links (`HomeNav`)
-- Hero dashboard preview: no cut-off card titles at 768px, no empty space at 375px (`DashboardPreview`)
-- Visible horizontal scroll on the AI section code sample on mobile (`AiSection`)
-- Balanced features heading (`text-balance`)
-- Larger hit area on the Monthly/Yearly billing switch
-
-Dashboard:
-
-- Item drawer full width on mobile so Edit/Delete stay on screen; actions row wraps (`ItemDrawer`, `ItemDrawerActions`)
-- Item cards: titles/descriptions not squeezed by the date and actions column on mobile (`ItemCard`)
-- Pinned and recent items in a multi-column grid on large screens
-- Mobile sidebar Sheet matches the sidebar width (`DashboardShell`)
-- Thin visible scrollbar on the main area instead of none
-- Consistent section headings (Collections, Pinned, Recent)
-- Stat cards stay aligned when a label wraps
-- Shorter search placeholder below `lg` (`TopBar`)
-- `aria-expanded` on the sidebar toggle
-- Drawer opens with focus off the Favorite button
-- Larger touch targets for card star/copy buttons
-- Stronger keyboard focus ring on item cards
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Found by a Playwright review; no user-facing features added beyond the fixes.
-- The review also flagged missing social proof on the homepage. Deferred: there are no real testimonials, users or stats to show yet, and invented ones would mislead.
 
 ## Completed Features
 
@@ -99,3 +71,4 @@ Dashboard:
 - **Homepage Mockup:** static marketing homepage prototype in `prototypes/homepage/` with an animated "chaos to order" hero; app cards gained type-colored top borders with hover outlines (`ITEM_TYPE_BORDER_COLORS`).
 - **Homepage:** real `/` marketing page from `src/components/homepage/` sections with content in `src/lib/homepage-content.ts`, tested `src/lib/chaos-physics.ts`, and a shared `Logo` linking home.
 - **Fix Cluttered Top Bar on Small Screens:** top bar create buttons collapse to icons below `lg` via a `compact` dialog prop (`src/lib/compact-button.ts`); shortcut badge hidden below `md`.
+- **UI Review Fixes:** Playwright review fixes: full-width mobile item drawer, stacked mobile `ItemCard`, homepage `HomeMobileMenu`, `scrollbar-thin`, no autofill in item/collection form fields.
