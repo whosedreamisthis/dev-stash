@@ -2,28 +2,19 @@
 
 <!-- Feature name and short description -->
 
-**Fix Cluttered Top Bar on Small Screens:** the dashboard `TopBar` overflows on phones (New Item runs off-screen, the search shortcut badge overlaps the Favorites star) and is cramped on tablets next to the sidebar.
-
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- New Collection and New Item buttons in the top bar show only their icon below `lg`, keeping the label for screen readers
-- Hide the search shortcut badge (`Ctrl+K` / `⌘K`) below `md`, where there's no keyboard
-- Tighter header padding and gaps on phones; the right-hand button group never shrinks, so the search box is what gives way
-- Other `NewItemDialog` uses (e.g. "New Snippet" on items pages) keep their full label
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Found with Playwright at 375px and 768px; the sidebar is always visible from `md`, so the main area is only ~510px wide at 768px
 
 ## Completed Features
 
@@ -79,3 +70,4 @@ In Progress
 - **Pinned Items:** item drawer Pin button toggles pins optimistically with toasts via the `toggleItemPin` action and shared `useOptimisticToggle` hook; pinned items lead listings and the dashboard.
 - **Homepage Mockup:** static marketing homepage prototype in `prototypes/homepage/` with an animated "chaos to order" hero; app cards gained type-colored top borders with hover outlines (`ITEM_TYPE_BORDER_COLORS`).
 - **Homepage:** real `/` marketing page from `src/components/homepage/` sections with content in `src/lib/homepage-content.ts`, tested `src/lib/chaos-physics.ts`, and a shared `Logo` linking home.
+- **Fix Cluttered Top Bar on Small Screens:** top bar create buttons collapse to icons below `lg` via a `compact` dialog prop (`src/lib/compact-button.ts`); shortcut badge hidden below `md`.
