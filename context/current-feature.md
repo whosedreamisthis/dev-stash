@@ -1,37 +1,20 @@
-# Current Feature: Favorites Page
+# Current Feature
 
 <!-- Feature name and short description -->
-
-A `/favorites` page listing all of the user's favorited items and collections in a compact, dev-focused list.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- Star icon button in the TopBar linking to `/favorites`
-- Protected `/favorites` route
-- Fetch all of the session user's favorited items (`Item.isFavorite`) and collections (`Collection.isFavorite`)
-- Compact list view (VS Code / terminal style, not cards)
-- Each row: type icon, title, type badge, date added
-- Separate Items and Collections sections, each with a count
-- Clicking an item opens the ItemDrawer; clicking a collection navigates to `/collections/[id]`
-- Empty state when there are no favorites
-- Sort by most recently favorited (`updatedAt` desc)
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- UI style: monospace or semi-monospace font, minimal padding, high density, subtle hover states, no cards or heavy borders (clean divider lines only).
-- There is no `favoritedAt` field, so `updatedAt` stands in for "most recently favorited" per the spec (no schema change).
-- Queries must be scoped by `userId`; server component fetches directly with Prisma (`src/lib/db/`).
-- Spec: `context/features/favorites-spec.md`.
 
 ## Completed Features
 
@@ -81,3 +64,4 @@ In Progress
 - **Replace API Routes with Server Actions:** `getItem`, `getCollectionOptions` and `registerUser` actions replace `/api/items/[id]`, `/api/collections` and `/api/auth/register`; only callback/file routes remain.
 - **Settings Page:** protected `/settings` with change password and delete account (moved from `/profile`, components in `src/components/settings/`), linked from the sidebar user menu.
 - **Editor Preferences Settings:** auto-saving Editor section on `/settings` (font, tab size, wrap, minimap, theme) stored in `User.editorPreferences`, shared via `EditorPreferencesContext` and applied to `CodeEditor`.
+- **Favorites Page:** protected `/favorites` (TopBar star link) with compact monospace Items and Collections lists from `getFavoriteItems`/`getFavoriteCollections`; components in `src/components/favorites/`.
