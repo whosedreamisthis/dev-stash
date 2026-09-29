@@ -1,34 +1,20 @@
-# Current Feature: Pinned Items
+# Current Feature
 
 <!-- Feature name and short description -->
-
-Make the existing Pin button in `ItemDrawer` work, so pinned items show at the top of listings and in the dashboard's pinned items section.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- Create a `toggleItemPin` server action (user-scoped, Zod-validated)
-- Make the Pin button in `ItemDrawer` clickable (it exists but has no `onClick`)
-- Optimistic UI update for instant feedback
-- Toast notification on success and error
-- Pinned items sort to the top of listings
-- Pinned items appear in the dashboard's pinned items section
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Follow the Favorite Toggle pattern (`useFavoriteToggle`, `setItemFavorite`).
-- Items only, not collections.
-- The pin icon on `ItemCard` stays a static indicator (not clickable).
-- Spec: `context/features/pinned-spec.md`
 
 ## Completed Features
 
@@ -81,3 +67,4 @@ In Progress
 - **Favorites Page:** protected `/favorites` (TopBar star link) with compact monospace Items and Collections lists from `getFavoriteItems`/`getFavoriteCollections`; components in `src/components/favorites/`.
 - **Favorite Toggle:** optimistic favorite toggles (`useFavoriteToggle`) in the item drawer, item/image cards (`ItemFavoriteButton`), collection header and card menu via `setItemFavorite`/`setCollectionFavorite` actions.
 - **Favorites Sorting:** per-section sort dropdowns on `/favorites` (items: date/name/type, collections: date/name) in `FavoritesList`, with helpers in `src/lib/favorites-sort.ts`.
+- **Pinned Items:** item drawer Pin button toggles pins optimistically with toasts via the `toggleItemPin` action and shared `useOptimisticToggle` hook; pinned items lead listings and the dashboard.
