@@ -2,28 +2,19 @@
 
 <!-- Feature name and short description -->
 
-**Shared App Layout (Snappier Navigation):** clicking a collection on the dashboard paused before anything changed, because `/dashboard` and `/collections` each had their own `DashboardShell` layout. Crossing between them re-rendered the layout (auth plus sidebar database queries) before the collection's loading skeleton could show.
-
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- Move `dashboard`, `collections`, `items`, `favorites`, `profile`, `settings` and `upgrade` into a `src/app/(app)/` route group; URLs stay the same
-- One `src/app/(app)/layout.tsx` renders `DashboardShell` with `getSidebarData()`; remove the seven duplicate layouts
-- The shell stays mounted between app pages, so existing `loading.tsx` skeletons show as soon as a link is clicked
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- The sidebar is no longer re-fetched on every navigation; mutations already call `router.refresh()`, which re-renders the shared layout
-- No changes to `src/proxy.ts`: route groups don't change URLs
 
 ## Completed Features
 
@@ -87,3 +78,4 @@ In Progress
 - **Pro Gate on File & Image Pages:** free users get `ProUpgradePrompt` on `/items/files` and `/items/images`, and disabled File/Image options in the new item type dropdown (`PlanProvider` / `useHasProAccess`).
 - **Upgrade Page:** top bar "Upgrade" link for free users to protected `/upgrade` with Free/Pro `UpgradePlans` and monthly/yearly checkout (`useCheckout`); same plans in `ProUpgradePrompt`.
 - **Language Dropdown:** `LanguageSelector` Select above the code editor in new/edit item forms; `CODE_LANGUAGES` and `getCodeLanguageLabel` in `src/lib/code-editor.ts` show names like TypeScript.
+- **Shared App Layout (Snappier Navigation):** app pages moved into a `src/app/(app)/` route group with one `DashboardShell` layout, so the shell stays mounted and loading skeletons show instantly.
