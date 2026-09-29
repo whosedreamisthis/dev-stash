@@ -51,6 +51,17 @@ export const ITEM_TYPE_BG_COLORS: Record<string, string> = {
   links: "bg-[#10b981]",
 };
 
+// Faint type-colored backgrounds, e.g. behind an icon
+export const ITEM_TYPE_TINT_COLORS: Record<string, string> = {
+  snippets: "bg-[#3b82f6]/15",
+  prompts: "bg-[#8b5cf6]/15",
+  commands: "bg-[#f97316]/15",
+  notes: "bg-[#fde047]/15",
+  files: "bg-[#6b7280]/15",
+  images: "bg-[#ec4899]/15",
+  links: "bg-[#10b981]/15",
+};
+
 // Card borders: a thick colored top edge, and the whole thin border takes the color on hover
 export const ITEM_TYPE_BORDER_COLORS: Record<string, string> = {
   snippets: "border-t-3 border-t-[#3b82f6] hover:border-[#3b82f6]",

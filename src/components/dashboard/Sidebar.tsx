@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Layers } from "lucide-react";
 import { SidebarCollectionLink } from "@/components/dashboard/SidebarCollectionLink";
 import { SidebarSection } from "@/components/dashboard/SidebarSection";
 import { SidebarTypeLink } from "@/components/dashboard/SidebarTypeLink";
 import { UserMenu } from "@/components/dashboard/UserMenu";
+import { Logo } from "@/components/shared/Logo";
 import { cn } from "@/lib/utils";
 import type { CollectionSummary } from "@/types/collections";
 import type { SidebarData } from "@/types/sidebar";
@@ -56,11 +56,8 @@ export function Sidebar({ data, onNavigate }: SidebarProps) {
 
   return (
     <div className="flex h-full w-64 flex-col bg-sidebar text-sidebar-foreground">
-      <div className="flex h-14 shrink-0 items-center gap-2 px-4">
-        <div className="flex size-8 items-center justify-center rounded-lg bg-violet-600 text-white">
-          <Layers className="size-4" />
-        </div>
-        <span className="text-lg font-semibold">DevStash</span>
+      <div className="flex h-14 shrink-0 items-center px-4">
+        <Logo onClick={onNavigate} />
       </div>
 
       <nav className="scrollbar-none flex-1 overflow-y-auto">
