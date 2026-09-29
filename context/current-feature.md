@@ -1,43 +1,20 @@
-# Current Feature: Homepage Mockup
+# Current Feature
 
 <!-- Feature name and short description -->
-
-A static marketing homepage prototype for DevStash in `prototypes/homepage/` (`index.html`, `styles.css`, `script.js`), built around a "chaos to order" hero.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- Create `prototypes/homepage/index.html`, `styles.css` and `script.js` (plain HTML/CSS/JS, dark theme)
-- **Navigation:** fixed top nav with logo, Features/Pricing links, Sign In and Get Started buttons; gets more opaque on scroll
-- **Hero text:** "Stop Losing Your Developer Knowledge" headline with gradient text, subheadline about scattered knowledge, CTA buttons
-- **Hero visual (main focus):** three elements side by side
-  - Chaos container "Your knowledge today..." with 8 floating icons (Notion, GitHub, Slack, VS Code, browser tabs, terminal, text file, bookmark) that drift, bounce off walls, rotate/scale subtly and repel from the mouse cursor (`requestAnimationFrame`)
-  - Center transform arrow with a CSS pulse animation
-  - Dashboard preview "...with DevStash": sidebar with nav items and a grid of item cards with type-colored top borders
-- **Features:** 6 cards (Code Snippets, AI Prompts, Instant Search, Commands, Files & Docs, Collections), each using its item type accent color
-- **AI section:** two columns: "Pro Feature" badge + AI capability checklist on the left; code editor mockup with an "AI Generated Tags" demo on the right
-- **Pricing:** Free ($0, 50 items, 3 collections) vs Pro ($8/mo, unlimited, AI features); Pro highlighted with "Most Popular" badge; monthly/yearly toggle ($72/yr)
-- **CTA:** "Ready to Organize Your Knowledge?" with a button
-- **Footer:** logo, link columns, copyright with the current year
-- **Scroll animations:** elements fade in as they scroll into view
-- **Responsive:** on mobile the chaos/arrow/dashboard stack vertically, the arrow rotates 90° to point down, and grids become single column
-- **App card borders (from the mockup):** item, image and collection cards get a 3px type-colored top border and a neutral border that turns the type color on hover (`ITEM_TYPE_BORDER_COLORS` in `src/lib/item-type-icons.ts`)
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Spec: `context/features/homepage-mockup-spec.md`.
-- Standalone prototype, not part of the Next.js app: no Tailwind, shadcn, Prisma or tests; no build step needed for it.
-- The spec's accent palette differs from the app's type colors: Snippet `#3b82f6`, Prompt `#f59e0b`, Command `#06b6d4`, Note `#22c55e`, File `#64748b`, Image `#ec4899`, URL `#6366f1` (app uses purple prompts, orange commands, yellow notes, gray files, emerald links).
-- Brand logos (Notion, GitHub, Slack, VS Code) should be simple inline SVG icons.
 
 ## Completed Features
 
@@ -91,3 +68,4 @@ In Progress
 - **Favorite Toggle:** optimistic favorite toggles (`useFavoriteToggle`) in the item drawer, item/image cards (`ItemFavoriteButton`), collection header and card menu via `setItemFavorite`/`setCollectionFavorite` actions.
 - **Favorites Sorting:** per-section sort dropdowns on `/favorites` (items: date/name/type, collections: date/name) in `FavoritesList`, with helpers in `src/lib/favorites-sort.ts`.
 - **Pinned Items:** item drawer Pin button toggles pins optimistically with toasts via the `toggleItemPin` action and shared `useOptimisticToggle` hook; pinned items lead listings and the dashboard.
+- **Homepage Mockup:** static marketing homepage prototype in `prototypes/homepage/` with an animated "chaos to order" hero; app cards gained type-colored top borders with hover outlines (`ITEM_TYPE_BORDER_COLORS`).
