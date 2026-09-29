@@ -1,36 +1,20 @@
-# Current Feature: Favorite Toggle
+# Current Feature
 
 <!-- Feature name and short description -->
-
-Let users favorite and unfavorite items and collections from the item drawer, the collection page and the cards.
 
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- Server actions to toggle `isFavorite` on an item and on a collection, scoped to the session user and validated with Zod, returning `{ success, data, error }`
-- Item drawer: the Favorite button (currently "Coming soon") toggles the item's favorite state
-- Collection page: the disabled star button in `CollectionHeader` toggles the collection's favorite state
-- Collection cards: the disabled "Favorite" item in the `CollectionCard` 3-dot menu toggles it (label switches to "Unfavorite")
-- Item cards: a star button on `ItemCard` toggles the item's favorite state without opening the drawer
-- The star icon updates right away (optimistic), reverts with an error toast on failure, and the page refreshes so the sidebar, stats and `/favorites` stay in sync
-- Unit tests for the new actions and query helpers
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- The drawer's Pin button stays "Coming soon"; only favorite is in scope.
-- Toggling updates `updatedAt`, which `/favorites` already uses as the favorited time, so a newly favorited entry moves to the top.
-- The drawer keeps a per-page detail cache (`useItemDetailCache`); the cached detail must reflect the new favorite state.
-- Card buttons must sit above the card's full-size click target (like `CopyButton`) so clicking them doesn't open the drawer or navigate.
-- Existing actions live in `src/actions/items.ts` and `src/actions/collections.ts`; queries in `src/lib/db/`.
 
 ## Completed Features
 
@@ -81,3 +65,4 @@ In Progress
 - **Settings Page:** protected `/settings` with change password and delete account (moved from `/profile`, components in `src/components/settings/`), linked from the sidebar user menu.
 - **Editor Preferences Settings:** auto-saving Editor section on `/settings` (font, tab size, wrap, minimap, theme) stored in `User.editorPreferences`, shared via `EditorPreferencesContext` and applied to `CodeEditor`.
 - **Favorites Page:** protected `/favorites` (TopBar star link) with compact monospace Items and Collections lists from `getFavoriteItems`/`getFavoriteCollections`; components in `src/components/favorites/`.
+- **Favorite Toggle:** optimistic favorite toggles (`useFavoriteToggle`) in the item drawer, item/image cards (`ItemFavoriteButton`), collection header and card menu via `setItemFavorite`/`setCollectionFavorite` actions.
