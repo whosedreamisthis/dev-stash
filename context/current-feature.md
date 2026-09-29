@@ -2,27 +2,19 @@
 
 <!-- Feature name and short description -->
 
-**Page Skeletons & Cached isPro:** instant loading skeletons for the app pages that don't have one yet, and one `isPro` database read per request instead of one per `auth()` call.
-
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- `loading.tsx` skeletons for `/dashboard`, `/favorites`, `/profile`, `/settings` and `/upgrade` that match each page's layout, with the real page heading shown right away
-- The `jwt` callback's `isPro` lookup is wrapped in React `cache()` (`getUserIsPro` in `src/lib/db/users.ts`), so repeated `auth()` calls in one request share one query
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- React `cache()` only dedupes within a server component render; in route handlers and server actions it just runs the query, so behavior is unchanged there
-- `isPro` is still read fresh on every request, so Stripe webhook changes keep showing up without `update()`
 
 ## Completed Features
 
@@ -87,3 +79,4 @@ In Progress
 - **Upgrade Page:** top bar "Upgrade" link for free users to protected `/upgrade` with Free/Pro `UpgradePlans` and monthly/yearly checkout (`useCheckout`); same plans in `ProUpgradePrompt`.
 - **Language Dropdown:** `LanguageSelector` Select above the code editor in new/edit item forms; `CODE_LANGUAGES` and `getCodeLanguageLabel` in `src/lib/code-editor.ts` show names like TypeScript.
 - **Shared App Layout (Snappier Navigation):** app pages moved into a `src/app/(app)/` route group with one `DashboardShell` layout, so the shell stays mounted and loading skeletons show instantly.
+- **Page Skeletons & Cached isPro:** `loading.tsx` skeletons for dashboard, favorites, profile, settings and upgrade; the `jwt` callback's `isPro` read is `getUserIsPro`, wrapped in React `cache()`.
