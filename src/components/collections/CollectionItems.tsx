@@ -1,6 +1,7 @@
 import { ItemCard } from "@/components/dashboard/ItemCard";
 import { Pagination } from "@/components/shared/Pagination";
 import { getItemsByCollection } from "@/lib/db/items";
+import { formatItemCount } from "@/lib/format";
 import { ITEM_LAYOUT_CLASSES } from "@/lib/item-grid";
 
 interface CollectionItemsProps {
@@ -25,7 +26,7 @@ export async function CollectionItems({ userId, collectionId, page }: Collection
     <section>
       {/* The section's heading, so card titles (h3) don't skip a level */}
       <h2 className="mb-4 font-normal text-muted-foreground">
-        {result.total} {result.total === 1 ? "item" : "items"}
+        {formatItemCount(result.total)}
       </h2>
       <div className={ITEM_LAYOUT_CLASSES.cards}>
         {result.items.map((item) => (

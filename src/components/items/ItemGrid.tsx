@@ -3,6 +3,7 @@ import { FileListRow } from "@/components/items/FileListRow";
 import { ImageThumbnailCard } from "@/components/items/ImageThumbnailCard";
 import { Pagination } from "@/components/shared/Pagination";
 import { getItemsByType } from "@/lib/db/items";
+import { formatItemCount } from "@/lib/format";
 import { ITEM_LAYOUT_CLASSES, getItemLayout } from "@/lib/item-grid";
 import type { ItemSummary } from "@/types/items";
 
@@ -59,7 +60,7 @@ export async function ItemGrid({
     <section>
       {/* The section's heading, so card titles (h3) don't skip a level */}
       <h2 className="mb-4 font-normal text-muted-foreground">
-        {result.total} {result.total === 1 ? "item" : "items"}
+        {formatItemCount(result.total)}
       </h2>
       {renderItems(result.items, typeSlug)}
       <Pagination

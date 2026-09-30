@@ -2,19 +2,30 @@
 
 <!-- Feature name and short description -->
 
+**Components Refactor 4 - Small Shared Helpers:** shared helpers for the small bits repeated across components, plus minor file splits.
+
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- `src/lib/format.ts` with `formatItemCount(n)` ("1 item" / "3 items") for the five item-count labels, and `DATE_WITH_YEAR_FORMATTER` replacing the identical `FileListRow` formatter and `FAVORITE_DATE_FORMATTER`; unit tests.
+- `FavoriteStar` (`src/components/shared/FavoriteStar.tsx`) and `FAVORITE_BUTTON_CLASS` for the yellow favorite stars and favorite toggle buttons.
+- `useCopyToClipboard()` (`src/hooks/useCopyToClipboard.ts`) returning `{ copied, copy }`, used by `CopyButton`, `EditorWindowHeader` and `ItemDrawerActions`.
+- `useCollectionActions(collection)` (`src/hooks/useCollectionActions.ts`) for the favorite toggle and edit/delete dialog state shared by `CollectionCard` and `CollectionHeader`.
+- Move `ItemContent` and `ItemDetailSkeleton` out of `ItemDetailSections.tsx`, and `SettingRow` out of `EditorPreferencesSection.tsx`, into their own files.
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- Last of four component refactors from the refactor-scanner report. No visible changes intended.
+- Date formatters with different options (card "Sep 29", drawer "September 29, 2026", profile, billing) stay local; only the identical pair is merged.
 
 ## Completed Features
 

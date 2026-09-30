@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/command";
 import { useSearchData } from "@/hooks/useSearchData";
 import { rememberCollection } from "@/lib/collection-preview";
+import { formatItemCount } from "@/lib/format";
 import { ITEM_TYPE_ICONS, ITEM_TYPE_TEXT_COLORS } from "@/lib/item-type-icons";
 import { getCollectionKeywords, getItemKeywords } from "@/lib/search";
 import type { CollectionSummary } from "@/types/collections";
@@ -83,7 +84,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                   <Folder className="text-muted-foreground" />
                   <span className="truncate">{collection.name}</span>
                   <CommandShortcut className="tracking-normal">
-                    {collection.itemCount} {collection.itemCount === 1 ? "item" : "items"}
+                    {formatItemCount(collection.itemCount)}
                   </CommandShortcut>
                 </CommandItem>
               ))}

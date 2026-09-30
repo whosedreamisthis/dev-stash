@@ -1,9 +1,10 @@
 "use client";
 
-import { Copy, Pencil, Pin, Star, Trash2 } from "lucide-react";
-import { toast } from "sonner";
+import { Copy, Pencil, Pin, Trash2 } from "lucide-react";
 import { setItemFavorite, toggleItemPin } from "@/actions/items";
+import { FAVORITE_BUTTON_CLASS, FavoriteStar } from "@/components/shared/FavoriteStar";
 import { Button } from "@/components/ui/button";
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
 import { useFavoriteToggle } from "@/hooks/useFavoriteToggle";
 import { useOptimisticToggle } from "@/hooks/useOptimisticToggle";
 import { cn } from "@/lib/utils";
@@ -25,15 +26,6 @@ const PIN_ERROR = "Couldn't update the pin. Please try again.";
 
 function pinMessage(isPinned: boolean) {
   return isPinned ? "Item pinned" : "Item unpinned";
-}
-
-async function copyToClipboard(value: string) {
-  try {
-    await navigator.clipboard.writeText(value);
-    toast.success("Copied to clipboard");
-  } catch {
-    toast.error("Couldn't copy to the clipboard");
-  }
 }
 
 export function ItemDrawerActions({
@@ -58,6 +50,7 @@ export function ItemDrawerActions({
     errorMessage: PIN_ERROR,
     successMessage: pinMessage,
   });
+  const { copy } = useCopyToClipboard();
 
   return (
     <div className="flex flex-wrap items-center gap-1 border-b px-4 py-3 sm:px-6">
@@ -66,9 +59,9 @@ export function ItemDrawerActions({
         size="sm"
         aria-pressed={isFavorite}
         onClick={toggle}
-        className={cn(isFavorite && "text-yellow-400 hover:text-yellow-400")}
+        className={cn(isFavorite && FAVORITE_BUTTON_CLASS)}
       >
-        <Star className={cn(isFavorite && "fill-yellow-400")} />
+        <FavoriteStar filled={isFavorite} />
         Favorite
       </Button>
       <Button
@@ -85,7 +78,7 @@ export function ItemDrawerActions({
         variant="ghost"
         size="sm"
         disabled={!copyValue}
-        onClick={() => copyValue && copyToClipboard(copyValue)}
+        onClick={() => copyValue && copy(copyValue)}
       >
         <Copy />
         Copy

@@ -1,13 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, Pencil, Star, Trash2 } from "lucide-react";
-import { setCollectionFavorite } from "@/actions/collections";
+import { ChevronLeft, Pencil, Trash2 } from "lucide-react";
 import { DeleteCollectionDialog } from "@/components/collections/DeleteCollectionDialog";
 import { EditCollectionDialog } from "@/components/collections/EditCollectionDialog";
+import { FAVORITE_BUTTON_CLASS, FavoriteStar } from "@/components/shared/FavoriteStar";
 import { Button } from "@/components/ui/button";
-import { useFavoriteToggle } from "@/hooks/useFavoriteToggle";
+import { useCollectionActions } from "@/hooks/useCollectionActions";
 import { cn } from "@/lib/utils";
 import type { CollectionDetail } from "@/types/collections";
 
@@ -17,12 +16,8 @@ interface CollectionHeaderProps {
 
 // Shared by the collection page and its loading state
 export function CollectionHeader({ collection }: CollectionHeaderProps) {
-  const [editOpen, setEditOpen] = useState(false);
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  const { isFavorite, toggle } = useFavoriteToggle({
-    isFavorite: collection.isFavorite,
-    save: (next) => setCollectionFavorite(collection.id, next),
-  });
+  const { isFavorite, toggleFavorite, editOpen, setEditOpen, deleteOpen, setDeleteOpen } =
+    useCollectionActions(collection);
 
   return (
     <header className="flex items-start justify-between gap-4">
@@ -47,10 +42,10 @@ export function CollectionHeader({ collection }: CollectionHeaderProps) {
           aria-pressed={isFavorite}
           aria-label={isFavorite ? "Unfavorite collection" : "Favorite collection"}
           title={isFavorite ? "Unfavorite" : "Favorite"}
-          onClick={toggle}
-          className={cn(isFavorite && "text-yellow-400 hover:text-yellow-400")}
+          onClick={toggleFavorite}
+          className={cn(isFavorite && FAVORITE_BUTTON_CLASS)}
         >
-          <Star className={cn("size-4", isFavorite && "fill-yellow-400")} />
+          <FavoriteStar filled={isFavorite} className="size-4" />
         </Button>
         <Button
           variant="ghost"

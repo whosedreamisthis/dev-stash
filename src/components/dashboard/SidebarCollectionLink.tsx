@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { Folder, Star } from "lucide-react";
+import { Folder } from "lucide-react";
 import { SIDEBAR_LINK_ACTIVE_CLASS, SIDEBAR_LINK_CLASS } from "@/components/dashboard/SidebarSection";
+import { FavoriteStar } from "@/components/shared/FavoriteStar";
 import { rememberCollection } from "@/lib/collection-preview";
 import { ITEM_TYPE_BG_COLORS } from "@/lib/item-type-icons";
 import { cn } from "@/lib/utils";
@@ -49,7 +50,7 @@ export function SidebarCollectionLink({
       )}
       <span className="flex-1 truncate">{collection.name}</span>
       {isFavorite ? (
-        <Star className="size-4 fill-yellow-400 text-yellow-400" />
+        <FavoriteStar className="size-4" />
       ) : (
         <span className="text-xs text-muted-foreground">{collection.itemCount}</span>
       )}

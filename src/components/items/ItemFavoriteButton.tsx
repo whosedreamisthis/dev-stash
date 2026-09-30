@@ -1,8 +1,8 @@
 "use client";
 
-import { Star } from "lucide-react";
 import { setItemFavorite } from "@/actions/items";
 import { useItemDrawer } from "@/components/items/ItemDrawerProvider";
+import { FAVORITE_BUTTON_CLASS, FavoriteStar } from "@/components/shared/FavoriteStar";
 import { Button } from "@/components/ui/button";
 import { useFavoriteToggle } from "@/hooks/useFavoriteToggle";
 import { cn } from "@/lib/utils";
@@ -35,13 +35,11 @@ export function ItemFavoriteButton({ item, className }: ItemFavoriteButtonProps)
         toggle();
       }}
       className={cn(
-        isFavorite
-          ? "text-yellow-400 hover:text-yellow-400"
-          : "text-muted-foreground hover:text-foreground",
+        isFavorite ? FAVORITE_BUTTON_CLASS : "text-muted-foreground hover:text-foreground",
         className
       )}
     >
-      <Star className={cn(isFavorite && "fill-yellow-400")} />
+      <FavoriteStar filled={isFavorite} />
     </Button>
   );
 }

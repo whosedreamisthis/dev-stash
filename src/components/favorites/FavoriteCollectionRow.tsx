@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { Folder } from "lucide-react";
 import { rememberCollection } from "@/lib/collection-preview";
-import { FAVORITE_DATE_FORMATTER, FAVORITE_ROW_CLASS } from "@/lib/favorites";
+import { FAVORITE_ROW_CLASS } from "@/lib/favorites";
+import { DATE_WITH_YEAR_FORMATTER, formatItemCount } from "@/lib/format";
 import { ITEM_TYPE_TEXT_COLORS } from "@/lib/item-type-icons";
 import { cn } from "@/lib/utils";
 import type { FavoriteCollection } from "@/types/favorites";
@@ -31,13 +32,13 @@ export function FavoriteCollectionRow({ collection }: FavoriteCollectionRowProps
         <Folder aria-hidden className={cn("size-4 shrink-0", typeColor)} />
         <span className="min-w-0 flex-1 truncate">{collection.name}</span>
         <span className="hidden shrink-0 rounded bg-muted px-1.5 text-xs text-muted-foreground sm:inline">
-          {collection.itemCount} {collection.itemCount === 1 ? "item" : "items"}
+          {formatItemCount(collection.itemCount)}
         </span>
         <time
           dateTime={collection.updatedAt.toISOString()}
           className="w-24 shrink-0 text-right text-xs text-muted-foreground"
         >
-          {FAVORITE_DATE_FORMATTER.format(collection.updatedAt)}
+          {DATE_WITH_YEAR_FORMATTER.format(collection.updatedAt)}
         </time>
       </Link>
     </li>

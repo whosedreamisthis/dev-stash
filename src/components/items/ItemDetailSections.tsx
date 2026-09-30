@@ -1,10 +1,5 @@
 import { Calendar, FolderOpen, Tag } from "lucide-react";
-import { CodeEditor } from "@/components/items/CodeEditor";
-import { ItemFileContent } from "@/components/items/ItemFileContent";
-import { MarkdownEditor } from "@/components/items/MarkdownEditor";
-import { Skeleton } from "@/components/ui/skeleton";
-import { getSafeHttpUrl } from "@/lib/url";
-import { LANGUAGE_TYPE_SLUGS, MARKDOWN_TYPE_SLUGS } from "@/lib/validations/items";
+import { ItemContent } from "@/components/items/ItemContent";
 import type { ItemDetail } from "@/types/items";
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
@@ -29,43 +24,6 @@ function Section({ title, icon: Icon, children }: SectionProps) {
       </h3>
       {children}
     </section>
-  );
-}
-
-function ItemContent({ item }: { item: ItemDetail }) {
-  if (item.contentType === "URL") {
-    const href = getSafeHttpUrl(item.url);
-    if (!href) return <p className="break-all text-muted-foreground">{item.url}</p>;
-    return (
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="break-all text-primary underline-offset-4 hover:underline"
-      >
-        {item.url}
-      </a>
-    );
-  }
-
-  if (item.contentType === "FILE") return <ItemFileContent item={item} />;
-
-  if (!item.content) return <p className="text-muted-foreground">No content</p>;
-
-  if (LANGUAGE_TYPE_SLUGS.has(item.type.slug)) {
-    return (
-      <CodeEditor value={item.content} language={item.language} readOnly ariaLabel="Content" />
-    );
-  }
-
-  if (MARKDOWN_TYPE_SLUGS.has(item.type.slug)) {
-    return <MarkdownEditor value={item.content} readOnly ariaLabel="Content" />;
-  }
-
-  return (
-    <pre className="overflow-x-auto rounded-lg border bg-muted/40 p-4 font-mono text-sm leading-relaxed">
-      <code>{item.content}</code>
-    </pre>
   );
 }
 
@@ -126,28 +84,5 @@ export function ItemMetaSections({ item }: { item: ItemDetail }) {
         </dl>
       </Section>
     </>
-  );
-}
-
-export function ItemDetailSkeleton() {
-  return (
-    <div className="flex flex-col gap-8" aria-busy="true" aria-label="Loading item">
-      <div className="flex flex-col gap-3">
-        <Skeleton className="h-4 w-24" />
-        <Skeleton className="h-5 w-3/4" />
-      </div>
-      <div className="flex flex-col gap-3">
-        <Skeleton className="h-4 w-20" />
-        <Skeleton className="h-48 w-full rounded-lg" />
-      </div>
-      <div className="flex flex-col gap-3">
-        <Skeleton className="h-4 w-16" />
-        <div className="flex gap-2">
-          <Skeleton className="h-7 w-16" />
-          <Skeleton className="h-7 w-14" />
-          <Skeleton className="h-7 w-16" />
-        </div>
-      </div>
-    </div>
   );
 }

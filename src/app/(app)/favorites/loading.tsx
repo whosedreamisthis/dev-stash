@@ -1,4 +1,4 @@
-import { Star } from "lucide-react";
+import { FavoriteStar } from "@/components/shared/FavoriteStar";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -11,7 +11,7 @@ export default function FavoritesLoading() {
     <div className="mx-auto flex max-w-5xl flex-col gap-8" aria-busy="true">
       <PageHeader
         title="Favorites"
-        icon={<Star className="size-7 shrink-0 fill-yellow-400 text-yellow-400" />}
+        icon={<FavoriteStar className="size-7 shrink-0" />}
       />
       {SECTIONS.map((section) => (
         <section key={section} aria-label={`Loading favorite ${section}`}>

@@ -1,7 +1,8 @@
 "use client";
 
 import { ItemOpenOverlay } from "@/components/items/ItemOpenOverlay";
-import { FAVORITE_DATE_FORMATTER, FAVORITE_ROW_CLASS } from "@/lib/favorites";
+import { FAVORITE_ROW_CLASS } from "@/lib/favorites";
+import { DATE_WITH_YEAR_FORMATTER } from "@/lib/format";
 import { ITEM_TYPE_ICONS, ITEM_TYPE_TEXT_COLORS } from "@/lib/item-type-icons";
 import { cn } from "@/lib/utils";
 import type { FavoriteItem } from "@/types/favorites";
@@ -36,7 +37,7 @@ export function FavoriteItemRow({ item }: FavoriteItemRowProps) {
         dateTime={item.updatedAt.toISOString()}
         className="w-24 shrink-0 text-right text-xs text-muted-foreground"
       >
-        {FAVORITE_DATE_FORMATTER.format(item.updatedAt)}
+        {DATE_WITH_YEAR_FORMATTER.format(item.updatedAt)}
       </time>
     </li>
   );

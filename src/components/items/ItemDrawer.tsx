@@ -5,7 +5,8 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { DeleteItemDialog } from "@/components/items/DeleteItemDialog";
 import { ItemDrawerActions } from "@/components/items/ItemDrawerActions";
 import { ItemDrawerHeader } from "@/components/items/ItemDrawerHeader";
-import { ItemDetailSections, ItemDetailSkeleton } from "@/components/items/ItemDetailSections";
+import { ItemDetailSections } from "@/components/items/ItemDetailSections";
+import { ItemDetailSkeleton } from "@/components/items/ItemDetailSkeleton";
 import { ItemEditForm } from "@/components/items/ItemEditForm";
 import type { ItemDetail, ItemSummary } from "@/types/items";
 

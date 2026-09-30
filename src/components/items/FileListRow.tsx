@@ -1,19 +1,14 @@
 "use client";
 
-import { Download, Pin, Star } from "lucide-react";
+import { Download, Pin } from "lucide-react";
 import { FileTypeIcon } from "@/components/items/FileTypeIcon";
 import { ItemOpenOverlay } from "@/components/items/ItemOpenOverlay";
+import { FavoriteStar } from "@/components/shared/FavoriteStar";
 import { buttonVariants } from "@/components/ui/button";
+import { DATE_WITH_YEAR_FORMATTER } from "@/lib/format";
 import { formatFileSize } from "@/lib/upload-constraints";
 import { cn } from "@/lib/utils";
 import type { ItemSummary } from "@/types/items";
-
-const dateFormatter = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-  year: "numeric",
-  timeZone: "UTC",
-});
 
 interface FileListRowProps {
   item: ItemSummary;
@@ -34,7 +29,7 @@ export function FileListRow({ item }: FileListRowProps) {
             <h3 className="truncate font-medium">{item.title}</h3>
             {item.isPinned && <Pin className="size-4 shrink-0 text-muted-foreground" />}
             {item.isFavorite && (
-              <Star className="size-4 shrink-0 fill-yellow-400 text-yellow-400" />
+              <FavoriteStar className="size-4 shrink-0" />
             )}
           </div>
           <p className="truncate text-sm text-muted-foreground">{fileName}</p>
@@ -44,7 +39,7 @@ export function FileListRow({ item }: FileListRowProps) {
             {item.fileSize != null ? formatFileSize(item.fileSize) : "—"}
           </span>
           <time dateTime={item.createdAt.toISOString()} className="sm:w-28 sm:text-right">
-            {dateFormatter.format(item.createdAt)}
+            {DATE_WITH_YEAR_FORMATTER.format(item.createdAt)}
           </time>
         </div>
       </div>

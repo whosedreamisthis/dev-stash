@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { Check, Copy } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
 import { cn } from "@/lib/utils";
 
 interface CopyButtonProps {
@@ -15,19 +14,12 @@ interface CopyButtonProps {
 
 // Icon button that copies text, showing a check and a toast when it works
 export function CopyButton({ value, label, className }: CopyButtonProps) {
-  const [copied, setCopied] = useState(false);
+  const { copied, copy } = useCopyToClipboard();
 
-  async function handleCopy(event: React.MouseEvent) {
+  function handleCopy(event: React.MouseEvent) {
     // Keeps the click from reaching the card it sits on
     event.stopPropagation();
-    try {
-      await navigator.clipboard.writeText(value);
-      setCopied(true);
-      toast.success("Copied to clipboard");
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      toast.error("Couldn't copy to the clipboard");
-    }
+    void copy(value);
   }
 
   return (
