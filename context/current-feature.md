@@ -2,28 +2,19 @@
 
 <!-- Feature name and short description -->
 
-**Components Refactor 3 - FileUpload Split:** break the 220-line `FileUpload` into an upload-state hook and small presentational components.
-
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- `useFileUpload({ typeSlug, onUploaded, onUploadingChange })` (`src/hooks/useFileUpload.ts`) owns the file, status, progress, error, image preview, hidden input ref and the UploadThing wiring, and exposes `handleFile` and `handleRemove`; `UploadedFileInfo` moves with it.
-- `UploadDropzone` (`src/components/items/UploadDropzone.tsx`): the "Click to upload or drag and drop" button with the allowed extensions and size.
-- `UploadProgressBar` (`src/components/items/UploadProgressBar.tsx`): the styled `<progress>` element.
-- `FileUpload` keeps the drag-and-drop frame, `SelectedFile` and the hidden file input.
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Third of four component refactors from the refactor-scanner report. No visible changes intended.
 
 ## Completed Features
 
@@ -95,3 +86,4 @@ In Progress
 - **Actions Refactor - Shared Helpers:** `runUserAction` and `GENERIC_ERROR` (`src/lib/action-result.ts`), `idSchema`, `firstIssueMessage`/`toFirstFieldErrors` (`src/lib/validations/`), `ActionResult<T>` (`src/types/actions.ts`) and `runAiAction` dedupe `src/actions`.
 - **Components Refactor 1 - Shared Item Form Fields:** `ItemFormFields` component and `useItemFormValues` hook shared by `NewItemForm` and `ItemEditForm`; `toItemFormValues` in `src/lib/item-fields.ts`; edit form clears field errors.
 - **Components Refactor 2 - Shared Dialogs & Form Pieces:** `CollectionFormFields`, `ItemOpenOverlay`, `ConfirmDeleteDialog` (`src/components/shared/`) and `FormError`/`FormSuccess`/`SubmitButton` (`src/components/auth/FormMessages.tsx`) replace duplicated markup.
+- **Components Refactor 3 - FileUpload Split:** `useFileUpload` hook (`src/hooks/`) holds upload state and UploadThing wiring; `UploadDropzone` and `UploadProgressBar` components slim `FileUpload` to about 125 lines.
