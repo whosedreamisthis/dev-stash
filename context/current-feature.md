@@ -2,30 +2,19 @@
 
 <!-- Feature name and short description -->
 
-**Components Refactor 4 - Small Shared Helpers:** shared helpers for the small bits repeated across components, plus minor file splits.
-
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- `src/lib/format.ts` with `formatItemCount(n)` ("1 item" / "3 items") for the five item-count labels, and `DATE_WITH_YEAR_FORMATTER` replacing the identical `FileListRow` formatter and `FAVORITE_DATE_FORMATTER`; unit tests.
-- `FavoriteStar` (`src/components/shared/FavoriteStar.tsx`) and `FAVORITE_BUTTON_CLASS` for the yellow favorite stars and favorite toggle buttons.
-- `useCopyToClipboard()` (`src/hooks/useCopyToClipboard.ts`) returning `{ copied, copy }`, used by `CopyButton`, `EditorWindowHeader` and `ItemDrawerActions`.
-- `useCollectionActions(collection)` (`src/hooks/useCollectionActions.ts`) for the favorite toggle and edit/delete dialog state shared by `CollectionCard` and `CollectionHeader`.
-- Move `ItemContent` and `ItemDetailSkeleton` out of `ItemDetailSections.tsx`, and `SettingRow` out of `EditorPreferencesSection.tsx`, into their own files.
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Last of four component refactors from the refactor-scanner report. No visible changes intended.
-- Date formatters with different options (card "Sep 29", drawer "September 29, 2026", profile, billing) stay local; only the identical pair is merged.
 
 ## Completed Features
 
@@ -98,3 +87,4 @@ In Progress
 - **Components Refactor 1 - Shared Item Form Fields:** `ItemFormFields` component and `useItemFormValues` hook shared by `NewItemForm` and `ItemEditForm`; `toItemFormValues` in `src/lib/item-fields.ts`; edit form clears field errors.
 - **Components Refactor 2 - Shared Dialogs & Form Pieces:** `CollectionFormFields`, `ItemOpenOverlay`, `ConfirmDeleteDialog` (`src/components/shared/`) and `FormError`/`FormSuccess`/`SubmitButton` (`src/components/auth/FormMessages.tsx`) replace duplicated markup.
 - **Components Refactor 3 - FileUpload Split:** `useFileUpload` hook (`src/hooks/`) holds upload state and UploadThing wiring; `UploadDropzone` and `UploadProgressBar` components slim `FileUpload` to about 125 lines.
+- **Components Refactor 4 - Small Shared Helpers:** `formatItemCount`/`DATE_WITH_YEAR_FORMATTER` (`src/lib/format.ts`), `FavoriteStar`, `useCopyToClipboard`, `useCollectionActions`; `ItemContent`, `ItemDetailSkeleton` and `SettingRow` in their own files.
