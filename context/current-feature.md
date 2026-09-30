@@ -2,42 +2,19 @@
 
 <!-- Feature name and short description -->
 
-**Demo / Recruiter Access:** a "Try the Demo" button that signs a visitor straight into their own temporary Pro account, filled with the demo data, with no registration or email needed. Regular sign-in and registration are turned off and point visitors to the demo.
-
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-1. **Demo flag in the schema:** add `isDemo Boolean @default(false)` to `User` through a `prisma migrate dev` migration.
-2. **Shared demo content:** move the demo collections and items out of `prisma/seed.ts` into a reusable module (e.g. `src/lib/demo-content.ts`), used by both the seed and the sandbox.
-3. **Per-visitor sandbox:** a `startDemo` flow creates a fresh user (`isDemo: true`, `isPro: true`, `emailVerified` set, no password, generated name/email such as `demo-<id>@demo.devstash.local`), copies the demo content into it, and signs the visitor in. It lands on `/dashboard`.
-4. **Sign-in for demo users:** a dedicated Auth.js Credentials provider (id `demo`) whose `authorize` creates the sandbox user, so the regular credentials sign-in and its rate limits stay unchanged.
-5. **"Try the Demo" buttons:** on the homepage hero and CTA, the nav, and the `/sign-in` and `/register` pages.
-6. **Regular auth turned off:** a `DEMO_ONLY_MODE=true` env flag makes credentials sign-in, GitHub sign-in, registration, forgot/reset password and resend verification refuse on the server. The forms stay visible, and submitting one shows a toast: "Sign-in and registration aren't available in this demo. Use Try the Demo instead." Without the flag, everything works as it does now.
-7. **Demo banner:** a slim banner in the app shell ("You're exploring a demo account. Changes are temporary.") with a sign-out link.
-8. **Pro without billing:** demo users never see the Upgrade link or upgrade prompts. The Settings billing card shows a "Pro (demo account)" state, and `createCheckoutSession` / `createPortalSession` refuse demo users on the server.
-9. **Account actions blocked:** `changeUserPassword` and `deleteUserAccount` refuse demo users on the server, and the Settings UI explains why instead of showing working forms.
-10. **Cleanup:** demo users older than 24 hours are deleted (their data cascades, and their UploadThing files are deleted too). This runs on each new demo sign-in, so no cron job is needed.
-11. **Abuse limits:** a per-IP rate limit on starting a demo (10 per hour). AI features keep the existing per-user limit, and uploads stay capped by the existing size limits.
-12. **Tests:** Vitest for the sandbox creation, the cleanup, the `DEMO_ONLY_MODE` refusals in the auth actions, and the demo refusals in the billing and profile actions.
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Recruiters are the main audience, and the app has no email domain, so the demo must work without registration or email verification.
-- Pro mode was chosen so recruiters see AI, uploads and the Stripe integration instead of upgrade prompts.
-- Each visitor gets their own copy (the per-visitor sandbox was chosen over a shared account), so one recruiter's edits never affect the next.
-- `DEMO_ONLY_MODE` must also block the Auth.js endpoints directly (the `credentials` provider's `authorize` and GitHub's `signIn` callback), not just the server actions. Otherwise a direct POST gets around it.
-- Anyone can POST to the `demo` provider's callback directly. That's fine: it does exactly what the button does, behind the same per-IP rate limit.
-- Keep `demo@devstash.io` in the seed for local development, where `DEMO_ONLY_MODE` is unset. The sandbox copies the demo content, not that account.
-- Add `DEMO_ONLY_MODE` to the env variable list in `context/project-overview.md`.
 
 ## Completed Features
 
@@ -112,3 +89,4 @@ In Progress
 - **Components Refactor 3 - FileUpload Split:** `useFileUpload` hook (`src/hooks/`) holds upload state and UploadThing wiring; `UploadDropzone` and `UploadProgressBar` components slim `FileUpload` to about 125 lines.
 - **Components Refactor 4 - Small Shared Helpers:** `formatItemCount`/`DATE_WITH_YEAR_FORMATTER` (`src/lib/format.ts`), `FavoriteStar`, `useCopyToClipboard`, `useCollectionActions`; `ItemContent`, `ItemDetailSkeleton` and `SettingRow` in their own files.
 - **Fix Search Too Fuzzy:** command palette matches whole words via `scoreSearchMatch` (`src/lib/search.ts`) ranked by field, searches item language, and keeps the query between opens.
+- **Demo / Recruiter Access:** "Try the Demo" creates a temporary Pro sandbox account (`startDemo`, `demo` provider, `src/lib/db/demo.ts`, `src/lib/demo-content.ts`); `DEMO_ONLY_MODE` turns off regular auth; 24-hour cleanup.
