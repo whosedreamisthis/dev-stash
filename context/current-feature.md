@@ -2,19 +2,28 @@
 
 <!-- Feature name and short description -->
 
+**Components Refactor 3 - FileUpload Split:** break the 220-line `FileUpload` into an upload-state hook and small presentational components.
+
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- `useFileUpload({ typeSlug, onUploaded, onUploadingChange })` (`src/hooks/useFileUpload.ts`) owns the file, status, progress, error, image preview, hidden input ref and the UploadThing wiring, and exposes `handleFile` and `handleRemove`; `UploadedFileInfo` moves with it.
+- `UploadDropzone` (`src/components/items/UploadDropzone.tsx`): the "Click to upload or drag and drop" button with the allowed extensions and size.
+- `UploadProgressBar` (`src/components/items/UploadProgressBar.tsx`): the styled `<progress>` element.
+- `FileUpload` keeps the drag-and-drop frame, `SelectedFile` and the hidden file input.
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- Third of four component refactors from the refactor-scanner report. No visible changes intended.
 
 ## Completed Features
 

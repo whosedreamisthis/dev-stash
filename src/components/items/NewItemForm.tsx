@@ -4,13 +4,14 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { createItem } from "@/actions/items";
-import { FileUpload, type UploadedFileInfo } from "@/components/items/FileUpload";
+import { FileUpload } from "@/components/items/FileUpload";
 import { ItemFormField } from "@/components/items/ItemFormField";
 import { ItemFormFields } from "@/components/items/ItemFormFields";
 import { ItemTypeSelector } from "@/components/items/ItemTypeSelector";
 import { Button } from "@/components/ui/button";
 import { DialogClose, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import type { UploadedFileInfo } from "@/hooks/useFileUpload";
 import { useItemFormValues } from "@/hooks/useItemFormValues";
 import {
   EMPTY_ITEM_FORM_VALUES,
