@@ -383,7 +383,11 @@ export async function getSearchItems(userId: string): Promise<SearchItem[]> {
 
   return items.map((item) => {
     const { copyText, ...summary } = toItemSummary(item);
-    return { ...summary, contentPreview: toContentPreview(copyText) };
+    return {
+      ...summary,
+      contentPreview: toContentPreview(copyText),
+      language: item.language,
+    };
   });
 }
 

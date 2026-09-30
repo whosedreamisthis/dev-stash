@@ -2,19 +2,33 @@
 
 <!-- Feature name and short description -->
 
+**Fix Search Too Fuzzy:** the Cmd+K command palette returns unrelated results. Searching "python" shows items that have nothing to do with Python.
+
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- Only show items and collections whose text actually contains what was typed. Searching "python" should only return results with "python" in the title, type, tags, description, file name or content preview.
+- Split the search into words. Every word must appear (case-insensitive, in any order) somewhere in the result's keywords.
+- Rank results by where they matched: title first (a title that starts with the search ranks highest), then type and tags, then description, file name and content.
+- Put the matching and scoring logic in `src/lib/search.ts` and use it as the `Command` `filter` in `CommandPalette`, replacing `filterByKeywords`.
+- Add Vitest tests for the new filter in `src/lib/search.test.ts`.
+- Search items by their code language too: `SearchItem.language` from `getSearchItems`, with the label ("TypeScript") and stored ID ("ts") in the keywords.
+- Keep the search text when the palette closes, so reopening it after visiting a result shows the same query and results.
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- Cause: `CommandPalette` passes the joined keywords to cmdk's `defaultFilter`, which does subsequence matching. "python" matches any text containing p…y…t…h…o…n in order, and the 120-character content preview in each item's keywords makes that very likely.
+- The palette still filters in the browser from `getSearchData`; no server or database changes.
+- cmdk sorts by the filter's score (0 hides a result, higher ranks first, maximum 1).
 
 ## Completed Features
 

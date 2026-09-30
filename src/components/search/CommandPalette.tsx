@@ -1,7 +1,7 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { defaultFilter } from "cmdk";
 import { Folder } from "lucide-react";
 import { useItemDrawer } from "@/components/items/ItemDrawerProvider";
 import {
@@ -18,7 +18,7 @@ import { useSearchData } from "@/hooks/useSearchData";
 import { rememberCollection } from "@/lib/collection-preview";
 import { formatItemCount } from "@/lib/format";
 import { ITEM_TYPE_ICONS, ITEM_TYPE_TEXT_COLORS } from "@/lib/item-type-icons";
-import { getCollectionKeywords, getItemKeywords } from "@/lib/search";
+import { getCollectionKeywords, getItemKeywords, scoreSearchMatch } from "@/lib/search";
 import type { CollectionSummary } from "@/types/collections";
 import type { SearchItem } from "@/types/search";
 
@@ -27,15 +27,17 @@ interface CommandPaletteProps {
   onOpenChange: (open: boolean) => void;
 }
 
-// Each result's value is its ID, so only its keywords are fuzzy matched
+// Each result's value is its ID, so only its keywords are matched
 function filterByKeywords(_value: string, search: string, keywords: string[] = []) {
-  return defaultFilter(keywords.join(" "), search);
+  return scoreSearchMatch(keywords, search);
 }
 
 export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   const router = useRouter();
   const { openItem } = useItemDrawer();
   const { data, error } = useSearchData(open);
+  // Kept here, outside the dialog, so the search is still there when it reopens
+  const [search, setSearch] = useState("");
 
   function selectItem(item: SearchItem) {
     onOpenChange(false);
@@ -60,6 +62,8 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     >
       <Command filter={filterByKeywords}>
         <CommandInput
+          value={search}
+          onValueChange={setSearch}
           placeholder="Search items and collections..."
           aria-label="Search items and collections"
         />

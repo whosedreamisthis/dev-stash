@@ -3,6 +3,7 @@ import {
   getCollectionKeywords,
   getItemKeywords,
   isMacPlatform,
+  scoreSearchMatch,
   SEARCH_PREVIEW_LENGTH,
   toContentPreview,
 } from "@/lib/search";
@@ -49,6 +50,19 @@ describe("getItemKeywords", () => {
       "export function useDebounce",
     ]);
   });
+
+  it("includes the language label and ID so a language search finds the item", () => {
+    const item = {
+      title: "Parse CSV",
+      type: { name: "Snippet" },
+      tags: [],
+      language: "ts",
+    } as unknown as SearchItem;
+
+    const keywords = getItemKeywords(item);
+    expect(keywords).toEqual(["Parse CSV", "Snippet", "TypeScript", "ts"]);
+    expect(scoreSearchMatch(keywords, "TypeScript")).toBeGreaterThan(0);
+  });
 });
 
 describe("getCollectionKeywords", () => {
@@ -58,6 +72,46 @@ describe("getCollectionKeywords", () => {
     expect(getCollectionKeywords({ ...collection, description: null })).toEqual([
       "React Patterns",
     ]);
+  });
+});
+
+describe("scoreSearchMatch", () => {
+  const keywords = ["useDebounce hook", "Snippet", "react", "export function useDebounce"];
+
+  it("hides results whose letters only appear scattered through the text", () => {
+    expect(scoreSearchMatch(["Payment types", "Snippet", "export const total = 0; // hello again"], "python")).toBe(0);
+  });
+
+  it("matches case-insensitively", () => {
+    expect(scoreSearchMatch(["Parse CSV", "Snippet", "Python"], "PYTHON")).toBeGreaterThan(0);
+  });
+
+  it("requires every word, in any order", () => {
+    expect(scoreSearchMatch(keywords, "react snippet")).toBeGreaterThan(0);
+    expect(scoreSearchMatch(keywords, "react python")).toBe(0);
+  });
+
+  it("scores a title prefix highest", () => {
+    expect(scoreSearchMatch(keywords, "usedeb")).toBe(1);
+    expect(scoreSearchMatch(keywords, "  useDebounce   hook ")).toBe(1);
+  });
+
+  it("ranks title matches above type, tag and content matches", () => {
+    const title = scoreSearchMatch(["My python script", "Snippet", "misc"], "python");
+    const tag = scoreSearchMatch(["Parse CSV", "Snippet", "python"], "python");
+    const content = scoreSearchMatch(["Parse CSV", "Snippet", "misc", "import python_lib"], "python");
+
+    expect(title).toBeLessThan(1);
+    expect(title).toBeGreaterThan(tag);
+    expect(tag).toBeGreaterThan(content);
+  });
+
+  it("shows everything for an empty search", () => {
+    expect(scoreSearchMatch(keywords, "   ")).toBe(1);
+  });
+
+  it("hides results with no keywords", () => {
+    expect(scoreSearchMatch([], "python")).toBe(0);
   });
 });
 
