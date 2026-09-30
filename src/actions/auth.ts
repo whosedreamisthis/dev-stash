@@ -3,8 +3,8 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { AuthError, CredentialsSignin } from "next-auth";
-import { z } from "zod";
 import { EMAIL_NOT_VERIFIED, RATE_LIMITED, signIn, signOut } from "@/auth";
+import { GENERIC_ERROR } from "@/lib/action-result";
 import { createUser } from "@/lib/db/users";
 import { resetPassword, sendPasswordResetLink } from "@/lib/password-reset";
 import {
@@ -21,15 +21,15 @@ import {
   signInSchema,
   type RegisterInput,
 } from "@/lib/validations/auth";
+import { firstIssueMessage, toFirstFieldErrors } from "@/lib/validations/errors";
 import {
   isEmailVerificationEnabled,
   resendVerificationLink,
   sendVerificationLink,
 } from "@/lib/verification";
+import type { ActionResult } from "@/types/actions";
 
-interface AuthActionResult {
-  success: boolean;
-  error?: string;
+interface AuthActionResult<T = undefined> extends ActionResult<T> {
   rateLimited?: boolean;
 }
 
@@ -41,9 +41,10 @@ export type ResendVerificationResult = AuthActionResult;
 
 export type ForgotPasswordResult = AuthActionResult;
 
-export interface RegisterResult extends AuthActionResult {
-  data?: { verificationRequired: boolean; emailSent: boolean };
-}
+export type RegisterResult = AuthActionResult<{
+  verificationRequired: boolean;
+  emailSent: boolean;
+}>;
 
 export interface ResetPasswordActionResult extends AuthActionResult {
   fieldErrors?: { password?: string; confirmPassword?: string };
@@ -101,7 +102,7 @@ function getSignInError(error: unknown): SignInResult | null {
       error:
         error.type === "CredentialsSignin"
           ? "Invalid email or password"
-          : "Something went wrong. Please try again.",
+          : GENERIC_ERROR,
     };
   }
   return null;
@@ -116,7 +117,7 @@ export async function signInWithCredentials(
     password: formData.get("password"),
   });
   if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+    return { success: false, error: firstIssueMessage(parsed.error, "Invalid input") };
   }
 
   try {
@@ -136,7 +137,7 @@ export async function signInWithCredentials(
 export async function registerUser(values: RegisterInput): Promise<RegisterResult> {
   const parsed = registerSchema.safeParse(values);
   if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+    return { success: false, error: firstIssueMessage(parsed.error, "Invalid input") };
   }
 
   const { name, email, password } = parsed.data;
@@ -162,7 +163,7 @@ export async function registerUser(values: RegisterInput): Promise<RegisterResul
     return { success: true, data: { verificationRequired, emailSent } };
   } catch (error) {
     console.error("Registration failed:", error);
-    return { success: false, error: "Something went wrong. Please try again." };
+    return { success: false, error: GENERIC_ERROR };
   }
 }
 
@@ -172,7 +173,7 @@ export async function resendVerificationEmail(
 ): Promise<ResendVerificationResult> {
   const parsed = resendVerificationSchema.safeParse({ email });
   if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid email" };
+    return { success: false, error: firstIssueMessage(parsed.error, "Invalid email") };
   }
 
   try {
@@ -183,7 +184,7 @@ export async function resendVerificationEmail(
     return { success: true };
   } catch (error) {
     console.error("Resending verification email failed:", error);
-    return { success: false, error: "Something went wrong. Please try again." };
+    return { success: false, error: GENERIC_ERROR };
   }
 }
 
@@ -194,7 +195,7 @@ export async function requestPasswordReset(
 ): Promise<ForgotPasswordResult> {
   const parsed = forgotPasswordSchema.safeParse({ email: formData.get("email") });
   if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid email" };
+    return { success: false, error: firstIssueMessage(parsed.error, "Invalid email") };
   }
 
   try {
@@ -205,7 +206,7 @@ export async function requestPasswordReset(
     return { success: true };
   } catch (error) {
     console.error("Requesting password reset failed:", error);
-    return { success: false, error: "Something went wrong. Please try again." };
+    return { success: false, error: GENERIC_ERROR };
   }
 }
 
@@ -219,15 +220,11 @@ export async function resetPasswordWithToken(
     confirmPassword: formData.get("confirmPassword"),
   });
   if (!parsed.success) {
-    const { fieldErrors } = z.flattenError(parsed.error);
-    if (fieldErrors.token) return { success: false, error: RESET_ERROR_MESSAGES.invalid };
-    return {
-      success: false,
-      fieldErrors: {
-        password: fieldErrors.password?.[0],
-        confirmPassword: fieldErrors.confirmPassword?.[0],
-      },
-    };
+    const { token, ...fieldErrors } = toFirstFieldErrors<
+      "token" | "password" | "confirmPassword"
+    >(parsed.error);
+    if (token) return { success: false, error: RESET_ERROR_MESSAGES.invalid };
+    return { success: false, fieldErrors };
   }
 
   let result;
@@ -238,7 +235,7 @@ export async function resetPasswordWithToken(
     result = await resetPassword(parsed.data.token, parsed.data.password);
   } catch (error) {
     console.error("Resetting password failed:", error);
-    return { success: false, error: "Something went wrong. Please try again." };
+    return { success: false, error: GENERIC_ERROR };
   }
 
   if (result !== "reset") return { success: false, error: RESET_ERROR_MESSAGES[result] };

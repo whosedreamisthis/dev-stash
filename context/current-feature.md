@@ -2,19 +2,33 @@
 
 <!-- Feature name and short description -->
 
+**Actions Refactor - Shared Helpers:** remove duplicated code in `src/actions` found by the `refactor-scanner` agent, by moving repeated error messages, validation helpers, result types and action boilerplate into shared modules. No behavior changes.
+
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+1. **Generic error constant:** `GENERIC_ERROR` ("Something went wrong. Please try again.") in `src/lib/action-result.ts`, used by every action's catch block and `getSignInError`.
+2. **User action wrapper:** `runUserAction` in `src/lib/action-result.ts` (session → parse → run → not found → catch) used by `getItem`, `setItemFavorite`, `toggleItemPin`, `deleteItem`, `setCollectionFavorite` and `deleteCollection`.
+3. **Shared id schema:** `idSchema` in `src/lib/validations/ids.ts`, used by the item and collection actions and composed into `setFavoriteSchema` and `setPinSchema`.
+4. **AI action helper:** private `runAiAction` in `src/actions/ai.ts` for the shared Pro check, validation, rate limit, Gemini call and empty-response flow of `generateAutoTags` and `generateDescription`.
+5. **First-issue message helper:** `firstIssueMessage(error, fallback)` in `src/lib/validations/errors.ts` for the auth and AI actions.
+6. **Field-error helper:** `toFirstFieldErrors` in `src/lib/validations/errors.ts` replaces the two `toFieldErrors` copies and the manual mapping in profile and reset-password actions.
+7. **Not-found constants:** `ITEM_NOT_FOUND_ERROR` and `COLLECTION_NOT_FOUND_ERROR` in the item and collection actions.
+8. **Shared result type:** generic `ActionResult<T>` in `src/types/actions.ts`; action result types become aliases or extend it (`AiResult`, auth and field-error results add their extra fields).
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- Pure refactor: messages, log text and return shapes stay the same, so existing action tests should pass unchanged.
+- Add unit tests for the new helpers (`runUserAction`, `firstIssueMessage`, `toFirstFieldErrors`).
 
 ## Completed Features
 

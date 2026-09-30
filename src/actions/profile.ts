@@ -1,22 +1,21 @@
 "use server";
 
-import { z } from "zod";
 import { signOut } from "@/auth";
 import { changePassword, deleteAccount } from "@/lib/account";
+import { GENERIC_ERROR } from "@/lib/action-result";
 import { getSessionUserId, NOT_SIGNED_IN_ERROR } from "@/lib/session";
 import { changePasswordSchema } from "@/lib/validations/auth";
+import { toFirstFieldErrors } from "@/lib/validations/errors";
+import type { ActionResult } from "@/types/actions";
 
-export interface ChangePasswordActionResult {
-  success: boolean;
-  error?: string;
+type ChangePasswordField = "currentPassword" | "password" | "confirmPassword";
+
+export interface ChangePasswordActionResult extends ActionResult {
   rateLimited?: boolean;
-  fieldErrors?: { currentPassword?: string; password?: string; confirmPassword?: string };
+  fieldErrors?: Partial<Record<ChangePasswordField, string>>;
 }
 
-export interface DeleteAccountResult {
-  success: boolean;
-  error?: string;
-}
+export type DeleteAccountResult = ActionResult;
 
 const CHANGE_PASSWORD_ERRORS = {
   incorrect: { fieldErrors: { currentPassword: "Current password is incorrect" } },
@@ -40,14 +39,9 @@ export async function changeUserPassword(
     confirmPassword: formData.get("confirmPassword"),
   });
   if (!parsed.success) {
-    const { fieldErrors } = z.flattenError(parsed.error);
     return {
       success: false,
-      fieldErrors: {
-        currentPassword: fieldErrors.currentPassword?.[0],
-        password: fieldErrors.password?.[0],
-        confirmPassword: fieldErrors.confirmPassword?.[0],
-      },
+      fieldErrors: toFirstFieldErrors<ChangePasswordField>(parsed.error),
     };
   }
 
@@ -61,7 +55,7 @@ export async function changeUserPassword(
     return { success: true };
   } catch (error) {
     console.error("Changing password failed:", error);
-    return { success: false, error: "Something went wrong. Please try again." };
+    return { success: false, error: GENERIC_ERROR };
   }
 }
 
@@ -73,7 +67,7 @@ export async function deleteUserAccount(): Promise<DeleteAccountResult> {
     await deleteAccount(userId);
   } catch (error) {
     console.error("Deleting account failed:", error);
-    return { success: false, error: "Something went wrong. Please try again." };
+    return { success: false, error: GENERIC_ERROR };
   }
 
   // Outside the try block because signOut redirects by throwing

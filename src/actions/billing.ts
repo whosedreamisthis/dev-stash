@@ -1,19 +1,17 @@
 "use server";
 
 import { z } from "zod";
+import { GENERIC_ERROR } from "@/lib/action-result";
 import { getOrCreateCustomerId } from "@/lib/billing";
 import { getBillingUser } from "@/lib/db/billing";
 import { getSessionUserId, NOT_SIGNED_IN_ERROR } from "@/lib/session";
 import { getPriceId, getStripe } from "@/lib/stripe";
 import { getAppUrl } from "@/lib/tokens";
+import type { ActionResult } from "@/types/actions";
 
 const intervalSchema = z.enum(["monthly", "yearly"]);
 
-export interface BillingRedirectResult {
-  success: boolean;
-  data?: { url: string };
-  error?: string;
-}
+export type BillingRedirectResult = ActionResult<{ url: string }>;
 
 export async function createCheckoutSession(interval: string): Promise<BillingRedirectResult> {
   const userId = await getSessionUserId();
@@ -47,7 +45,7 @@ export async function createCheckoutSession(interval: string): Promise<BillingRe
     return { success: true, data: { url: session.url } };
   } catch (error) {
     console.error("Creating checkout session failed:", error);
-    return { success: false, error: "Something went wrong. Please try again." };
+    return { success: false, error: GENERIC_ERROR };
   }
 }
 
@@ -66,6 +64,6 @@ export async function createPortalSession(): Promise<BillingRedirectResult> {
     return { success: true, data: { url: session.url } };
   } catch (error) {
     console.error("Creating portal session failed:", error);
-    return { success: false, error: "Something went wrong. Please try again." };
+    return { success: false, error: GENERIC_ERROR };
   }
 }

@@ -1,6 +1,6 @@
 "use server";
 
-import { z } from "zod";
+import { GENERIC_ERROR, runUserAction } from "@/lib/action-result";
 import {
   createItem as createItemQuery,
   deleteItem as deleteItemQuery,
@@ -9,7 +9,9 @@ import {
   setItemPinned as setItemPinnedQuery,
   updateItem as updateItemQuery,
 } from "@/lib/db/items";
+import { toFirstFieldErrors } from "@/lib/validations/errors";
 import { setFavoriteSchema } from "@/lib/validations/favorites";
+import { idSchema } from "@/lib/validations/ids";
 import { setPinSchema } from "@/lib/validations/pins";
 import { getSessionUser, getSessionUserId, NOT_SIGNED_IN_ERROR } from "@/lib/session";
 import { isUploadTypeSlug } from "@/lib/upload-constraints";
@@ -23,45 +25,23 @@ import {
   type CreateItemInput,
   type UpdateItemInput,
 } from "@/lib/validations/items";
+import type { ActionResult } from "@/types/actions";
 import type { ItemDetail } from "@/types/items";
 
 export type UpdateItemFieldErrors = Partial<Record<keyof UpdateItemInput, string>>;
 export type CreateItemFieldErrors = Partial<Record<keyof CreateItemInput, string>>;
 
-export interface UpdateItemResult {
-  success: boolean;
-  data?: ItemDetail;
-  error?: string;
+export interface UpdateItemResult extends ActionResult<ItemDetail> {
   fieldErrors?: UpdateItemFieldErrors;
 }
 
-export interface CreateItemResult {
-  success: boolean;
-  data?: ItemDetail;
-  error?: string;
+export interface CreateItemResult extends ActionResult<ItemDetail> {
   fieldErrors?: CreateItemFieldErrors;
 }
 
 const INVALID_FIELDS_ERROR = "Please fix the highlighted fields.";
 const UPLOAD_EXPIRED_ERROR = "The upload has expired. Please upload the file again.";
-
-// Keeps the first error message for each field
-function toFieldErrors(error: z.ZodError): CreateItemFieldErrors {
-  const { fieldErrors } = z.flattenError(error) as {
-    fieldErrors: Partial<Record<keyof CreateItemInput, string[]>>;
-  };
-  return {
-    typeSlug: fieldErrors.typeSlug?.[0],
-    title: fieldErrors.title?.[0],
-    description: fieldErrors.description?.[0],
-    content: fieldErrors.content?.[0],
-    url: fieldErrors.url?.[0],
-    language: fieldErrors.language?.[0],
-    tags: fieldErrors.tags?.[0],
-    collectionIds: fieldErrors.collectionIds?.[0],
-    uploadToken: fieldErrors.uploadToken?.[0],
-  };
-}
+const ITEM_NOT_FOUND_ERROR = "Item not found.";
 
 // The file comes from the server-signed upload token, never from client fields
 function getUploadedFile(
@@ -83,7 +63,7 @@ export async function createItem(data: CreateItemInput): Promise<CreateItemResul
     return {
       success: false,
       error: INVALID_FIELDS_ERROR,
-      fieldErrors: toFieldErrors(parsed.error),
+      fieldErrors: toFirstFieldErrors<keyof CreateItemInput>(parsed.error),
     };
   }
 
@@ -110,7 +90,7 @@ export async function createItem(data: CreateItemInput): Promise<CreateItemResul
     return { success: true, data: item };
   } catch (error) {
     console.error("Creating item failed:", error);
-    return { success: false, error: "Something went wrong. Please try again." };
+    return { success: false, error: GENERIC_ERROR };
   }
 }
 
@@ -126,119 +106,79 @@ export async function updateItem(
     return {
       success: false,
       error: INVALID_FIELDS_ERROR,
-      fieldErrors: toFieldErrors(parsed.error),
+      fieldErrors: toFirstFieldErrors<keyof UpdateItemInput>(parsed.error),
     };
   }
 
   try {
     const item = await updateItemQuery(userId, itemId, parsed.data);
-    if (!item) return { success: false, error: "Item not found." };
+    if (!item) return { success: false, error: ITEM_NOT_FOUND_ERROR };
     return { success: true, data: item };
   } catch (error) {
     console.error("Updating item failed:", error);
-    return { success: false, error: "Something went wrong. Please try again." };
+    return { success: false, error: GENERIC_ERROR };
   }
 }
 
-const itemIdSchema = z.string().trim().min(1);
-
-export interface GetItemResult {
-  success: boolean;
-  data?: ItemDetail;
-  error?: string;
-}
+export type GetItemResult = ActionResult<ItemDetail>;
 
 // The item drawer's full detail; another user's item is reported as missing
 export async function getItem(itemId: string): Promise<GetItemResult> {
-  const userId = await getSessionUserId();
-  if (!userId) return { success: false, error: NOT_SIGNED_IN_ERROR };
-
-  const parsed = itemIdSchema.safeParse(itemId);
-  if (!parsed.success) return { success: false, error: "Item not found." };
-
-  try {
-    const item = await getItemDetail(userId, parsed.data);
-    if (!item) return { success: false, error: "Item not found." };
-    return { success: true, data: item };
-  } catch (error) {
-    console.error("Loading item failed:", error);
-    return { success: false, error: "Something went wrong. Please try again." };
-  }
+  return runUserAction({
+    schema: idSchema,
+    input: itemId,
+    notFound: ITEM_NOT_FOUND_ERROR,
+    logLabel: "Loading item",
+    run: (userId, id) => getItemDetail(userId, id),
+  });
 }
 
-export interface SetItemFavoriteResult {
-  success: boolean;
-  data?: { id: string; isFavorite: boolean };
-  error?: string;
-}
+export type SetItemFavoriteResult = ActionResult<{ id: string; isFavorite: boolean }>;
 
 export async function setItemFavorite(
   itemId: string,
   isFavorite: boolean
 ): Promise<SetItemFavoriteResult> {
-  const userId = await getSessionUserId();
-  if (!userId) return { success: false, error: NOT_SIGNED_IN_ERROR };
-
-  const parsed = setFavoriteSchema.safeParse({ id: itemId, isFavorite });
-  if (!parsed.success) return { success: false, error: "Item not found." };
-
-  try {
-    const updated = await setItemFavoriteQuery(userId, parsed.data.id, parsed.data.isFavorite);
-    if (!updated) return { success: false, error: "Item not found." };
-    return { success: true, data: parsed.data };
-  } catch (error) {
-    console.error("Updating item favorite failed:", error);
-    return { success: false, error: "Something went wrong. Please try again." };
-  }
+  return runUserAction({
+    schema: setFavoriteSchema,
+    input: { id: itemId, isFavorite },
+    notFound: ITEM_NOT_FOUND_ERROR,
+    logLabel: "Updating item favorite",
+    run: async (userId, data) =>
+      (await setItemFavoriteQuery(userId, data.id, data.isFavorite)) ? data : null,
+  });
 }
 
-export interface ToggleItemPinResult {
-  success: boolean;
-  data?: { id: string; isPinned: boolean };
-  error?: string;
-}
+export type ToggleItemPinResult = ActionResult<{ id: string; isPinned: boolean }>;
 
 // Takes the new state from the client's toggle instead of flipping the stored one
 export async function toggleItemPin(
   itemId: string,
   isPinned: boolean
 ): Promise<ToggleItemPinResult> {
-  const userId = await getSessionUserId();
-  if (!userId) return { success: false, error: NOT_SIGNED_IN_ERROR };
-
-  const parsed = setPinSchema.safeParse({ id: itemId, isPinned });
-  if (!parsed.success) return { success: false, error: "Item not found." };
-
-  try {
-    const updated = await setItemPinnedQuery(userId, parsed.data.id, parsed.data.isPinned);
-    if (!updated) return { success: false, error: "Item not found." };
-    return { success: true, data: parsed.data };
-  } catch (error) {
-    console.error("Updating item pin failed:", error);
-    return { success: false, error: "Something went wrong. Please try again." };
-  }
+  return runUserAction({
+    schema: setPinSchema,
+    input: { id: itemId, isPinned },
+    notFound: ITEM_NOT_FOUND_ERROR,
+    logLabel: "Updating item pin",
+    run: async (userId, data) =>
+      (await setItemPinnedQuery(userId, data.id, data.isPinned)) ? data : null,
+  });
 }
 
-export interface DeleteItemResult {
-  success: boolean;
-  data?: { id: string };
-  error?: string;
-}
+export type DeleteItemResult = ActionResult<{ id: string }>;
 
 export async function deleteItem(itemId: string): Promise<DeleteItemResult> {
-  const userId = await getSessionUserId();
-  if (!userId) return { success: false, error: NOT_SIGNED_IN_ERROR };
-
-  const parsed = itemIdSchema.safeParse(itemId);
-  if (!parsed.success) return { success: false, error: "Item not found." };
-
-  try {
-    const deleted = await deleteItemQuery(userId, parsed.data);
-    if (!deleted) return { success: false, error: "Item not found." };
-    if (deleted.fileKey) await deleteUploadedFile(deleted.fileKey);
-    return { success: true, data: { id: parsed.data } };
-  } catch (error) {
-    console.error("Deleting item failed:", error);
-    return { success: false, error: "Something went wrong. Please try again." };
-  }
+  return runUserAction({
+    schema: idSchema,
+    input: itemId,
+    notFound: ITEM_NOT_FOUND_ERROR,
+    logLabel: "Deleting item",
+    run: async (userId, id) => {
+      const deleted = await deleteItemQuery(userId, id);
+      if (!deleted) return null;
+      if (deleted.fileKey) await deleteUploadedFile(deleted.fileKey);
+      return { id };
+    },
+  });
 }

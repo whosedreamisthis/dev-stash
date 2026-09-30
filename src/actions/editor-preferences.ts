@@ -1,17 +1,15 @@
 "use server";
 
+import { GENERIC_ERROR } from "@/lib/action-result";
 import { updateEditorPreferences as updateEditorPreferencesQuery } from "@/lib/db/users";
 import { getSessionUserId, NOT_SIGNED_IN_ERROR } from "@/lib/session";
 import {
   editorPreferencesSchema,
   type EditorPreferences,
 } from "@/lib/validations/editor-preferences";
+import type { ActionResult } from "@/types/actions";
 
-export interface UpdateEditorPreferencesResult {
-  success: boolean;
-  data?: EditorPreferences;
-  error?: string;
-}
+export type UpdateEditorPreferencesResult = ActionResult<EditorPreferences>;
 
 // Saves the full set of preferences; the settings form sends it on every change
 export async function updateEditorPreferences(
@@ -29,6 +27,6 @@ export async function updateEditorPreferences(
     return { success: true, data: parsed.data };
   } catch (error) {
     console.error("Saving editor preferences failed:", error);
-    return { success: false, error: "Something went wrong. Please try again." };
+    return { success: false, error: GENERIC_ERROR };
   }
 }

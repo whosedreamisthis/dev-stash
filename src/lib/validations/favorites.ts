@@ -1,8 +1,9 @@
 import { z } from "zod";
+import { idSchema } from "@/lib/validations/ids";
 
 // Sets the favorite state rather than flipping it, so repeated clicks can't drift
 export const setFavoriteSchema = z.object({
-  id: z.string().trim().min(1),
+  id: idSchema,
   isFavorite: z.boolean(),
 });
 
