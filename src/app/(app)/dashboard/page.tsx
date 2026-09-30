@@ -1,10 +1,11 @@
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
-import { Clock, Pin } from "lucide-react";
+import { Clock, LayoutDashboard, Pin } from "lucide-react";
 import { auth } from "@/auth";
 import { ItemList } from "@/components/dashboard/ItemList";
 import { RecentCollections } from "@/components/dashboard/RecentCollections";
 import { StatsCards } from "@/components/dashboard/StatsCards";
+import { PageHeader } from "@/components/shared/PageHeader";
 import { getCollectionStats, getRecentCollections } from "@/lib/db/collections";
 import { getItemStats, getPinnedItems, getRecentItems } from "@/lib/db/items";
 
@@ -33,10 +34,11 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-8">
-      <header>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="mt-1 text-muted-foreground">Your developer knowledge hub</p>
-      </header>
+      <PageHeader
+        title="Dashboard"
+        icon={<LayoutDashboard className="size-7 shrink-0 text-muted-foreground" />}
+        description="Your developer knowledge hub"
+      />
       <StatsCards
         itemStats={data.itemStats}
         collectionStats={data.collectionStats}

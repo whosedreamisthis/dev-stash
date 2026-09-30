@@ -1,4 +1,6 @@
+import { LayoutDashboard } from "lucide-react";
 import { ItemGridSkeleton } from "@/components/items/ItemGridSkeleton";
+import { PageHeader } from "@/components/shared/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { COLLECTION_GRID_CLASS } from "@/lib/item-grid";
 
@@ -9,10 +11,11 @@ const COLLECTION_COUNT = 6;
 export default function DashboardLoading() {
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-8" aria-busy="true">
-      <header>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="mt-1 text-muted-foreground">Your developer knowledge hub</p>
-      </header>
+      <PageHeader
+        title="Dashboard"
+        icon={<LayoutDashboard className="size-7 shrink-0 text-muted-foreground" />}
+        description="Your developer knowledge hub"
+      />
       <section className="grid grid-cols-2 gap-4 lg:grid-cols-4" aria-label="Loading stats">
         {Array.from({ length: STAT_COUNT }, (_, i) => (
           <Skeleton key={i} className="h-[106px] rounded-xl" />

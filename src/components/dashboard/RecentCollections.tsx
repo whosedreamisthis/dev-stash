@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { CollectionCard } from "@/components/dashboard/CollectionCard";
-import { COLLECTION_GRID_CLASS } from "@/lib/item-grid";
 import type { CollectionSummary } from "@/types/collections";
 
 interface RecentCollectionsProps {
@@ -22,9 +21,12 @@ export function RecentCollections({ collections }: RecentCollectionsProps) {
       {collections.length === 0 ? (
         <p className="text-sm text-muted-foreground">No collections yet.</p>
       ) : (
-        <div className={COLLECTION_GRID_CLASS}>
+        // One swipeable row on mobile, so Pinned and Recent stay near the top
+        <div className="scrollbar-thin flex snap-x gap-4 overflow-x-auto pb-2 sm:grid sm:grid-cols-2 sm:overflow-visible sm:pb-0 lg:grid-cols-3">
           {collections.map((collection) => (
-            <CollectionCard key={collection.id} collection={collection} />
+            <div key={collection.id} className="grid w-72 max-w-[85%] shrink-0 snap-start sm:w-auto sm:max-w-none">
+              <CollectionCard collection={collection} />
+            </div>
           ))}
         </div>
       )}

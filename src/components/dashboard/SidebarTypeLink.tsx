@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { SIDEBAR_LINK_CLASS } from "@/components/dashboard/SidebarSection";
+import { SIDEBAR_LINK_ACTIVE_CLASS, SIDEBAR_LINK_CLASS } from "@/components/dashboard/SidebarSection";
 import { ITEM_TYPE_ICONS, ITEM_TYPE_TEXT_COLORS } from "@/lib/item-type-icons";
 import { cn } from "@/lib/utils";
 import type { SidebarItemType } from "@/types/items";
@@ -19,7 +19,8 @@ export function SidebarTypeLink({ type, isActive, onNavigate }: SidebarTypeLinkP
     <Link
       href={`/items/${type.slug}`}
       onClick={onNavigate}
-      className={cn(SIDEBAR_LINK_CLASS, isActive && "bg-sidebar-accent")}
+      aria-current={isActive ? "page" : undefined}
+      className={cn(SIDEBAR_LINK_CLASS, isActive && SIDEBAR_LINK_ACTIVE_CLASS)}
     >
       {Icon && <Icon className={cn("size-4", ITEM_TYPE_TEXT_COLORS[type.slug])} />}
       <span className="flex-1 capitalize">{type.slug}</span>

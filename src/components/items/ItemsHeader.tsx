@@ -1,3 +1,4 @@
+import { PageHeader } from "@/components/shared/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   ITEM_TYPE_ICONS,
@@ -19,16 +20,16 @@ export function ItemsHeader({ title, slug, icon, action }: ItemsHeaderProps) {
   const Icon = (icon && ITEM_TYPE_ICONS[icon]) || ITEM_TYPE_SLUG_ICONS[slug];
 
   return (
-    <header className="flex items-center justify-between gap-4">
-      <div className="flex min-w-0 items-center gap-3">
-        {Icon ? (
+    <PageHeader
+      title={title}
+      icon={
+        Icon ? (
           <Icon className={cn("size-7 shrink-0", ITEM_TYPE_TEXT_COLORS[slug])} />
         ) : (
           <Skeleton className="size-7 shrink-0" />
-        )}
-        <h1 className="truncate text-3xl font-bold tracking-tight">{title}</h1>
-      </div>
-      {action}
-    </header>
+        )
+      }
+      action={action}
+    />
   );
 }

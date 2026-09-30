@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation";
+import { Settings } from "lucide-react";
 import { auth } from "@/auth";
 import { BillingPlanCard } from "@/components/billing/BillingPlanCard";
 import { CheckoutToast, type CheckoutStatus } from "@/components/billing/CheckoutToast";
 import { AccountActions } from "@/components/settings/AccountActions";
 import { EditorPreferencesSection } from "@/components/settings/EditorPreferencesSection";
+import { PageHeader } from "@/components/shared/PageHeader";
 import { syncCheckoutSession } from "@/lib/billing";
 import { getBillingUser } from "@/lib/db/billing";
 import { countCollections } from "@/lib/db/collections";
@@ -45,10 +47,11 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-8">
-      <header>
-        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-        <p className="mt-1 text-muted-foreground">Manage your editor, plan and account</p>
-      </header>
+      <PageHeader
+        title="Settings"
+        icon={<Settings className="size-7 shrink-0 text-muted-foreground" />}
+        description="Manage your editor, plan and account"
+      />
       <EditorPreferencesSection />
       <BillingPlanCard
         isPro={billing.isPro}

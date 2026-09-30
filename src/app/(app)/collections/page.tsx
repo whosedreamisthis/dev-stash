@@ -28,9 +28,10 @@ export default async function CollectionsPage({ searchParams }: PageProps<"/coll
         </p>
       ) : (
         <section>
-          <p className="mb-4 text-muted-foreground">
+          {/* The section's heading, so card titles (h3) don't skip a level */}
+          <h2 className="mb-4 font-normal text-muted-foreground">
             {result.total} {result.total === 1 ? "collection" : "collections"}
-          </p>
+          </h2>
           <div className={COLLECTION_GRID_CLASS}>
             {result.items.map((collection) => (
               <CollectionCard key={collection.id} collection={collection} />

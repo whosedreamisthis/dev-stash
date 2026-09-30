@@ -2,19 +2,50 @@
 
 <!-- Feature name and short description -->
 
+**UI Layout & Accessibility Fixes:** fix the layout and accessibility issues found in the Playwright UI review: sidebar active-link highlighting, wayfinding, consistent page headers, empty states, keyboard access and ARIA gaps.
+
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+### Layout
+
+1. **Sidebar active link:** highlight the current page's sidebar link for types, collections (including the Favorites/Recent lists) and "View all collections". Make the active style clearly visible (e.g. a type-colored left bar or stronger background) and add `aria-current="page"`. Files: `src/components/dashboard/Sidebar.tsx`, `SidebarTypeLink.tsx`, `SidebarCollectionLink.tsx`.
+2. **Wayfinding for non-sidebar pages:** add a "Dashboard" link (and optionally "Favorites") at the top of the sidebar nav with an active state; give the top bar star icon a visible label or tooltip.
+3. **Collection breadcrumb:** add a "Collections / <name>" breadcrumb or back link above the title on `/collections/[id]`.
+4. **Consistent page headers:** one shared page header (icon, title, optional action) across dashboard, items, collections, favorites, profile and settings; one shared narrow container so `/profile` and `/settings` line up.
+5. **Empty collection cards:** show "No items yet" plus an add-items hint on 0-item collection cards and empty lists instead of blank boxes.
+6. **Duplicate create buttons:** hide the top bar "New Item" on `/items/[type]` pages (the page has its own "New X"), or make the primary action visually distinct.
+7. **Touch targets:** enlarge the collection card "..." menu button (28px) and the card star/copy icons on mobile toward ~44px.
+8. **Mobile card titles:** allow two-line item titles on mobile (`line-clamp-2`) instead of hard truncation.
+9. **Dashboard density:** on mobile, keep the collection stack from pushing Pinned/Recent far down (horizontal scroll or 2 columns); fix stat card number alignment when a label wraps.
+10. **Shortcut badge:** show "⌘K" on Mac and "Ctrl+K" elsewhere.
+
+### Accessibility
+
+11. **Collapsed sidebar focus:** make the collapsed desktop `<aside>` `inert` so hidden links aren't keyboard-focusable (`src/components/dashboard/DashboardShell.tsx`).
+12. **Skip link:** add a visually hidden "Skip to main content" link as the first focusable element; give `<main>` an `id` and `tabIndex={-1}` (`DashboardShell.tsx`).
+13. **Code editor label:** set Monaco's `ariaLabel` option so the editor textarea has an accessible name (`src/components/items/CodeEditor.tsx`).
+14. **Heading order:** fix the H1 → H3 skip on `/items/*` and `/collections` (configurable card heading level or an sr-only H2).
+15. **Focus rings:** apply `focus-visible:ring-2 ring-primary` to sidebar links (`SIDEBAR_LINK_CLASS` in `src/components/dashboard/SidebarSection.tsx`) and top bar buttons.
+16. **Command palette heading:** stop the closed palette's "Search" H2 and extra `<header>` from appearing on every page (`src/components/search/CommandPalette.tsx`).
+17. **Command palette input:** add an `aria-label` to the search input.
+18. **Pricing toggle state:** add `aria-pressed` to the Monthly/Yearly buttons (`src/components/homepage/PricingToggle.tsx`).
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- Findings come from a Playwright review at 1440x900 and 390x844 as the demo user (dark mode only; there is no light mode toggle).
+- Contrast was measured and passes AA everywhere (5.6:1–7.7:1); no contrast changes needed.
+- Base UI hidden select inputs without labels are likely a false positive (visible triggers are labelled); verify before changing.
+- Not tested: `/upgrade` (demo user is Pro) and pagination controls.
 
 ## Completed Features
 

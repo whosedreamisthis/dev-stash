@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
+import { User } from "lucide-react";
 import { auth } from "@/auth";
 import { ProfileInfo } from "@/components/profile/ProfileInfo";
 import { UsageStats } from "@/components/profile/UsageStats";
+import { PageHeader } from "@/components/shared/PageHeader";
 import { getCollectionStats } from "@/lib/db/collections";
 import { getItemStats, getSidebarItemTypes } from "@/lib/db/items";
 import { getProfileUser } from "@/lib/db/users";
@@ -35,10 +37,11 @@ export default async function ProfilePage() {
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-8">
-      <header>
-        <h1 className="text-3xl font-bold tracking-tight">Profile</h1>
-        <p className="mt-1 text-muted-foreground">Your account and usage</p>
-      </header>
+      <PageHeader
+        title="Profile"
+        icon={<User className="size-7 shrink-0 text-muted-foreground" />}
+        description="Your account and usage"
+      />
       <ProfileInfo user={user} />
       <UsageStats stats={stats} />
     </div>

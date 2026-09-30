@@ -2,8 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LayoutDashboard, Star } from "lucide-react";
 import { SidebarCollectionLink } from "@/components/dashboard/SidebarCollectionLink";
-import { SidebarSection } from "@/components/dashboard/SidebarSection";
+import {
+  SIDEBAR_LINK_ACTIVE_CLASS,
+  SIDEBAR_LINK_CLASS,
+  SidebarSection,
+} from "@/components/dashboard/SidebarSection";
 import { SidebarTypeLink } from "@/components/dashboard/SidebarTypeLink";
 import { UserMenu } from "@/components/dashboard/UserMenu";
 import { Logo } from "@/components/shared/Logo";
@@ -20,12 +25,26 @@ interface CollectionGroupProps {
   label: string;
   collections: CollectionSummary[];
   variant: "favorite" | "recent";
+  pathname: string;
   className?: string;
   onNavigate?: () => void;
 }
 
+// Top-level pages that aren't a type or collection
+const MAIN_LINKS = [
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/favorites", label: "Favorites", icon: Star },
+] as const;
+
 // A labelled list of collection links, hidden when it's empty
-function CollectionGroup({ label, collections, variant, className, onNavigate }: CollectionGroupProps) {
+function CollectionGroup({
+  label,
+  collections,
+  variant,
+  pathname,
+  className,
+  onNavigate,
+}: CollectionGroupProps) {
   if (collections.length === 0) return null;
 
   return (
@@ -43,6 +62,7 @@ function CollectionGroup({ label, collections, variant, className, onNavigate }:
           key={collection.id}
           collection={collection}
           variant={variant}
+          isActive={pathname === `/collections/${collection.id}`}
           onNavigate={onNavigate}
         />
       ))}
@@ -61,6 +81,24 @@ export function Sidebar({ data, onNavigate }: SidebarProps) {
       </div>
 
       <nav className="scrollbar-none flex-1 overflow-y-auto">
+        <div className="px-2 pt-3">
+          {MAIN_LINKS.map(({ href, label, icon: Icon }) => {
+            const isActive = pathname === href;
+            return (
+              <Link
+                key={href}
+                href={href}
+                onClick={onNavigate}
+                aria-current={isActive ? "page" : undefined}
+                className={cn(SIDEBAR_LINK_CLASS, isActive && SIDEBAR_LINK_ACTIVE_CLASS)}
+              >
+                <Icon className="size-4 text-muted-foreground" />
+                {label}
+              </Link>
+            );
+          })}
+        </div>
+
         <SidebarSection title="Types">
           {itemTypes.map((type) => (
             <SidebarTypeLink
@@ -79,6 +117,7 @@ export function Sidebar({ data, onNavigate }: SidebarProps) {
             label="Favorites"
             collections={collections.favorites}
             variant="favorite"
+            pathname={pathname}
             className="pt-2"
             onNavigate={onNavigate}
           />
@@ -86,13 +125,19 @@ export function Sidebar({ data, onNavigate }: SidebarProps) {
             label="Recent"
             collections={collections.recent}
             variant="recent"
+            pathname={pathname}
             className="pt-4"
             onNavigate={onNavigate}
           />
           <Link
             href="/collections"
             onClick={onNavigate}
-            className="mt-2 block px-2 py-1.5 text-sm text-muted-foreground hover:text-foreground"
+            aria-current={pathname === "/collections" ? "page" : undefined}
+            className={cn(
+              SIDEBAR_LINK_CLASS,
+              "mt-2 text-muted-foreground hover:text-foreground",
+              pathname === "/collections" && SIDEBAR_LINK_ACTIVE_CLASS
+            )}
           >
             View all collections
           </Link>

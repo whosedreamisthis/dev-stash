@@ -64,6 +64,11 @@ export function CollectionCard({ collection }: CollectionCardProps) {
             {collection.description}
           </p>
         )}
+        {collection.itemCount === 0 && (
+          <p className="text-sm text-muted-foreground italic">
+            No items yet. Add items from the item form&apos;s Collections field.
+          </p>
+        )}
         <div className="flex items-center gap-2">
           {types.map((type) => {
             const Icon = ITEM_TYPE_ICONS[type.icon];
@@ -86,7 +91,8 @@ export function CollectionCard({ collection }: CollectionCardProps) {
               variant="ghost"
               size="icon-sm"
               aria-label="Collection actions"
-              className="absolute top-3 right-3"
+              // Bigger touch target on mobile
+              className="absolute top-2 right-2 size-10 sm:top-3 sm:right-3 sm:size-7"
             />
           }
         >

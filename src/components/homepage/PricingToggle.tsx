@@ -34,7 +34,12 @@ export function BillingToggle() {
 
   return (
     <div className="flex items-center justify-center gap-3 text-sm font-medium">
-      <button type="button" onClick={() => setPeriod("monthly")} className={optionClass(!yearly)}>
+      <button
+        type="button"
+        onClick={() => setPeriod("monthly")}
+        aria-pressed={!yearly}
+        className={optionClass(!yearly)}
+      >
         Monthly
       </button>
       <Switch
@@ -44,7 +49,12 @@ export function BillingToggle() {
         // Taller invisible hit area for touch; the switch itself stays small
         className="after:-inset-y-3"
       />
-      <button type="button" onClick={() => setPeriod("yearly")} className={optionClass(yearly)}>
+      <button
+        type="button"
+        onClick={() => setPeriod("yearly")}
+        aria-pressed={yearly}
+        className={optionClass(yearly)}
+      >
         Yearly
         <Badge variant="secondary" className="ml-2 bg-emerald-500/15 text-emerald-400">
           Save 25%

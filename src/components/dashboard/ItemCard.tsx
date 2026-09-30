@@ -23,7 +23,7 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
 });
 
 // Bigger touch targets on mobile, compact on larger screens
-const TOUCH_ICON_BUTTON = "size-8 sm:size-6";
+const TOUCH_ICON_BUTTON = "size-10 sm:size-6";
 
 export function ItemCard({ item }: ItemCardProps) {
   const { type } = item;
@@ -55,8 +55,11 @@ export function ItemCard({ item }: ItemCardProps) {
         )}
       </div>
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <h3 className="truncate font-medium">{item.title}</h3>
+        <div className="flex items-start gap-2 sm:items-center">
+          {/* Two lines on mobile, where the card is narrow */}
+          <h3 className="line-clamp-2 font-medium wrap-break-word sm:line-clamp-none sm:truncate">
+            {item.title}
+          </h3>
           {item.isPinned && (
             <Pin className="size-4 shrink-0 text-muted-foreground" />
           )}

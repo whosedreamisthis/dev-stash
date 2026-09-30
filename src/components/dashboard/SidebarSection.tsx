@@ -5,7 +5,11 @@ import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const SIDEBAR_LINK_CLASS =
-  "flex items-center gap-3 rounded-md px-2 py-1.5 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground";
+  "flex items-center gap-3 rounded-md px-2 py-1.5 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none";
+
+// Current page: stronger background plus a primary-colored bar on the left edge
+export const SIDEBAR_LINK_ACTIVE_CLASS =
+  "bg-sidebar-accent font-medium text-sidebar-accent-foreground shadow-[inset_3px_0_0_var(--color-primary)]";
 
 interface SidebarSectionProps {
   title: string;

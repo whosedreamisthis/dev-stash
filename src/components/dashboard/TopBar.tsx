@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { PanelLeft, Search, Sparkles, Star } from "lucide-react";
 import { useHasProAccess } from "@/components/billing/PlanContext";
 import { NewCollectionDialog } from "@/components/collections/NewCollectionDialog";
@@ -8,7 +9,9 @@ import { NewItemDialog } from "@/components/items/NewItemDialog";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useIsMac } from "@/hooks/useIsMac";
 import { COMPACT_BUTTON, COMPACT_LABEL } from "@/lib/compact-button";
+import { isUploadTypeSlug } from "@/lib/upload-constraints";
 import { cn } from "@/lib/utils";
+import { isCreatableTypeSlug } from "@/lib/validations/items";
 
 interface TopBarProps {
   sidebarOpen: boolean;
@@ -25,6 +28,13 @@ export function TopBar({
 }: TopBarProps) {
   const shortcut = useIsMac() ? "⌘K" : "Ctrl+K";
   const hasProAccess = useHasProAccess();
+  const pathname = usePathname();
+  const typeSlug = pathname.startsWith("/items/") ? pathname.slice("/items/".length) : null;
+  // Type pages show their own "New <Type>" button (unless the type is Pro-gated)
+  const pageHasNewButton =
+    typeSlug !== null &&
+    isCreatableTypeSlug(typeSlug) &&
+    (hasProAccess || !isUploadTypeSlug(typeSlug));
 
   return (
     <header className="flex h-14 shrink-0 items-center gap-2 border-b px-3 sm:gap-4 sm:px-4">
@@ -84,7 +94,7 @@ export function TopBar({
           <Star />
         </Link>
         <NewCollectionDialog compact />
-        <NewItemDialog compact />
+        {!pageHasNewButton && <NewItemDialog compact />}
       </div>
     </header>
   );

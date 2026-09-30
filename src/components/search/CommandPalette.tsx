@@ -58,7 +58,10 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       className="sm:max-w-xl"
     >
       <Command filter={filterByKeywords}>
-        <CommandInput placeholder="Search items and collections..." />
+        <CommandInput
+          placeholder="Search items and collections..."
+          aria-label="Search items and collections"
+        />
         <CommandList className="max-h-96">
           <CommandEmpty>{data ? "No results found." : (error ?? "Loading...")}</CommandEmpty>
           {data && data.items.length > 0 && (

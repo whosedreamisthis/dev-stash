@@ -57,9 +57,10 @@ export async function ItemGrid({
 
   return (
     <section>
-      <p className="mb-4 text-muted-foreground">
+      {/* The section's heading, so card titles (h3) don't skip a level */}
+      <h2 className="mb-4 font-normal text-muted-foreground">
         {result.total} {result.total === 1 ? "item" : "items"}
-      </p>
+      </h2>
       {renderItems(result.items, typeSlug)}
       <Pagination
         basePath={`/items/${typeSlug}`}

@@ -28,7 +28,15 @@ export function DashboardShell({ sidebar, children }: DashboardShellProps) {
     <EditorPreferencesProvider initialPreferences={sidebar.editorPreferences}>
       <PlanProvider hasProAccess={sidebar.hasProAccess}>
         <div className="flex h-screen overflow-hidden">
+          <a
+            href="#main-content"
+            className="sr-only z-50 rounded-md bg-primary px-3 py-2 text-sm text-primary-foreground focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
+          >
+            Skip to main content
+          </a>
+          {/* inert when collapsed so its hidden links can't take keyboard focus */}
           <aside
+            inert={!sidebarOpen}
             className={cn(
               "hidden shrink-0 overflow-hidden border-r transition-[width] duration-200 md:block",
               sidebarOpen ? "w-64" : "w-0 border-r-0"
@@ -53,7 +61,11 @@ export function DashboardShell({ sidebar, children }: DashboardShellProps) {
                 onOpenMobileSidebar={() => setMobileOpen(true)}
                 onOpenSearch={() => setSearchOpen(true)}
               />
-              <main className="scrollbar-thin flex-1 overflow-y-auto p-6">{children}</main>
+              <main
+                id="main-content"
+                tabIndex={-1}
+                className="scrollbar-thin flex-1 overflow-y-auto p-6 focus:outline-none"
+              >{children}</main>
             </div>
             <CommandPalette open={searchOpen} onOpenChange={setSearchOpen} />
           </ItemDrawerProvider>

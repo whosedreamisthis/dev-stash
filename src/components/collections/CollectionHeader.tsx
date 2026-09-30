@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil, Star, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { ChevronLeft, Pencil, Star, Trash2 } from "lucide-react";
 import { setCollectionFavorite } from "@/actions/collections";
 import { DeleteCollectionDialog } from "@/components/collections/DeleteCollectionDialog";
 import { EditCollectionDialog } from "@/components/collections/EditCollectionDialog";
@@ -26,6 +27,13 @@ export function CollectionHeader({ collection }: CollectionHeaderProps) {
   return (
     <header className="flex items-start justify-between gap-4">
       <div className="min-w-0">
+        <Link
+          href="/collections"
+          className="mb-2 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        >
+          <ChevronLeft aria-hidden className="size-4" />
+          Collections
+        </Link>
         <h1 className="truncate text-3xl font-bold tracking-tight">{collection.name}</h1>
         {collection.description && (
           <p className="mt-2 text-muted-foreground">{collection.description}</p>

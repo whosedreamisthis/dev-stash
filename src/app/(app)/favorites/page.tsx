@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import { Star } from "lucide-react";
 import { auth } from "@/auth";
 import { FavoritesList } from "@/components/favorites/FavoritesList";
+import { PageHeader } from "@/components/shared/PageHeader";
 import { getFavoriteCollections } from "@/lib/db/collections";
 import { getFavoriteItems } from "@/lib/db/items";
 
@@ -21,10 +22,10 @@ export default async function FavoritesPage() {
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-8">
-      <header className="flex min-w-0 items-center gap-3">
-        <Star className="size-7 shrink-0 fill-yellow-400 text-yellow-400" />
-        <h1 className="truncate text-3xl font-bold tracking-tight">Favorites</h1>
-      </header>
+      <PageHeader
+        title="Favorites"
+        icon={<Star className="size-7 shrink-0 fill-yellow-400 text-yellow-400" />}
+      />
 
       {items.length === 0 && collections.length === 0 ? (
         <p className="rounded-xl border border-dashed p-10 text-center text-muted-foreground">
