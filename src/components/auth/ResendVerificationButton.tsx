@@ -21,7 +21,7 @@ export function ResendVerificationButton({ email }: ResendVerificationButtonProp
       const result = await resendVerificationEmail(email);
       if (result.success) {
         setMessage("If your email still needs verifying, a new link is on its way.");
-      } else if (result.rateLimited && result.error) {
+      } else if ((result.rateLimited || result.demoOnly) && result.error) {
         toast.error(result.error);
       } else {
         setError(result.error ?? "Something went wrong. Please try again.");

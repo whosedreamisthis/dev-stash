@@ -5,7 +5,13 @@ declare module "next-auth" {
     user: {
       id: string;
       isPro: boolean;
+      isDemo: boolean;
     } & DefaultSession["user"];
+  }
+
+  // Set by the demo provider's authorize
+  interface User {
+    isDemo?: boolean;
   }
 }
 
@@ -13,5 +19,6 @@ declare module "next-auth" {
 declare module "@auth/core/jwt" {
   interface JWT {
     isPro?: boolean;
+    isDemo?: boolean;
   }
 }

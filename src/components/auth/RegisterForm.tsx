@@ -57,7 +57,7 @@ export function RegisterForm() {
     try {
       const result = await registerUser(values);
 
-      if (result.rateLimited) {
+      if (result.rateLimited || result.demoOnly) {
         toast.error(result.error ?? "Too many attempts. Please try again later.");
         return;
       }

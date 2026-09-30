@@ -11,11 +11,14 @@ export async function getSessionUserId(): Promise<string | null> {
 export interface SessionUser {
   id: string;
   isPro: boolean;
+  isDemo: boolean;
 }
 
 // The signed-in user with their plan (synced from the database on each check)
 export async function getSessionUser(): Promise<SessionUser | null> {
   const session = await auth();
   const id = session?.user?.id;
-  return id ? { id, isPro: session.user.isPro ?? false } : null;
+  return id
+    ? { id, isPro: session.user.isPro ?? false, isDemo: session.user.isDemo ?? false }
+    : null;
 }

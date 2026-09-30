@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { AuthCard } from "@/components/auth/AuthCard";
+import { DemoAccessPrompt } from "@/components/auth/DemoAccessPrompt";
 import { GitHubAuthForm } from "@/components/auth/GitHubAuthForm";
 import { SignInForm } from "@/components/auth/SignInForm";
 import { HomeNav } from "@/components/homepage/HomeNav";
@@ -88,6 +89,7 @@ export default async function SignInPage({ searchParams }: PageProps<"/sign-in">
           </p>
         )}
 
+        <DemoAccessPrompt />
         <GitHubAuthForm label="Sign in with GitHub" callbackUrl={callbackUrl} />
         <SignInForm callbackUrl={callbackUrl} />
       </AuthCard>

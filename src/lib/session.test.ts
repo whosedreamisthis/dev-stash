@@ -31,6 +31,11 @@ describe("getSessionUser", () => {
 
   it.each([true, false])("returns the user's ID and isPro %s", async (isPro) => {
     mockAuth.mockResolvedValue({ user: { id: "user-1", isPro } });
-    await expect(getSessionUser()).resolves.toEqual({ id: "user-1", isPro });
+    await expect(getSessionUser()).resolves.toEqual({ id: "user-1", isPro, isDemo: false });
+  });
+
+  it("returns isDemo for demo accounts", async () => {
+    mockAuth.mockResolvedValue({ user: { id: "user-1", isPro: true, isDemo: true } });
+    await expect(getSessionUser()).resolves.toEqual({ id: "user-1", isPro: true, isDemo: true });
   });
 });

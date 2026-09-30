@@ -14,6 +14,12 @@ function signIn(userId = "user-1") {
   mockAuth.mockResolvedValue({ user: { id: userId }, expires: "" } as Session);
 }
 
+function signInDemo() {
+  mockAuth.mockResolvedValue({ user: { id: "demo-1", isDemo: true }, expires: "" } as Session);
+}
+
+const DEMO_ACCOUNT_ERROR = "This isn't available on the demo account.";
+
 function passwordForm(fields: Record<string, string>) {
   const formData = new FormData();
   for (const [key, value] of Object.entries(fields)) formData.set(key, value);
@@ -35,6 +41,13 @@ describe("changeUserPassword", () => {
     mockAuth.mockResolvedValue(null);
     const result = await changeUserPassword({ success: false }, passwordForm(VALID_FORM));
     expect(result).toEqual({ success: false, error: "You must be signed in." });
+    expect(changePassword).not.toHaveBeenCalled();
+  });
+
+  it("refuses demo accounts", async () => {
+    signInDemo();
+    const result = await changeUserPassword({ success: false }, passwordForm(VALID_FORM));
+    expect(result).toEqual({ success: false, error: DEMO_ACCOUNT_ERROR });
     expect(changePassword).not.toHaveBeenCalled();
   });
 
@@ -83,6 +96,16 @@ describe("deleteUserAccount", () => {
       error: "You must be signed in.",
     });
     expect(deleteAccount).not.toHaveBeenCalled();
+  });
+
+  it("refuses demo accounts", async () => {
+    signInDemo();
+    await expect(deleteUserAccount()).resolves.toEqual({
+      success: false,
+      error: DEMO_ACCOUNT_ERROR,
+    });
+    expect(deleteAccount).not.toHaveBeenCalled();
+    expect(signOut).not.toHaveBeenCalled();
   });
 
   it("deletes the session user's account and signs out", async () => {

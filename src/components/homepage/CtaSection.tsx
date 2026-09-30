@@ -1,3 +1,4 @@
+import { TryDemoButton } from "@/components/auth/TryDemoButton";
 import { ButtonLink } from "@/components/homepage/ButtonLink";
 import { Container } from "@/components/homepage/Container";
 import { Reveal } from "@/components/homepage/Reveal";
@@ -18,9 +19,16 @@ export function CtaSection({ isSignedIn }: CtaSectionProps) {
           <p className="mb-8 text-lg text-muted-foreground">
             Stash your first snippet in under a minute. No credit card required.
           </p>
-          <ButtonLink href={getStartHref(isSignedIn)} size="large">
-            {isSignedIn ? "Go to Dashboard" : "Get Started for Free"}
-          </ButtonLink>
+          <div className="flex flex-wrap justify-center gap-3">
+            {!isSignedIn && <TryDemoButton size="large" />}
+            <ButtonLink
+              href={getStartHref(isSignedIn)}
+              variant={isSignedIn ? "default" : "outline"}
+              size="large"
+            >
+              {isSignedIn ? "Go to Dashboard" : "Get Started for Free"}
+            </ButtonLink>
+          </div>
         </Reveal>
       </Container>
     </section>

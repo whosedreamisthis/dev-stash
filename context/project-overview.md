@@ -208,6 +208,9 @@ STRIPE_WEBHOOK_SECRET=
 STRIPE_PRICE_MONTHLY=
 STRIPE_PRICE_YEARLY=
 ENFORCE_PLANS=             # "true" turns on free-tier limits; anything else = everyone is Pro
+
+# Recruiter demo
+DEMO_ONLY_MODE=            # "true" turns off regular sign-in and registration; only Try the Demo works
 # NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is unused: hosted Checkout is a plain redirect
 ```
 

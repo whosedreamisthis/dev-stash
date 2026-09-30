@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { PlanProvider } from "@/components/billing/PlanContext";
+import { DemoBanner } from "@/components/dashboard/DemoBanner";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { TopBar } from "@/components/dashboard/TopBar";
 import { ItemDrawerProvider } from "@/components/items/ItemDrawerProvider";
@@ -55,6 +56,7 @@ export function DashboardShell({ sidebar, children }: DashboardShellProps) {
           {/* Wraps the top bar too, so the command palette can open items in the drawer */}
           <ItemDrawerProvider>
             <div className="flex min-w-0 flex-1 flex-col">
+              {sidebar.isDemo && <DemoBanner />}
               <TopBar
                 sidebarOpen={sidebarOpen}
                 onToggleSidebar={() => setSidebarOpen((prev) => !prev)}

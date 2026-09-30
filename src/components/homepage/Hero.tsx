@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
+import { TryDemoButton } from "@/components/auth/TryDemoButton";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/homepage/ButtonLink";
 import { ChaosIcons } from "@/components/homepage/ChaosIcons";
@@ -43,9 +44,18 @@ export function Hero({ isSignedIn }: HeroProps) {
             bookmarks. DevStash brings all of it into one fast, searchable, AI-enhanced place.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
-            <ButtonLink href={getStartHref(isSignedIn)} size="large">
-              {isSignedIn ? "Go to Dashboard" : "Start for Free"}
-            </ButtonLink>
+            {isSignedIn ? (
+              <ButtonLink href={getStartHref(isSignedIn)} size="large">
+                Go to Dashboard
+              </ButtonLink>
+            ) : (
+              <>
+                <TryDemoButton size="large" />
+                <ButtonLink href={getStartHref(isSignedIn)} variant="outline" size="large">
+                  Start for Free
+                </ButtonLink>
+              </>
+            )}
             <ButtonLink href="#features" variant="outline" size="large">
               See Features
             </ButtonLink>

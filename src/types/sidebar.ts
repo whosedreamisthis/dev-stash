@@ -16,4 +16,6 @@ export interface SidebarData {
   editorPreferences: EditorPreferences;
   // Whether Pro-only types (File, Image) can be created; always true while plans aren't enforced
   hasProAccess: boolean;
+  // Temporary recruiter demo account: shows the demo banner
+  isDemo: boolean;
 }

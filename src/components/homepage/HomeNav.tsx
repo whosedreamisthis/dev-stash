@@ -1,3 +1,4 @@
+import { TryDemoButton } from "@/components/auth/TryDemoButton";
 import { ButtonLink } from "@/components/homepage/ButtonLink";
 import { Container } from "@/components/homepage/Container";
 import { HomeMobileMenu } from "@/components/homepage/HomeMobileMenu";
@@ -39,7 +40,12 @@ export function HomeNav({ isSignedIn, page = "home" }: HomeNavProps) {
                   Sign In
                 </ButtonLink>
               )}
-              {page !== "register" && <ButtonLink href="/register">Get Started</ButtonLink>}
+              {page !== "register" && (
+                <ButtonLink href="/register" variant="outline" className="hidden md:inline-flex">
+                  Get Started
+                </ButtonLink>
+              )}
+              <TryDemoButton />
             </>
           )}
         </div>

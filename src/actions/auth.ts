@@ -2,10 +2,14 @@
 
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { AuthError, CredentialsSignin } from "next-auth";
 import { EMAIL_NOT_VERIFIED, RATE_LIMITED, signIn, signOut } from "@/auth";
 import { GENERIC_ERROR } from "@/lib/action-result";
+import { deleteExpiredDemoUsers } from "@/lib/db/demo";
 import { createUser } from "@/lib/db/users";
+import { DEMO_ONLY_ERROR, DEMO_PROVIDER_ID, isDemoOnlyMode } from "@/lib/demo";
+import { deleteUploadedFile } from "@/lib/uploadthing";
 import { resetPassword, sendPasswordResetLink } from "@/lib/password-reset";
 import {
   checkRateLimit,
@@ -31,7 +35,15 @@ import type { ActionResult } from "@/types/actions";
 
 interface AuthActionResult<T = undefined> extends ActionResult<T> {
   rateLimited?: boolean;
+  // Refused because DEMO_ONLY_MODE turns regular sign-in and registration off
+  demoOnly?: boolean;
 }
+
+export type GitHubSignInResult = AuthActionResult;
+
+export type StartDemoResult = AuthActionResult;
+
+const DEMO_ONLY_RESULT = { success: false, error: DEMO_ONLY_ERROR, demoOnly: true } as const;
 
 export interface SignInResult extends AuthActionResult {
   emailNotVerified?: boolean;
@@ -112,6 +124,8 @@ export async function signInWithCredentials(
   _prevState: SignInResult,
   formData: FormData,
 ): Promise<SignInResult> {
+  if (isDemoOnlyMode()) return DEMO_ONLY_RESULT;
+
   const parsed = signInSchema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
@@ -135,6 +149,8 @@ export async function signInWithCredentials(
 }
 
 export async function registerUser(values: RegisterInput): Promise<RegisterResult> {
+  if (isDemoOnlyMode()) return DEMO_ONLY_RESULT;
+
   const parsed = registerSchema.safeParse(values);
   if (!parsed.success) {
     return { success: false, error: firstIssueMessage(parsed.error, "Invalid input") };
@@ -171,6 +187,8 @@ export async function registerUser(values: RegisterInput): Promise<RegisterResul
 export async function resendVerificationEmail(
   email: string,
 ): Promise<ResendVerificationResult> {
+  if (isDemoOnlyMode()) return DEMO_ONLY_RESULT;
+
   const parsed = resendVerificationSchema.safeParse({ email });
   if (!parsed.success) {
     return { success: false, error: firstIssueMessage(parsed.error, "Invalid email") };
@@ -193,6 +211,8 @@ export async function requestPasswordReset(
   _prevState: ForgotPasswordResult,
   formData: FormData,
 ): Promise<ForgotPasswordResult> {
+  if (isDemoOnlyMode()) return DEMO_ONLY_RESULT;
+
   const parsed = forgotPasswordSchema.safeParse({ email: formData.get("email") });
   if (!parsed.success) {
     return { success: false, error: firstIssueMessage(parsed.error, "Invalid email") };
@@ -214,6 +234,8 @@ export async function resetPasswordWithToken(
   _prevState: ResetPasswordActionResult,
   formData: FormData,
 ): Promise<ResetPasswordActionResult> {
+  if (isDemoOnlyMode()) return DEMO_ONLY_RESULT;
+
   const parsed = resetPasswordSchema.safeParse({
     token: formData.get("token"),
     password: formData.get("password"),
@@ -243,8 +265,46 @@ export async function resetPasswordWithToken(
   redirect("/sign-in?reset=success");
 }
 
-export async function signInWithGitHub(formData: FormData) {
+export async function signInWithGitHub(
+  _prevState: GitHubSignInResult,
+  formData: FormData,
+): Promise<GitHubSignInResult> {
+  if (isDemoOnlyMode()) return DEMO_ONLY_RESULT;
+
   await signIn("github", { redirectTo: getRedirectTo(formData.get("callbackUrl")) });
+  return { success: true };
+}
+
+// Deletes expired demo accounts and their uploaded files. Best effort: whatever
+// fails is retried on the next demo sign-in
+async function cleanUpExpiredDemos() {
+  try {
+    const fileKeys = await deleteExpiredDemoUsers();
+    await Promise.all(fileKeys.map((key) => deleteUploadedFile(key)));
+  } catch (error) {
+    console.error("Cleaning up demo accounts failed:", error);
+  }
+}
+
+// Signs the visitor into a new temporary demo account and opens the dashboard
+export async function startDemo(): Promise<StartDemoResult> {
+  // After the response, so the cleanup doesn't slow down the sign-in
+  after(cleanUpExpiredDemos);
+
+  try {
+    await signIn(DEMO_PROVIDER_ID, { redirectTo: DEFAULT_REDIRECT });
+    return { success: true };
+  } catch (error) {
+    // signIn redirects by throwing, so anything that isn't an AuthError is rethrown
+    const result = getSignInError(error);
+    if (!result) throw error;
+    if (result.rateLimited) {
+      return { ...result, error: "Too many demo sign-ins. Please try again in an hour." };
+    }
+    // Auth.js wraps errors thrown in authorize, so the cause holds the real failure
+    console.error("Starting demo failed:", error instanceof Error ? (error.cause ?? error) : error);
+    return { success: false, error: GENERIC_ERROR };
+  }
 }
 
 export async function signOutUser() {

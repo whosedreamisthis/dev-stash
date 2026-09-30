@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { AuthCard } from "@/components/auth/AuthCard";
+import { DemoAccessPrompt } from "@/components/auth/DemoAccessPrompt";
 import { GitHubAuthForm } from "@/components/auth/GitHubAuthForm";
 import { RegisterForm } from "@/components/auth/RegisterForm";
 import { HomeNav } from "@/components/homepage/HomeNav";
@@ -27,6 +28,7 @@ export default async function RegisterPage() {
           </>
         }
       >
+        <DemoAccessPrompt />
         <GitHubAuthForm label="Sign up with GitHub" />
         <RegisterForm />
       </AuthCard>

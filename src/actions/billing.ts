@@ -4,7 +4,8 @@ import { z } from "zod";
 import { GENERIC_ERROR } from "@/lib/action-result";
 import { getOrCreateCustomerId } from "@/lib/billing";
 import { getBillingUser } from "@/lib/db/billing";
-import { getSessionUserId, NOT_SIGNED_IN_ERROR } from "@/lib/session";
+import { DEMO_ACCOUNT_ERROR } from "@/lib/demo";
+import { getSessionUser, NOT_SIGNED_IN_ERROR } from "@/lib/session";
 import { getPriceId, getStripe } from "@/lib/stripe";
 import { getAppUrl } from "@/lib/tokens";
 import type { ActionResult } from "@/types/actions";
@@ -14,8 +15,10 @@ const intervalSchema = z.enum(["monthly", "yearly"]);
 export type BillingRedirectResult = ActionResult<{ url: string }>;
 
 export async function createCheckoutSession(interval: string): Promise<BillingRedirectResult> {
-  const userId = await getSessionUserId();
-  if (!userId) return { success: false, error: NOT_SIGNED_IN_ERROR };
+  const sessionUser = await getSessionUser();
+  if (!sessionUser) return { success: false, error: NOT_SIGNED_IN_ERROR };
+  if (sessionUser.isDemo) return { success: false, error: DEMO_ACCOUNT_ERROR };
+  const userId = sessionUser.id;
 
   const parsed = intervalSchema.safeParse(interval);
   if (!parsed.success) return { success: false, error: "Please choose a plan." };
@@ -50,11 +53,12 @@ export async function createCheckoutSession(interval: string): Promise<BillingRe
 }
 
 export async function createPortalSession(): Promise<BillingRedirectResult> {
-  const userId = await getSessionUserId();
-  if (!userId) return { success: false, error: NOT_SIGNED_IN_ERROR };
+  const sessionUser = await getSessionUser();
+  if (!sessionUser) return { success: false, error: NOT_SIGNED_IN_ERROR };
+  if (sessionUser.isDemo) return { success: false, error: DEMO_ACCOUNT_ERROR };
 
   try {
-    const user = await getBillingUser(userId);
+    const user = await getBillingUser(sessionUser.id);
     if (!user?.stripeCustomerId) return { success: false, error: "No billing account found." };
 
     const session = await getStripe().billingPortal.sessions.create({

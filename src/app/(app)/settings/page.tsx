@@ -44,6 +44,7 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
   if (!user || !billing) redirect("/sign-in");
 
   const checkoutStatus = parseCheckoutStatus(checkout);
+  const isDemo = session?.user?.isDemo ?? false;
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-8">
@@ -55,12 +56,13 @@ export default async function SettingsPage({ searchParams }: PageProps<"/setting
       <EditorPreferencesSection />
       <BillingPlanCard
         isPro={billing.isPro}
+        isDemo={isDemo}
         periodEnd={billing.stripeCurrentPeriodEnd}
         hasCustomer={billing.stripeCustomerId !== null}
         usage={{ items: itemStats.total, collections: collectionCount }}
         limits={FREE_LIMITS}
       />
-      <AccountActions hasPassword={user.hasPassword} />
+      <AccountActions hasPassword={user.hasPassword} isDemo={isDemo} />
       {checkoutStatus && <CheckoutToast status={checkoutStatus} />}
     </div>
   );

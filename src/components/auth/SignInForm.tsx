@@ -6,7 +6,7 @@ import { signInWithCredentials, type SignInResult } from "@/actions/auth";
 import { FormField } from "@/components/auth/FormField";
 import { FormError, SubmitButton } from "@/components/auth/FormMessages";
 import { ResendVerificationButton } from "@/components/auth/ResendVerificationButton";
-import { useRateLimitToast } from "@/hooks/useRateLimitToast";
+import { isToastError, useRateLimitToast } from "@/hooks/useRateLimitToast";
 
 interface SignInFormProps {
   callbackUrl?: string;
@@ -50,7 +50,7 @@ export function SignInForm({ callbackUrl }: SignInFormProps) {
           Forgot password?
         </Link>
       </div>
-      <FormError message={state.rateLimited ? undefined : state.error} />
+      <FormError message={isToastError(state) ? undefined : state.error} />
       <SubmitButton pending={isPending} pendingLabel="Signing in...">
         Sign in
       </SubmitButton>

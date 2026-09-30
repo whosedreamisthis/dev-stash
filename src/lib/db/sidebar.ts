@@ -25,6 +25,7 @@ export async function getSidebarData(): Promise<SidebarData> {
       collections: { favorites: [], recent: [] },
       editorPreferences: DEFAULT_EDITOR_PREFERENCES,
       hasProAccess: false,
+      isDemo: false,
     };
   }
 
@@ -40,5 +41,6 @@ export async function getSidebarData(): Promise<SidebarData> {
     collections,
     editorPreferences,
     hasProAccess: hasProAccess({ isPro: session?.user?.isPro ?? false }),
+    isDemo: session?.user?.isDemo ?? false,
   };
 }

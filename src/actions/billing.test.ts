@@ -40,6 +40,15 @@ function signIn(userId = "user-1") {
   mockAuth.mockResolvedValue({ user: { id: userId, isPro: false }, expires: "" } as Session);
 }
 
+function signInDemo() {
+  mockAuth.mockResolvedValue({
+    user: { id: "demo-1", isPro: true, isDemo: true },
+    expires: "",
+  } as Session);
+}
+
+const DEMO_ACCOUNT_ERROR = "This isn't available on the demo account.";
+
 beforeEach(() => {
   vi.spyOn(console, "error").mockImplementation(() => {});
   vi.stubEnv("AUTH_URL", "https://devstash.test");
@@ -55,6 +64,16 @@ describe("createCheckoutSession", () => {
       success: false,
       error: "You must be signed in.",
     });
+    expect(stripe.checkout.sessions.create).not.toHaveBeenCalled();
+  });
+
+  it("refuses demo accounts before reaching Stripe", async () => {
+    signInDemo();
+    await expect(createCheckoutSession("monthly")).resolves.toEqual({
+      success: false,
+      error: DEMO_ACCOUNT_ERROR,
+    });
+    expect(getBillingUser).not.toHaveBeenCalled();
     expect(stripe.checkout.sessions.create).not.toHaveBeenCalled();
   });
 
@@ -120,6 +139,16 @@ describe("createPortalSession", () => {
       success: false,
       error: "You must be signed in.",
     });
+  });
+
+  it("refuses demo accounts before reaching Stripe", async () => {
+    signInDemo();
+    await expect(createPortalSession()).resolves.toEqual({
+      success: false,
+      error: DEMO_ACCOUNT_ERROR,
+    });
+    expect(getBillingUser).not.toHaveBeenCalled();
+    expect(stripe.billingPortal.sessions.create).not.toHaveBeenCalled();
   });
 
   it("returns an error for users without a Stripe customer", async () => {

@@ -5,6 +5,8 @@ import { Progress, ProgressLabel } from "@/components/ui/progress";
 
 interface BillingPlanCardProps {
   isPro: boolean;
+  // Demo accounts get Pro without a subscription and can't reach Stripe
+  isDemo: boolean;
   periodEnd: Date | null;
   hasCustomer: boolean;
   usage: { items: number; collections: number };
@@ -30,7 +32,34 @@ function UsageBar({ label, count, limit }: UsageBarProps) {
   );
 }
 
-export function BillingPlanCard({ isPro, periodEnd, hasCustomer, usage, limits }: BillingPlanCardProps) {
+function DemoPlanCard() {
+  return (
+    <section className="space-y-4">
+      <h2 className="text-lg font-semibold">Billing</h2>
+      <div className="rounded-xl border bg-card p-5">
+        <div className="flex items-center gap-2">
+          <h3 className="font-medium">DevStash Pro (demo account)</h3>
+          <Badge>PRO</Badge>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Every Pro feature is unlocked for this demo. Billing runs through Stripe Checkout and the
+          customer portal, which are turned off for demo accounts.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+export function BillingPlanCard({
+  isPro,
+  isDemo,
+  periodEnd,
+  hasCustomer,
+  usage,
+  limits,
+}: BillingPlanCardProps) {
+  if (isDemo) return <DemoPlanCard />;
+
   return (
     <section className="space-y-4">
       <h2 className="text-lg font-semibold">Billing</h2>

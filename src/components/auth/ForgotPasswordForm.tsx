@@ -4,7 +4,7 @@ import { useActionState } from "react";
 import { requestPasswordReset, type ForgotPasswordResult } from "@/actions/auth";
 import { FormField } from "@/components/auth/FormField";
 import { FormError, FormSuccess, SubmitButton } from "@/components/auth/FormMessages";
-import { useRateLimitToast } from "@/hooks/useRateLimitToast";
+import { isToastError, useRateLimitToast } from "@/hooks/useRateLimitToast";
 
 const INITIAL_STATE: ForgotPasswordResult = { success: false };
 
@@ -27,7 +27,7 @@ export function ForgotPasswordForm() {
   return (
     <form action={formAction} className="space-y-4">
       <FormField id="email" label="Email" type="email" autoComplete="email" required />
-      <FormError message={state.rateLimited ? undefined : state.error} />
+      <FormError message={isToastError(state) ? undefined : state.error} />
       <SubmitButton pending={isPending} pendingLabel="Sending...">
         Send reset link
       </SubmitButton>

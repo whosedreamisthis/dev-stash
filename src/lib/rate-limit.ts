@@ -23,6 +23,8 @@ const RATE_LIMITS = {
   changePassword: { limit: 5, window: "15 m" },
   // Per user; each AI call costs money and uses the shared Gemini quota
   ai: { limit: 20, window: "1 h" },
+  // Per IP; each demo creates a user with a full copy of the demo content
+  demo: { limit: 10, window: "1 h" },
 } satisfies Record<string, RateLimitRule>;
 
 export type RateLimitName = keyof typeof RATE_LIMITS;
