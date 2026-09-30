@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   EMPTY_ITEM_FORM_VALUES,
   getItemFields,
+  toItemFormValues,
   toItemPayload,
 } from "@/lib/item-fields";
 
@@ -56,6 +57,34 @@ describe("getItemFields", () => {
         upload: true,
       });
     }
+  });
+});
+
+describe("toItemFormValues", () => {
+  it("copies the item's fields and joins its tags", () => {
+    expect(
+      toItemFormValues({
+        title: "Title",
+        description: "Desc",
+        content: "code",
+        language: "ts",
+        url: "https://example.com",
+        tags: ["a", "b"],
+      })
+    ).toEqual(VALUES);
+  });
+
+  it("turns missing optional fields into empty strings", () => {
+    expect(
+      toItemFormValues({
+        title: "Title",
+        description: null,
+        content: null,
+        language: null,
+        url: null,
+        tags: [],
+      })
+    ).toEqual({ ...EMPTY_ITEM_FORM_VALUES, title: "Title" });
   });
 });
 

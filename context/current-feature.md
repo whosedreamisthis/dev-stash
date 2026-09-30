@@ -84,3 +84,4 @@ Completed
 - **AI Description Generator:** Pro Sparkles button beside the description input (`DescriptionGenerator`) fills a 1-2 sentence description via the `generateDescription` action; prompt helpers in `src/lib/ai-description.ts`.
 - **UI Layout & Accessibility Fixes:** sidebar active-link highlighting with Dashboard/Favorites links, shared `PageHeader`, collection back link, skip link, inert collapsed sidebar, heading order and ARIA fixes.
 - **Actions Refactor - Shared Helpers:** `runUserAction` and `GENERIC_ERROR` (`src/lib/action-result.ts`), `idSchema`, `firstIssueMessage`/`toFirstFieldErrors` (`src/lib/validations/`), `ActionResult<T>` (`src/types/actions.ts`) and `runAiAction` dedupe `src/actions`.
+- **Components Refactor 1 - Shared Item Form Fields:** `ItemFormFields` component and `useItemFormValues` hook shared by `NewItemForm` and `ItemEditForm`; `toItemFormValues` in `src/lib/item-fields.ts`; edit form clears field errors.

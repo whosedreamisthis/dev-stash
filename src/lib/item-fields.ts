@@ -5,6 +5,7 @@ import {
   type CreatableTypeSlug,
   type UpdateItemInput,
 } from "@/lib/validations/items";
+import type { ItemDetail } from "@/types/items";
 
 export const ITEM_TYPE_LABELS: Record<CreatableTypeSlug, string> = {
   snippets: "Snippet",
@@ -33,6 +34,20 @@ export const EMPTY_ITEM_FORM_VALUES: ItemFormValues = {
   url: "",
   tags: "",
 };
+
+// Missing optional fields become empty strings so the inputs stay controlled
+export function toItemFormValues(
+  item: Pick<ItemDetail, "title" | "description" | "content" | "language" | "url" | "tags">
+): ItemFormValues {
+  return {
+    title: item.title,
+    description: item.description ?? "",
+    content: item.content ?? "",
+    language: item.language ?? "",
+    url: item.url ?? "",
+    tags: item.tags.join(", "),
+  };
+}
 
 // Which optional fields an item type uses
 export interface ItemFields {
