@@ -2,28 +2,19 @@
 
 <!-- Feature name and short description -->
 
-**Components Refactor 2 - Shared Dialogs & Form Pieces:** shared components for the duplicated collection form fields, card "open item" overlay, delete confirmations and auth form messages/buttons.
-
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals and requirements -->
 
-- `CollectionFormFields` (`src/components/collections/CollectionFormFields.tsx`) with the name and description fields, used by `NewCollectionForm` and `EditCollectionDialog`; `CollectionFormValues` moves to `src/types/collections.ts`.
-- `ItemOpenOverlay` (`src/components/items/ItemOpenOverlay.tsx`): the full-card button that opens and prefetches an item, used by `ItemCard`, `ImageThumbnailCard`, `FileListRow` and `FavoriteItemRow`.
-- `ConfirmDeleteDialog` (`src/components/shared/ConfirmDeleteDialog.tsx`): AlertDialog shell, pending guard and toast flow, used by `DeleteItemDialog` and `DeleteCollectionDialog`; `DeleteAccountDialog` reuses its content class.
-- `FormError`, `FormSuccess` and `SubmitButton` (`src/components/auth/FormMessages.tsx`) replace the repeated error paragraph, green success banner and full-width submit button in the auth forms, `ChangePasswordDialog` and `DeleteAccountDialog`.
-
 ## Notes
 
 <!-- Any extra notes -->
-
-- Second of four component refactors from the refactor-scanner report. No visible changes intended.
 
 ## Completed Features
 
@@ -94,3 +85,4 @@ In Progress
 - **UI Layout & Accessibility Fixes:** sidebar active-link highlighting with Dashboard/Favorites links, shared `PageHeader`, collection back link, skip link, inert collapsed sidebar, heading order and ARIA fixes.
 - **Actions Refactor - Shared Helpers:** `runUserAction` and `GENERIC_ERROR` (`src/lib/action-result.ts`), `idSchema`, `firstIssueMessage`/`toFirstFieldErrors` (`src/lib/validations/`), `ActionResult<T>` (`src/types/actions.ts`) and `runAiAction` dedupe `src/actions`.
 - **Components Refactor 1 - Shared Item Form Fields:** `ItemFormFields` component and `useItemFormValues` hook shared by `NewItemForm` and `ItemEditForm`; `toItemFormValues` in `src/lib/item-fields.ts`; edit form clears field errors.
+- **Components Refactor 2 - Shared Dialogs & Form Pieces:** `CollectionFormFields`, `ItemOpenOverlay`, `ConfirmDeleteDialog` (`src/components/shared/`) and `FormError`/`FormSuccess`/`SubmitButton` (`src/components/auth/FormMessages.tsx`) replace duplicated markup.
