@@ -2,19 +2,28 @@
 
 <!-- Feature name and short description -->
 
+**Components Refactor 2 - Shared Dialogs & Form Pieces:** shared components for the duplicated collection form fields, card "open item" overlay, delete confirmations and auth form messages/buttons.
+
 ## Status
 
 <!-- Not Started | In Progress | Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals and requirements -->
 
+- `CollectionFormFields` (`src/components/collections/CollectionFormFields.tsx`) with the name and description fields, used by `NewCollectionForm` and `EditCollectionDialog`; `CollectionFormValues` moves to `src/types/collections.ts`.
+- `ItemOpenOverlay` (`src/components/items/ItemOpenOverlay.tsx`): the full-card button that opens and prefetches an item, used by `ItemCard`, `ImageThumbnailCard`, `FileListRow` and `FavoriteItemRow`.
+- `ConfirmDeleteDialog` (`src/components/shared/ConfirmDeleteDialog.tsx`): AlertDialog shell, pending guard and toast flow, used by `DeleteItemDialog` and `DeleteCollectionDialog`; `DeleteAccountDialog` reuses its content class.
+- `FormError`, `FormSuccess` and `SubmitButton` (`src/components/auth/FormMessages.tsx`) replace the repeated error paragraph, green success banner and full-width submit button in the auth forms, `ChangePasswordDialog` and `DeleteAccountDialog`.
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- Second of four component refactors from the refactor-scanner report. No visible changes intended.
 
 ## Completed Features
 

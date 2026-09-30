@@ -3,6 +3,8 @@
 import { useState, useTransition } from "react";
 import { Trash2 } from "lucide-react";
 import { deleteUserAccount } from "@/actions/profile";
+import { FormError } from "@/components/auth/FormMessages";
+import { CONFIRM_DIALOG_CONTENT_CLASS } from "@/components/shared/ConfirmDeleteDialog";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -35,7 +37,7 @@ export function DeleteAccountDialog() {
         <Trash2 />
         Delete account
       </AlertDialogTrigger>
-      <AlertDialogContent className="w-[calc(100%-2rem)] max-w-md data-[size=default]:max-w-md data-[size=default]:sm:max-w-md">
+      <AlertDialogContent className={CONFIRM_DIALOG_CONTENT_CLASS}>
         <AlertDialogHeader>
           <AlertDialogTitle>Are you sure you want to delete your account?</AlertDialogTitle>
           <AlertDialogDescription>
@@ -43,11 +45,7 @@ export function DeleteAccountDialog() {
             can&apos;t be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        {error && (
-          <p role="alert" className="text-sm text-destructive">
-            {error}
-          </p>
-        )}
+        <FormError message={error} />
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
           <AlertDialogAction variant="destructive" onClick={handleDelete} disabled={isPending}>

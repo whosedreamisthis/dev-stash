@@ -2,7 +2,7 @@
 
 import { Download, Pin, Star } from "lucide-react";
 import { FileTypeIcon } from "@/components/items/FileTypeIcon";
-import { useItemDrawer } from "@/components/items/ItemDrawerProvider";
+import { ItemOpenOverlay } from "@/components/items/ItemOpenOverlay";
 import { buttonVariants } from "@/components/ui/button";
 import { formatFileSize } from "@/lib/upload-constraints";
 import { cn } from "@/lib/utils";
@@ -20,20 +20,11 @@ interface FileListRowProps {
 }
 
 export function FileListRow({ item }: FileListRowProps) {
-  const { openItem, prefetchItem } = useItemDrawer();
   const fileName = item.fileName ?? "Untitled file";
 
   return (
     <li className="relative flex items-center gap-4 px-4 py-3 transition-colors hover:bg-accent/40">
-      {/* Covers the whole row so a click anywhere opens the drawer */}
-      <button
-        type="button"
-        aria-label={`Open ${item.title}`}
-        onClick={() => openItem(item)}
-        onPointerEnter={() => prefetchItem(item.id)}
-        onFocus={() => prefetchItem(item.id)}
-        className="absolute inset-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset"
-      />
+      <ItemOpenOverlay item={item} className="focus-visible:ring-inset" />
       <FileTypeIcon fileName={item.fileName} typeSlug={item.type.slug} />
 
       {/* Stacked on mobile; name, size and date become columns from sm up */}

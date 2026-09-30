@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import { signInWithCredentials, type SignInResult } from "@/actions/auth";
 import { FormField } from "@/components/auth/FormField";
+import { FormError, SubmitButton } from "@/components/auth/FormMessages";
 import { ResendVerificationButton } from "@/components/auth/ResendVerificationButton";
-import { Button } from "@/components/ui/button";
 import { useRateLimitToast } from "@/hooks/useRateLimitToast";
 
 interface SignInFormProps {
@@ -50,14 +50,10 @@ export function SignInForm({ callbackUrl }: SignInFormProps) {
           Forgot password?
         </Link>
       </div>
-      {state.error && !state.rateLimited && (
-        <p role="alert" className="text-sm text-destructive">
-          {state.error}
-        </p>
-      )}
-      <Button type="submit" size="lg" className="w-full" disabled={isPending}>
-        {isPending ? "Signing in..." : "Sign in"}
-      </Button>
+      <FormError message={state.rateLimited ? undefined : state.error} />
+      <SubmitButton pending={isPending} pendingLabel="Signing in...">
+        Sign in
+      </SubmitButton>
       {state.emailNotVerified && <ResendVerificationButton email={email} />}
     </form>
   );

@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { KeyRound } from "lucide-react";
 import { changeUserPassword, type ChangePasswordActionResult } from "@/actions/profile";
 import { FormField } from "@/components/auth/FormField";
+import { FormError, FormSuccess } from "@/components/auth/FormMessages";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -27,9 +28,7 @@ function ChangePasswordForm() {
   if (state.success) {
     return (
       <>
-        <p role="status" className="rounded-md bg-emerald-500/10 px-3 py-2 text-sm text-emerald-500">
-          Your password has been updated.
-        </p>
+        <FormSuccess>Your password has been updated.</FormSuccess>
         <DialogFooter>
           <DialogClose render={<Button />}>Done</DialogClose>
         </DialogFooter>
@@ -63,11 +62,7 @@ function ChangePasswordForm() {
         required
         error={state.fieldErrors?.confirmPassword}
       />
-      {state.error && !state.rateLimited && (
-        <p role="alert" className="text-sm text-destructive">
-          {state.error}
-        </p>
-      )}
+      <FormError message={state.rateLimited ? undefined : state.error} />
       <DialogFooter>
         <DialogClose render={<Button variant="outline" />}>Cancel</DialogClose>
         <Button type="submit" disabled={isPending}>

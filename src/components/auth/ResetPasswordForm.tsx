@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { resetPasswordWithToken, type ResetPasswordActionResult } from "@/actions/auth";
 import { FormField } from "@/components/auth/FormField";
-import { Button } from "@/components/ui/button";
+import { FormError, SubmitButton } from "@/components/auth/FormMessages";
 import { useRateLimitToast } from "@/hooks/useRateLimitToast";
 
 interface ResetPasswordFormProps {
@@ -38,14 +38,10 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
         required
         error={state.fieldErrors?.confirmPassword}
       />
-      {state.error && !state.rateLimited && (
-        <p role="alert" className="text-sm text-destructive">
-          {state.error}
-        </p>
-      )}
-      <Button type="submit" size="lg" className="w-full" disabled={isPending}>
-        {isPending ? "Updating password..." : "Update password"}
-      </Button>
+      <FormError message={state.rateLimited ? undefined : state.error} />
+      <SubmitButton pending={isPending} pendingLabel="Updating password...">
+        Update password
+      </SubmitButton>
     </form>
   );
 }

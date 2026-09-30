@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { registerUser, type RegisterResult } from "@/actions/auth";
 import { FormField } from "@/components/auth/FormField";
-import { Button } from "@/components/ui/button";
+import { FormError, SubmitButton } from "@/components/auth/FormMessages";
 import { registerSchema, type RegisterInput } from "@/lib/validations/auth";
 
 type RegisterValues = RegisterInput;
@@ -84,14 +84,10 @@ export function RegisterForm() {
       <FormField id="confirmPassword" label="Confirm password" type="password"
         autoComplete="new-password" value={values.confirmPassword} onChange={handleChange}
         error={fieldErrors.confirmPassword} />
-      {formError && (
-        <p role="alert" className="text-sm text-destructive">
-          {formError}
-        </p>
-      )}
-      <Button type="submit" size="lg" className="w-full" disabled={isPending}>
-        {isPending ? "Creating account..." : "Create account"}
-      </Button>
+      <FormError message={formError} />
+      <SubmitButton pending={isPending} pendingLabel="Creating account...">
+        Create account
+      </SubmitButton>
     </form>
   );
 }

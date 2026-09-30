@@ -31,6 +31,12 @@ export interface CollectionDetail {
   isFavorite: boolean;
 }
 
+// The fields of the new and edit collection forms
+export interface CollectionFormValues {
+  name: string;
+  description: string;
+}
+
 // A collection an item can be added to, for the item forms' picker
 export interface CollectionOption {
   id: string;

@@ -3,7 +3,7 @@
 import { Pin } from "lucide-react";
 import { CopyButton } from "@/components/items/CopyButton";
 import { ItemFavoriteButton } from "@/components/items/ItemFavoriteButton";
-import { useItemDrawer } from "@/components/items/ItemDrawerProvider";
+import { ItemOpenOverlay } from "@/components/items/ItemOpenOverlay";
 import type { ItemSummary } from "@/types/items";
 import {
   ITEM_TYPE_BORDER_COLORS,
@@ -28,7 +28,6 @@ const TOUCH_ICON_BUTTON = "size-10 sm:size-6";
 export function ItemCard({ item }: ItemCardProps) {
   const { type } = item;
   const Icon = ITEM_TYPE_ICONS[type.icon];
-  const { openItem, prefetchItem } = useItemDrawer();
 
   return (
     <article
@@ -37,15 +36,7 @@ export function ItemCard({ item }: ItemCardProps) {
         ITEM_TYPE_BORDER_COLORS[type.slug]
       )}
     >
-      {/* Covers the whole card so a click anywhere opens the drawer */}
-      <button
-        type="button"
-        aria-label={`Open ${item.title}`}
-        onClick={() => openItem(item)}
-        onPointerEnter={() => prefetchItem(item.id)}
-        onFocus={() => prefetchItem(item.id)}
-        className="absolute inset-0 cursor-pointer rounded-xl focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
-      />
+      <ItemOpenOverlay item={item} className="rounded-xl focus-visible:ring-primary" />
       <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted">
         {Icon && (
           <Icon

@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { updateCollection, type UpdateCollectionFieldErrors } from "@/actions/collections";
-import { ItemFormField } from "@/components/items/ItemFormField";
+import { CollectionFormFields } from "@/components/collections/CollectionFormFields";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,18 +15,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import type { CollectionFormValues } from "@/types/collections";
 
 interface EditCollectionDialogProps {
   collection: { id: string; name: string; description: string | null };
   open: boolean;
   onOpenChange: (open: boolean) => void;
-}
-
-interface CollectionFormValues {
-  name: string;
-  description: string;
 }
 
 export function EditCollectionDialog({
@@ -59,11 +53,9 @@ export function EditCollectionDialog({
   }
 
   // Editing a field clears its error so fixed fields stop showing one
-  function setValue(field: keyof CollectionFormValues) {
-    return (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      setValues((prev) => ({ ...prev, [field]: event.target.value }));
-      setFieldErrors((prev) => ({ ...prev, [field]: undefined }));
-    };
+  function setValue(field: keyof CollectionFormValues, value: string) {
+    setValues((prev) => ({ ...prev, [field]: value }));
+    setFieldErrors((prev) => ({ ...prev, [field]: undefined }));
   }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -90,27 +82,12 @@ export function EditCollectionDialog({
           <DialogDescription>Update the collection&apos;s name and description.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <ItemFormField id="edit-collection-name" label="Name" error={fieldErrors.name}>
-            {(props) => (
-              <Input
-                {...props}
-                value={values.name}
-                onChange={setValue("name")}
-                placeholder="React Patterns"
-                required
-                autoFocus
-              />
-            )}
-          </ItemFormField>
-          <ItemFormField
-            id="edit-collection-description"
-            label="Description"
-            error={fieldErrors.description}
-          >
-            {(props) => (
-              <Textarea {...props} value={values.description} onChange={setValue("description")} />
-            )}
-          </ItemFormField>
+          <CollectionFormFields
+            idPrefix="edit-collection"
+            values={values}
+            errors={fieldErrors}
+            onChange={setValue}
+          />
 
           <DialogFooter>
             <DialogClose render={<Button variant="outline" disabled={isPending} />}>

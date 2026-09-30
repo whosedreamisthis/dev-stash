@@ -1,6 +1,6 @@
 "use client";
 
-import { useItemDrawer } from "@/components/items/ItemDrawerProvider";
+import { ItemOpenOverlay } from "@/components/items/ItemOpenOverlay";
 import { FAVORITE_DATE_FORMATTER, FAVORITE_ROW_CLASS } from "@/lib/favorites";
 import { ITEM_TYPE_ICONS, ITEM_TYPE_TEXT_COLORS } from "@/lib/item-type-icons";
 import { cn } from "@/lib/utils";
@@ -13,19 +13,10 @@ interface FavoriteItemRowProps {
 export function FavoriteItemRow({ item }: FavoriteItemRowProps) {
   const { type } = item;
   const Icon = ITEM_TYPE_ICONS[type.icon];
-  const { openItem, prefetchItem } = useItemDrawer();
 
   return (
     <li className={FAVORITE_ROW_CLASS}>
-      {/* Covers the whole row so a click anywhere opens the drawer */}
-      <button
-        type="button"
-        aria-label={`Open ${item.title}`}
-        onClick={() => openItem(item)}
-        onPointerEnter={() => prefetchItem(item.id)}
-        onFocus={() => prefetchItem(item.id)}
-        className="absolute inset-0 cursor-pointer focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-inset"
-      />
+      <ItemOpenOverlay item={item} className="focus-visible:ring-inset" />
       {Icon && (
         <Icon
           aria-hidden

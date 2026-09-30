@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Image as ImageIcon, Pin } from "lucide-react";
 import { ItemFavoriteButton } from "@/components/items/ItemFavoriteButton";
-import { useItemDrawer } from "@/components/items/ItemDrawerProvider";
+import { ItemOpenOverlay } from "@/components/items/ItemOpenOverlay";
 import { ITEM_TYPE_BORDER_COLORS } from "@/lib/item-type-icons";
 import { cn } from "@/lib/utils";
 import type { ItemSummary } from "@/types/items";
@@ -13,7 +13,6 @@ interface ImageThumbnailCardProps {
 }
 
 export function ImageThumbnailCard({ item }: ImageThumbnailCardProps) {
-  const { openItem, prefetchItem } = useItemDrawer();
   const [hasError, setHasError] = useState(false);
 
   return (
@@ -23,15 +22,7 @@ export function ImageThumbnailCard({ item }: ImageThumbnailCardProps) {
         ITEM_TYPE_BORDER_COLORS[item.type.slug]
       )}
     >
-      {/* Covers the whole card so a click anywhere opens the drawer */}
-      <button
-        type="button"
-        aria-label={`Open ${item.title}`}
-        onClick={() => openItem(item)}
-        onPointerEnter={() => prefetchItem(item.id)}
-        onFocus={() => prefetchItem(item.id)}
-        className="absolute inset-0 z-10 cursor-pointer rounded-xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-      />
+      <ItemOpenOverlay item={item} className="z-10 rounded-xl" />
       {/* Clips the hover zoom so the image stays inside the card */}
       <div className="aspect-video overflow-hidden bg-muted">
         {hasError ? (
